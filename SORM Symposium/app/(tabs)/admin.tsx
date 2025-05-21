@@ -1,5 +1,7 @@
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
 import { useState } from "react";
-import { View, TextInput, Text, Button } from "react-native";
+import { View, TextInput, Button } from "react-native";
 
 const TEMPORARY_PIN = "1234";
 
@@ -16,20 +18,20 @@ export default function Admin() {
 
   if (pin === TEMPORARY_PIN) {
     return (
-      <View>
-        <Text>Welcome to the admin panel!</Text>
+      <ThemedView>
+        <ThemedText>Welcome to the admin panel!</ThemedText>
         <Button onPress={resetPin} title="Go back" />
-      </View>
+      </ThemedView>
     );
   }
 
   return (
-    <View>
+    <ThemedView>
       <TextInput
         value={pin}
         onChangeText={handlePinChange}
         placeholder="Enter PIN"
       />
-    </View>
+    </ThemedView>
   );
 }

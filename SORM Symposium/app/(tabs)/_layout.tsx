@@ -2,14 +2,15 @@ import { Tabs } from "expo-router";
 import {Platform} from 'react-native';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useColorScheme} from "react-native";
+import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 
+export default function TabLayout() {
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+      tabBarActiveTintColor: Colors[useColorScheme() ?? 'light'].tint,
       headerShown: false,
       tabBarButton: HapticTab,
       tabBarBackground: TabBarBackground,
