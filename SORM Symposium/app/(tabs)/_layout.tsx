@@ -7,9 +7,6 @@ import { Colors } from "@/constants/Colors";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs screenOptions={{
       tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -27,6 +24,15 @@ export default function TabLayout() {
           title: "Home",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="house.fill" color={color} size={28} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: "Admin",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="person.fill" color={color} size={28} />
           ),
         }}
       />

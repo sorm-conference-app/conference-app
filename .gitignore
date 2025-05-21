@@ -1,6 +1,6 @@
 
 SORM Symposium/node_modules/
 
-SORM Symposium/expo-env.d.ts/
+**/pnpm-lock.yaml
 
-SORM Symposium/.expo/types/router.d.ts
+**/.expo/**
