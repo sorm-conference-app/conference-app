@@ -5,6 +5,8 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
+import { Announcement } from "@/components/Announcement";
+import { announcements } from "@/app/announcement/announcements";
 
 const width = () => Math.min(Dimensions.get('window').width, 500);
 const height = () => width() * 182 / 500;
@@ -30,8 +32,15 @@ export default function Index() {
           You can also find more info at <ExternalLink href="https://www.sorm.state.tx.us/continuity-council-events/sorm-symposium/">SORM's website</ExternalLink>.
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.partContainer}>
-        <ThemedText>Navigate using the tabs below.</ThemedText>
+      <ThemedView style={styles.announcementContainer}>
+        <ThemedText type="subtitle">Latest Announcements</ThemedText>
+        {announcements.map((announcement) => (
+          <Announcement
+            key={announcement.id}
+            title={announcement.title}
+            body={announcement.body}
+          />
+        ))}
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -47,6 +56,15 @@ const styles = StyleSheet.create({
   partContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  announcementContainer: {
+    gap: 8,
+    marginBottom: 8,
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: 'white',
+    backgroundColor: Colors.dark.tabBarBackground,
   },
   logoImage: {
     bottom: 0,
