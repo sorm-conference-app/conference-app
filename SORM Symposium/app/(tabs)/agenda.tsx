@@ -1,10 +1,11 @@
 import { StyleSheet } from "react-native";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
 // Placeholder data for agenda items
 const placeholderAgendaItems = [
@@ -32,6 +33,13 @@ export default function AgendaScreen() {
   const colorScheme = useColorScheme();
   const tintColor = Colors[colorScheme ?? "light"].tint;
 
+  const navigateToEvent = (id: string) => {
+    router.push({
+      pathname: "/event/[id]",
+      params: { id },
+    });
+  };
+
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen
@@ -46,13 +54,35 @@ export default function AgendaScreen() {
             Today's Schedule
           </ThemedText>
           {placeholderAgendaItems.map((item) => (
-            <View key={item.id} style={styles.agendaItem}>
-              <ThemedText style={styles.title} type="defaultSemiBold">
-                {item.title}
-              </ThemedText>
-              <ThemedText style={styles.time}>{item.time}</ThemedText>
-              <ThemedText style={styles.location}>{item.location}</ThemedText>
-            </View>
+            <Pressable
+              key={item.id}
+              style={({ pressed }) => [
+                styles.agendaItem,
+                pressed && styles.agendaItemPressed,
+              ]}
+              onPress={() => navigateToEvent(item.id)}
+            >
+              <ThemedView style={styles.agendaContent}>
+                <ThemedText style={styles.title} type="defaultSemiBold">
+                  {item.title}
+                </ThemedText>
+                <ThemedView style={styles.infoRow}>
+                  <IconSymbol name="clock.fill" size={16} color="#666" />
+                  <ThemedText style={styles.time}>{item.time}</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.infoRow}>
+                  <IconSymbol
+                    name="mappin.circle.fill"
+                    size={16}
+                    color="#666"
+                  />
+                  <ThemedText style={styles.location}>
+                    {item.location}
+                  </ThemedText>
+                </ThemedView>
+              </ThemedView>
+              <IconSymbol name="chevron.right" size={20} color="#666" />
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -78,14 +108,28 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  agendaItemPressed: {
+    opacity: 0.7,
+  },
+  agendaContent: {
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
   },
   title: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   time: {
-    marginBottom: 4,
+    flex: 1,
   },
   location: {
-    opacity: 0.8,
+    flex: 1,
   },
 });
