@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "YourAppName",
-    "slug": "YourAppName",
+    "slug": "conference-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "03c62145-d839-4afe-96d4-c51a703f9add"
+      }
+    },
+    "owner": "sorm-conference-app"
   }
 }
