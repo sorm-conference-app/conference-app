@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextLayoutEventData, Pressable } from "react-native";
 import { ThemedView } from "./ThemedView";
 import { ThemedText } from "./ThemedText";
@@ -13,14 +13,21 @@ type AnnouncementProps = {
 
 export function Announcement({ title, body, useTruncation = true }: AnnouncementProps) {
   const [showFullText, setShowFullText] = useState(true);
+  const [lineCount, setLineCount] = useState(0);
+  const hasCheckedLines = useRef(false);
   const colorScheme = useColorScheme() ?? 'light';
 
   const handleTextLayout = (event: { nativeEvent: TextLayoutEventData }) => {
     const { lines } = event.nativeEvent;
-    if (useTruncation && lines.length > 2) {
-      setShowFullText(false);
-    }
+    setLineCount(lines.length);
   };
+
+  useEffect(() => {
+    if (!hasCheckedLines.current && useTruncation && lineCount > 2) {
+      setShowFullText(false);
+      hasCheckedLines.current = true;
+    }
+  }, [lineCount, useTruncation]);
 
   return (
     <Pressable onPress={() => useTruncation && setShowFullText(!showFullText)}>
