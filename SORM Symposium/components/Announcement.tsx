@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, TextLayoutEventData, Pressable } from "react-native";
 import { ThemedView } from "./ThemedView";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -10,15 +10,30 @@ type AnnouncementProps = {
 };
 
 export function Announcement({ title, body}: AnnouncementProps) {
+  const [showFullText, setShowFullText] = useState(true);
+
+  const handleTextLayout = (event: { nativeEvent: TextLayoutEventData }) => {
+    const { lines } = event.nativeEvent;
+    if (lines.length > 2) {
+      setShowFullText(false);
+    }
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="defaultSemiBold" style={styles.title}>
-        {title}
-      </ThemedText>
-      <ThemedText style={styles.body}>
-        {body}
-      </ThemedText>
-    </ThemedView>
+    <Pressable onPress={() => setShowFullText(!showFullText)}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="defaultSemiBold" style={styles.title}>
+          {title}
+        </ThemedText>
+        <ThemedText 
+          style={styles.body}
+          onTextLayout={handleTextLayout}
+          numberOfLines={showFullText ? undefined : 2}
+        >
+          {body}
+        </ThemedText>
+      </ThemedView>
+    </Pressable>
   );
 }
 

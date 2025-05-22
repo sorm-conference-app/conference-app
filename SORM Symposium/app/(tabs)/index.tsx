@@ -34,6 +34,7 @@ export default function Index() {
       </ThemedView>
       <ThemedView style={styles.announcementContainer}>
         <ThemedText type="subtitle">Latest Announcements</ThemedText>
+        <ThemedText>Tap to expand/collapse</ThemedText>
         {announcements.map((announcement) => (
           <Announcement
             key={announcement.id}
