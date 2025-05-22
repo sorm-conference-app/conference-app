@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ExpoPushTokenContext } from "@/context/ExpoPushTokenProvider";
+import { ExpoPushTokenContext } from "@/components/ExpoPushTokenProvider";
 
 /**
  * A custom hook to access the Expo Push Token.
