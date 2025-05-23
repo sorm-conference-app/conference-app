@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -14,7 +15,6 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: true,
     shouldSetBadge: false,
-    shouldShowAlert: true,
     shouldShowBanner: true,
     shouldShowList: true,
   }),
@@ -27,6 +27,10 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
     // See
     // https://docs.expo.dev/push-notifications/push-notifications-setup/#add-a-minimal-working-example
     async function registerForPushNotificationsAsync() {
+      if (Platform.OS === "web") {
+        console.warn("Push notifications are not supported on web.");
+        return;
+      }
       if (!Device.isDevice) {
         throw new Error("Not a real device.");
       }
