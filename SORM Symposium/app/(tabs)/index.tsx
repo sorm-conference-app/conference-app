@@ -21,7 +21,7 @@ export default function Index() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.tint }}
+      headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.secondaryBackgroundColor }}
       headerImage={
         <Image 
           source={require('@/assets/images/sorm-logo.png')} 
@@ -41,8 +41,8 @@ export default function Index() {
       </ThemedView>
       <ThemedView style={[
         styles.announcementContainer,
-        { backgroundColor: Colors[colorScheme].tabBarBackground },
-        { borderColor: Colors[colorScheme].text },
+        { 
+          backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
           borderColor: Colors[colorScheme].text 
         }
       ]}>
