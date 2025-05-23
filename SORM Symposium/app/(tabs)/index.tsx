@@ -1,15 +1,24 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, View } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
+import { Announcement } from "@/components/Announcement";
+import { announcements } from "@/app/announcement/announcementList";
+import { router } from "expo-router";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 const width = () => Math.min(Dimensions.get('window').width, 500);
 const height = () => width() * 182 / 500;
 
 export default function Index() {
+  const navigateToAllAnnouncements = () => {
+    router.push("/announcement/announcementList");
+  };
+  const colorScheme = useColorScheme() ?? 'light';
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.tint }}
@@ -30,8 +39,30 @@ export default function Index() {
           You can also find more info at <ExternalLink href="https://www.sorm.state.tx.us/continuity-council-events/sorm-symposium/">SORM's website</ExternalLink>.
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.partContainer}>
-        <ThemedText>Navigate using the tabs below.</ThemedText>
+      <ThemedView style={[
+        styles.announcementContainer, 
+        { backgroundColor: Colors[colorScheme].tabBarBackground },
+        { borderColor: Colors[colorScheme].text },
+        ]}>
+        <ThemedText type="subtitle" style={[{ textAlign: 'center' }]}>Latest Announcements</ThemedText>
+        <ThemedText style={[{ textAlign: 'center' }]}>Tap to expand/collapse</ThemedText>
+        {announcements.slice(0, 3).map((announcement) => (
+          <Announcement
+            key={announcement.id}
+            title={announcement.title}
+            body={announcement.body}
+            useTruncation={true}
+          />
+        ))}
+        <View style={styles.linkContainer}>
+          <ThemedText 
+            type="link" 
+            onPress={navigateToAllAnnouncements}
+            style={styles.viewAllLink}
+          >
+            View all announcements
+          </ThemedText>
+        </View>
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -48,9 +79,32 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
+  announcementContainer: {
+    gap: 8,
+    marginBottom: 8,
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: 'white',
+    backgroundColor: Colors.dark.tabBarBackground,
+  },
   logoImage: {
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  linkContainer: {
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 4,
+    borderWidth: 1,
+    borderColor: 'white',
+    borderRadius: 12,
+    backgroundColor: Colors.dark.text,
+  },
+  viewAllLink: {
+    marginTop: 8,
+    textAlign: 'center',
+    color: Colors.dark.link,
   },
 });
