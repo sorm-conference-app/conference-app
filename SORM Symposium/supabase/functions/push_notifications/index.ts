@@ -10,19 +10,19 @@ console.log("Hello from Functions!");
 
 // https://supabase.com/docs/guides/functions/examples/push-notifications?queryGroups=platform&platform=expo
 
-type Notification = {
-  id: string;
-  user_id: string;
-  title: string;
+type Announcement = {
+  id: number;
+  created_at: Date;
   body: string;
+  title: string | null;
 };
 
 type WebhookPayload = {
   type: "INSERT" | "UPDATE" | "DELETE";
   table: string;
-  record: Notification;
+  record: Announcement;
   schema: "public";
-  old_record?: Notification;
+  old_record?: Announcement;
 };
 
 const supabase = createClient(
@@ -32,26 +32,61 @@ const supabase = createClient(
 
 Deno.serve(async (req) => {
   const payload: WebhookPayload = await req.json();
-  const { data } = await supabase
-    .from("test_profiles")
-    .select("expo_push_token")
-    .eq("id", payload.record.user_id)
-    .single();
 
-  const res = await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${Deno.env.get("EXPO_PUSH_NOTIFICATIONS_ACCESS_TOKEN")}`,
-    },
-    body: JSON.stringify({
-      to: data.expo_push_token,
-      sound: "default",
-      body: payload.record.body,
-    }),
-  }).then((res) => res.json());
+  let currentOffset = 0;
+  let shouldContinue = true;
+  const EXPO_LIMIT = 100;
+  const responses = [];
 
-  return new Response(JSON.stringify(res), {
+  // Perform a paginated query to send push notifications
+  // to all expo_push_tokens
+  while (shouldContinue) {
+    const { data, error } = await supabase
+      .from("test_profiles")
+      .select("expo_push_token")
+      .range(currentOffset, currentOffset + EXPO_LIMIT - 1);
+
+    if (error) {
+      console.error("Error fetching expo_push_tokens:", error);
+      return new Response("Error fetching expo_push_tokens", { status: 500 });
+    }
+
+    if (!data) {
+      console.error("No expo_push_tokens found");
+      return new Response("No expo_push_tokens found", { status: 404 });
+    }
+
+    // Send push notifications to the expo_push_tokens
+    const tokens = data.map(
+      (item: { expo_push_token: string }) => item.expo_push_token,
+    );
+
+    const res = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("EXPO_PUSH_NOTIFICATIONS_ACCESS_TOKEN")}`,
+      },
+      body: JSON.stringify({
+        to: tokens,
+        title: payload.record.title,
+        body: payload.record.body,
+        sound: "default",
+      }),
+    }).then((res) => res.json());
+
+    responses.push(res);
+
+    if (data.length < EXPO_LIMIT) {
+      // Likely that this is the last page of results.
+      // We can stop paginating.
+      shouldContinue = false;
+    } else {
+      currentOffset += EXPO_LIMIT;
+    }
+  }
+
+  return new Response(JSON.stringify({ code: 200, responses }), {
     headers: { "Content-Type": "application/json" },
   });
 });
