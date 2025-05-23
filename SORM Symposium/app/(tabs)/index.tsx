@@ -5,46 +5,11 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
-import { Button } from "react-native";
-import useExpoPushToken from "@/hooks/useExpoPushToken";
 
 const width = () => Math.min(Dimensions.get("window").width, 500);
 const height = () => (width() * 182) / 500;
 
 export default function Index() {
-  const expoPushToken = useExpoPushToken();
-
-  async function sendNotification() {
-    if (!expoPushToken) {
-      console.error("Expo push token is not available.");
-      return;
-    }
-    
-    const message = {
-      to: expoPushToken,
-      sound: "default",
-      title: "Test Notification",
-      body: "This is a test notification.",
-      data: { someData: "goes here" },
-    };
-    
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(message),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Notification sent successfully:", data);
-      })
-      .catch((error) => {
-        console.error("Error sending notification:", error);
-    });
-  }
-  
   return (
     <ParallaxScrollView
       headerBackgroundColor={{
@@ -80,8 +45,6 @@ export default function Index() {
       <ThemedView style={styles.partContainer}>
         <ThemedText>Navigate using the tabs below.</ThemedText>
       </ThemedView>
-
-      <Button onPress={sendNotification} title="Send a notification." />
     </ParallaxScrollView>
   );
 }
