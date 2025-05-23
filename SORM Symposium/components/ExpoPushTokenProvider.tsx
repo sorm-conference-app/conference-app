@@ -2,8 +2,10 @@ import { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import saveExpoPushToken from "@/api/saveExpoPushToken";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -56,10 +58,27 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
         throw new Error("Project ID not found.");
       }
 
+      let deviceId: string;
+      if (Platform.OS === "android") {
+        deviceId = Application.getAndroidId();
+      } else if (Platform.OS === "ios") {
+        const id = await Application.getIosIdForVendorAsync();
+        if (!id) {
+          // Properly handle this better in the future...
+          // Perhaps show a modal or something
+          throw new Error("iOS ID for vendor not found.");
+        }
+        deviceId = id;
+      } else {
+        throw new Error("Cannot retrieve device ID: Unsupported platform.");
+      }
+
       const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
         .data;
 
       setToken(token);
+
+      await saveExpoPushToken(token, deviceId);
     }
 
     const notificationListener = Notifications.addNotificationReceivedListener(
