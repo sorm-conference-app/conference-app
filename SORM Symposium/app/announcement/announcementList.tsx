@@ -4,6 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Stack } from "expo-router";
 import { Announcement } from "@/components/Announcement";
 import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "react-native";
 
 type Announcement = {
   id: string;
@@ -42,7 +43,7 @@ export const announcements: Announcement[] = [
 
 export default function AnnouncementsScreen() {
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: Colors[useColorScheme() ?? 'light'].secondaryBackgroundColor }]}>
       <Stack.Screen
         options={{
           title: "Announcements",
@@ -68,7 +69,6 @@ export default function AnnouncementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.tabBarBackground,
   },
   scrollView: {
     flex: 1,

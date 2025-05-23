@@ -5,6 +5,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import React from "react";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Colors } from "@/constants/Colors";
 
 type Speaker = {
   name: string;
@@ -69,6 +71,7 @@ const eventDetails: EventDatabase = {
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
   const event = eventDetails[id as keyof typeof eventDetails];
+  const colorScheme = useColorScheme() ?? 'light';
 
   if (!event) {
     return (
@@ -99,12 +102,12 @@ export default function EventDetailScreen() {
 
         <ThemedView style={styles.infoSection}>
           <ThemedView style={styles.infoRow}>
-            <IconSymbol name="clock.fill" size={20} color="#666" />
+            <IconSymbol name="clock.fill" size={20} color={Colors[colorScheme].tabIconDefault} />
             <ThemedText style={styles.infoText}>{event.time}</ThemedText>
           </ThemedView>
 
           <ThemedView style={styles.infoRow}>
-            <IconSymbol name="mappin.circle.fill" size={20} color="#666" />
+            <IconSymbol name="mappin.circle.fill" size={20} color={Colors[colorScheme].tabIconDefault} />
             <ThemedText style={styles.infoText}>{event.location}</ThemedText>
           </ThemedView>
         </ThemedView>

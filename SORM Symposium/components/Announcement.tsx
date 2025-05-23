@@ -34,7 +34,7 @@ export function Announcement({ title, body, useTruncation = true }: Announcement
       <ThemedView style={
         [styles.container, 
         { backgroundColor: Colors[colorScheme].background },
-        { borderColor: Colors[colorScheme].text },
+        { borderColor: Colors[colorScheme].tint },
         ]}>
         <ThemedText type="defaultSemiBold" style={styles.title}>
           {title}
@@ -56,7 +56,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'white',
     marginBottom: 12,
   },
   title: {
