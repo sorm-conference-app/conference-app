@@ -30,8 +30,7 @@ const placeholderAgendaItems = [
 ];
 
 export default function AgendaScreen() {
-  const colorScheme = useColorScheme();
-  const tintColor = Colors[colorScheme ?? "light"].tint;
+  const tintColor = Colors[useColorScheme() ?? "light"].tint;
 
   const navigateToEvent = (id: string) => {
     router.push({
@@ -67,21 +66,21 @@ export default function AgendaScreen() {
                   {item.title}
                 </ThemedText>
                 <ThemedView style={styles.infoRow}>
-                  <IconSymbol name="clock.fill" size={16} color="#666" />
+                  <IconSymbol name="clock.fill" size={16} color={tintColor} />
                   <ThemedText style={styles.time}>{item.time}</ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.infoRow}>
                   <IconSymbol
                     name="mappin.circle.fill"
                     size={16}
-                    color="#666"
+                    color={tintColor}
                   />
                   <ThemedText style={styles.location}>
                     {item.location}
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
-              <IconSymbol name="chevron.right" size={20} color="#666" />
+              <IconSymbol name="chevron.right" size={20} color={tintColor} />
             </Pressable>
           ))}
         </View>

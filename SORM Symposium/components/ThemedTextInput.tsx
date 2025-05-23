@@ -3,22 +3,15 @@ import type { TextInputProps } from "react-native";
 
 import { useThemeColor } from "@/hooks/useThemeColor";
 
-type ThemedTextInputProps = TextInputProps & {
-  lightColor?: string;
-  darkColor?: string;
-};
+type ThemedTextInputProps = TextInputProps;
 
 export default function ThemedTextInput({
   style,
-  lightColor,
-  darkColor,
   ...props
 }: ThemedTextInputProps) {
-  const backgroundColor = useThemeColor(
-    { light: lightColor, dark: darkColor },
-    "background",
-  );
+  const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const borderColor = useThemeColor({}, "tint");
 
   return (
     <TextInput
@@ -29,7 +22,7 @@ export default function ThemedTextInput({
           borderRadius: 5,
           color: textColor,
           borderWidth: 1,
-          borderColor: "gray",
+          borderColor,
         },
         style,
       ]}
