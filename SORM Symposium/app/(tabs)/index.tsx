@@ -21,7 +21,7 @@ export default function Index() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.tint }}
+      headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.secondaryBackgroundColor }}
       headerImage={
         <Image 
           source={require('@/assets/images/sorm-logo.png')} 
@@ -40,10 +40,12 @@ export default function Index() {
         </ThemedText>
       </ThemedView>
       <ThemedView style={[
-        styles.announcementContainer, 
-        { backgroundColor: Colors[colorScheme].tabBarBackground },
-        { borderColor: Colors[colorScheme].text },
-        ]}>
+        styles.announcementContainer,
+        { 
+          backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+          borderColor: Colors[colorScheme].text 
+        }
+      ]}>
         <ThemedText type="subtitle" style={[{ textAlign: 'center' }]}>Latest Announcements</ThemedText>
         <ThemedText style={[{ textAlign: 'center' }]}>Tap to expand/collapse</ThemedText>
         {announcements.slice(0, 3).map((announcement) => (
@@ -54,11 +56,20 @@ export default function Index() {
             useTruncation={true}
           />
         ))}
-        <View style={styles.linkContainer}>
+        <View style={[
+          styles.linkContainer,
+          {
+            borderColor: Colors[colorScheme].tint,
+            backgroundColor: Colors[colorScheme].background
+          }
+        ]}>
           <ThemedText 
             type="link" 
             onPress={navigateToAllAnnouncements}
-            style={styles.viewAllLink}
+            style={[
+              styles.viewAllLink,
+              { color: Colors[colorScheme].text }
+            ]}
           >
             View all announcements
           </ThemedText>
@@ -85,8 +96,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
     borderWidth: 3,
-    borderColor: 'white',
-    backgroundColor: Colors.dark.tabBarBackground,
   },
   logoImage: {
     bottom: 0,
@@ -98,13 +107,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 4,
     borderWidth: 1,
-    borderColor: 'white',
     borderRadius: 12,
-    backgroundColor: Colors.dark.text,
   },
   viewAllLink: {
-    marginTop: 8,
+    marginTop: 4,
     textAlign: 'center',
-    color: Colors.dark.link,
   },
 });
