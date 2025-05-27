@@ -10,8 +10,8 @@ import { announcements } from "@/app/announcement/announcementList";
 import { router } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
-const width = () => Math.min(Dimensions.get('window').width, 500);
-const height = () => width() * 182 / 500;
+const width = () => Math.min(Dimensions.get("window").width, 500);
+const height = () => (width() * 182) / 500;
 
 export default function Index() {
   const navigateToAllAnnouncements = () => {
@@ -23,20 +23,29 @@ export default function Index() {
     <ParallaxScrollView
       headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.secondaryBackgroundColor }}
       headerImage={
-        <Image 
-          source={require('@/assets/images/sorm-logo.png')} 
+        <Image
+          source={require("@/assets/images/sorm-logo.png")}
           style={[styles.logoImage, { width: width(), height: height() }]}
-        />}
+        />
+      }
     >
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome to the SORM Symposium!</ThemedText>
       </ThemedView>
       <ThemedView style={styles.partContainer}>
-        <ThemedText>The SORM Symposium will take place August 13-15 in College Station, Texas.</ThemedText>
+        <ThemedText>
+          The SORM Symposium will take place August 13-15 in College Station,
+          Texas.
+        </ThemedText>
       </ThemedView>
       <ThemedView style={styles.partContainer}>
-        <ThemedText>Here you will be able to find information on symposium events, speakers, and announcements.
-          You can also find more info at <ExternalLink href="https://www.sorm.state.tx.us/continuity-council-events/sorm-symposium/">SORM's website</ExternalLink>.
+        <ThemedText>
+          Here you will be able to find information on symposium events,
+          speakers, and announcements. You can also find more info at{" "}
+          <ExternalLink href="https://www.sorm.state.tx.us/continuity-council-events/sorm-symposium/">
+            SORM's website
+          </ExternalLink>
+          .
         </ThemedText>
       </ThemedView>
       <ThemedView style={[
@@ -81,8 +90,8 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 8,
   },
@@ -100,7 +109,7 @@ const styles = StyleSheet.create({
   logoImage: {
     bottom: 0,
     left: 0,
-    position: 'absolute',
+    position: "absolute",
   },
   linkContainer: {
     alignSelf: 'center',
