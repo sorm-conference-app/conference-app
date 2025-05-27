@@ -23,6 +23,7 @@ const MAPPING = {
   "clock.fill": "access-time",
   "mappin.circle.fill": "location-on",
   "chevron.right": "chevron-right",
+  "info.circle.fill": "info",
 } as IconMapping;
 
 /**
