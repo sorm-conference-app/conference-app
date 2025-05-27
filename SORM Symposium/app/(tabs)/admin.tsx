@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
-import { Button } from "react-native";
+import { Button, SafeAreaView } from "react-native";
 
 const TEMPORARY_PIN = "1234";
 
@@ -20,21 +20,25 @@ export default function Admin() {
 
   if (pin === TEMPORARY_PIN) {
     return (
-      <ThemedView>
-        <ThemedText>Welcome to the admin panel!</ThemedText>
-        <AnnouncementForm />
-        <Button onPress={resetPin} title="Go back" />
-      </ThemedView>
+      <SafeAreaView>
+        <ThemedView>
+          <ThemedText>Welcome to the admin panel!</ThemedText>
+          <AnnouncementForm />
+          <Button onPress={resetPin} title="Go back" />
+        </ThemedView>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ThemedView>
-      <ThemedTextInput
-        value={pin}
-        onChangeText={handlePinChange}
-        placeholder="Enter PIN"
-      />
-    </ThemedView>
+    <SafeAreaView>
+      <ThemedView>
+        <ThemedTextInput
+          value={pin}
+          onChangeText={handlePinChange}
+          placeholder="Enter PIN"
+        />
+      </ThemedView>
+    </SafeAreaView>
   );
 }
