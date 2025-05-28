@@ -25,8 +25,8 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   "info.circle.fill": "info",
   "xmark.circle.fill": "close",
-  phone: "phone",
-  email: "email",
+  "phone.fill": "phone",
+  "envelope.fill": "email",
 } as IconMapping;
 
 /**

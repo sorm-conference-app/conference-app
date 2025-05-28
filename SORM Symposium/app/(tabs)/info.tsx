@@ -16,6 +16,7 @@ import {
 import { MapViewer } from "@/components/MapViewer";
 import { useState } from "react";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const defaultWidth = () => Math.min(Dimensions.get("window").width, 400);
 const wideHeight = () => Dimensions.get("window").width / 3;
@@ -54,6 +55,7 @@ export default function InfoScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const isWideScreen = screenWidth > 1000;
   const [selectedMap, setSelectedMap] = useState<null | string>(null);
+  const insets = useSafeAreaInsets();
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone.replace(/\./g, "")}`);
@@ -96,7 +98,15 @@ export default function InfoScreen() {
   return (
     <ScrollView
       style={styles.scrollView}
-      contentContainerStyle={styles.scrollViewContent}
+      contentContainerStyle={[
+        styles.scrollViewContent,
+        {
+          paddingBottom: Platform.select({
+            ios: Math.max(insets.bottom + 20, 90),
+            default: 40,
+          }),
+        },
+      ]}
       showsVerticalScrollIndicator={false}
       bounces={true}
       overScrollMode="always"
@@ -191,13 +201,13 @@ export default function InfoScreen() {
                   {contact.name}
                 </ThemedText>
                 <ThemedView style={styles.contactDetail}>
-                  <IconSymbol name="phone" color="#666" size={16} />
+                  <IconSymbol name="phone.fill" color="#666" size={16} />
                   <ThemedText style={styles.contactText}>
                     {contact.phone}
                   </ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.contactDetail}>
-                  <IconSymbol name="email" color="#666" size={16} />
+                  <IconSymbol name="envelope.fill" color="#666" size={16} />
                   <ThemedText style={styles.contactText}>
                     {contact.email}
                   </ThemedText>
@@ -228,12 +238,11 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingTop: 40,
   },
   container: {
     flex: 1,
     alignItems: "center",
-    paddingTop: 40,
-    paddingBottom: 40,
   },
   title: {
     fontSize: 24,
