@@ -8,9 +8,9 @@ export const calculateBounds = (
   
   return {
     minX: containerSize.width - scaledWidth,
-    maxX: 0,
+    maxX: scaledWidth - containerSize.width,
     minY: containerSize.height - scaledHeight,
-    maxY: 0,
+    maxY: scaledHeight - containerSize.height,
   };
 };
 

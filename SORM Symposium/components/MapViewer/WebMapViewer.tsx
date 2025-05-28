@@ -82,7 +82,7 @@ export const WebMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={() => setIsDragging(false)}
       >
         <Image
           source={imageSource}
