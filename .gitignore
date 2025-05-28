@@ -6,3 +6,5 @@ SORM Symposium/node_modules/
 **/.expo/**
 
 .env.local
+
+expo-env.d.ts
