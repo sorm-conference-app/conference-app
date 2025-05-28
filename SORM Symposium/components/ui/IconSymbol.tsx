@@ -24,6 +24,7 @@ const MAPPING = {
   "mappin.circle.fill": "location-on",
   "chevron.right": "chevron-right",
   "info.circle.fill": "info",
+  "xmark.circle.fill": "close",
 } as IconMapping;
 
 /**
