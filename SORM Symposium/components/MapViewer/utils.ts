@@ -3,17 +3,21 @@ export const calculateBounds = (
   imageSize: { width: number; height: number },
   containerSize: { width: number; height: number }
 ) => {
-  const scaledWidth = imageSize.width * scale;
-  const scaledHeight = imageSize.height * scale;
-  
+  'worklet';
+
+  const aspectRatio = imageSize.width / imageSize.height;
+  const scaledWidth = containerSize.width;
+  const scaledHeight = scaledWidth / aspectRatio;
+
   return {
-    minX: containerSize.width - scaledWidth,
-    maxX: scaledWidth - containerSize.width,
-    minY: containerSize.height - scaledHeight,
-    maxY: scaledHeight - containerSize.height,
+    minX: -scaledWidth / 2,
+    maxX: scaledWidth / 2,
+    minY: -scaledHeight / 2,
+    maxY: scaledHeight / 2,
   };
 };
 
 export const clamp = (value: number, min: number, max: number) => {
+  'worklet';
   return Math.min(Math.max(value, min), max);
 }; 

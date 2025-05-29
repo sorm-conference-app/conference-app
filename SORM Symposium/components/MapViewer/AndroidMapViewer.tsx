@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Modal, Dimensions } from 'react-native';
 import { Image, ImageLoadEventData } from 'expo-image';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle,
@@ -17,6 +17,9 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const baseScale = useSharedValue(1);
+  const baseTranslateX = useSharedValue(0);
+  const baseTranslateY = useSharedValue(0);
   const [isLoading, setIsLoading] = useState(true);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -33,40 +36,66 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
   // Android-specific gesture configuration
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      scale.value = scale.value;
+      'worklet';
+      // Store the current scale as our base for this pinch operation
+      baseScale.value = scale.value;
     })
     .onUpdate((e) => {
-      const newScale = clamp(scale.value * (e.scale * 0.8), 1, 4);
-      scale.value = newScale;
+      'worklet';
+      try {
+        // Calculate new scale based on the base scale and gesture scale
+        scale.value = clamp(baseScale.value * e.scale, 1, 4); // Clamp the value between 1 and 4
+      } catch (error) {
+        scale.value = baseScale.value;
+      }
     })
     .onEnd(() => {
+      'worklet';
+      // Apply spring animation when the gesture ends
       if (scale.value < 1) {
         scale.value = withSpring(1);
+      } else {
+        scale.value = withSpring(scale.value);
       }
     });
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      translateX.value = translateX.value;
-      translateY.value = translateY.value;
+      'worklet';
+      // Store the current translation values as our base for this pan operation
+      baseTranslateX.value = translateX.value;
+      baseTranslateY.value = translateY.value;
     })
     .onUpdate((e) => {
+      'worklet';
       if (scale.value > 1) {
-        const bounds = calculateBounds(scale.value, imageSize, containerSize);
-        translateX.value = clamp(e.translationX * 0.8, bounds.minX, bounds.maxX);
-        translateY.value = clamp(e.translationY * 0.8, bounds.minY, bounds.maxY);
+        try {
+          // Calculate the translation based on the current scale and bounds
+          const bounds = calculateBounds(scale.value, imageSize, containerSize);
+          translateX.value = clamp(baseTranslateX.value + (e.translationX / scale.value), bounds.minX, bounds.maxX);
+          translateY.value = clamp(baseTranslateY.value + (e.translationY / scale.value), bounds.minY, bounds.maxY);
+        } catch (error) {
+          // Reset to safe values if something goes wrong
+          translateX.value = withSpring(baseTranslateX.value);
+          translateY.value = withSpring(baseTranslateY.value);
+        }
       }
     })
     .onEnd(() => {
+      'worklet';
       if (scale.value <= 1) {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
+      } else {
+        translateX.value = withSpring(translateX.value);
+        translateY.value = withSpring(translateY.value);
       }
     });
 
   const doubleTapGesture = Gesture.Tap()
     .numberOfTaps(2)
     .onStart(() => {
+      'worklet';
       if (scale.value > 1) {
         scale.value = withSpring(1);
         translateX.value = withSpring(0);
@@ -112,33 +141,35 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View 
-        style={[styles.modal, { backgroundColor: 'rgba(0, 0, 0, 0.9)' }]}
-        onLayout={handleContainerLayout}
-      >
-        <GestureDetector gesture={gesture}>
-          <Animated.View style={[styles.container, animatedStyle]}>
-            <Image
-              source={imageSource}
-              style={[styles.image, { minWidth: '100%', minHeight: '100%' }]}
-              onLoad={handleImageLoad}
-              contentFit="contain"
-            />
-          </Animated.View>
-        </GestureDetector>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View 
+          style={[styles.modal, { backgroundColor: 'rgba(0, 0, 0, 0.9)' }]}
+          onLayout={handleContainerLayout}
+        >
+          <GestureDetector gesture={gesture}>
+            <Animated.View style={[styles.container, animatedStyle]}>
+              <Image
+                source={imageSource}
+                style={[styles.image, { minWidth: '100%', minHeight: '100%' }]}
+                onLoad={handleImageLoad}
+                contentFit="contain"
+              />
+            </Animated.View>
+          </GestureDetector>
 
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#fff" />
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
+
+          <View style={[styles.controls, { top: 40 }]}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <IconSymbol name="xmark.circle.fill" size={32} color="white" />
+            </TouchableOpacity>
           </View>
-        )}
-
-        <View style={[styles.controls, { top: 40 }]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <IconSymbol name="xmark.circle.fill" size={32} color="white" />
-          </TouchableOpacity>
         </View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }; 
