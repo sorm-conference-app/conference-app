@@ -56,6 +56,7 @@ export default function InfoScreen() {
   const isWideScreen = screenWidth > 1000;
   const [selectedMap, setSelectedMap] = useState<null | string>(null);
   const insets = useSafeAreaInsets();
+  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone.replace(/\./g, "")}`);
@@ -110,6 +111,7 @@ export default function InfoScreen() {
       showsVerticalScrollIndicator={false}
       bounces={true}
       overScrollMode="always"
+      scrollEnabled={isScrollEnabled}
     >
       <ThemedView style={styles.container}>
         <ThemedText style={styles.title}>Maps</ThemedText>
@@ -129,7 +131,10 @@ export default function InfoScreen() {
             ]}
           >
             <ThemedText style={styles.mapTitle}>Facility Map</ThemedText>
-            <TouchableOpacity onPress={() => setSelectedMap("esti")}>
+            <TouchableOpacity onPress={() => {
+              setSelectedMap("esti");
+              setIsScrollEnabled(false);
+            }}>
               <Image
                 source={require("@/assets/images/EstiMap.png")}
                 style={[
@@ -156,7 +161,10 @@ export default function InfoScreen() {
             ]}
           >
             <ThemedText style={styles.mapTitle}>Les Bunte Complex</ThemedText>
-            <TouchableOpacity onPress={() => setSelectedMap("bunte")}>
+            <TouchableOpacity onPress={() => {
+              setSelectedMap("bunte");
+              setIsScrollEnabled(false);
+            }}>
               <Image
                 source={require("@/assets/images/BunteSORM.png")}
                 style={[
@@ -226,7 +234,10 @@ export default function InfoScreen() {
             : require("@/assets/images/BunteSORM.png")
         }
         isVisible={selectedMap !== null}
-        onClose={() => setSelectedMap(null)}
+        onClose={() => {
+          setSelectedMap(null);
+          setIsScrollEnabled(true);
+        }}
       />
     </ScrollView>
   );

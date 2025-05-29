@@ -36,7 +36,6 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       scale.value = scale.value;
     })
     .onUpdate((e) => {
-      // More controlled scaling for Android
       const newScale = clamp(scale.value * (e.scale * 0.8), 1, 4);
       scale.value = newScale;
     })
@@ -54,7 +53,6 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
     .onUpdate((e) => {
       if (scale.value > 1) {
         const bounds = calculateBounds(scale.value, imageSize, containerSize);
-        // More controlled panning for Android
         translateX.value = clamp(e.translationX * 0.8, bounds.minX, bounds.maxX);
         translateY.value = clamp(e.translationY * 0.8, bounds.minY, bounds.maxY);
       }

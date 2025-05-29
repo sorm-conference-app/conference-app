@@ -25,7 +25,6 @@ export const WebMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
   }, [isVisible]);
 
   const handleWheel = (e: any) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = clamp(scale * delta, 1, 4);
     setScale(newScale);
@@ -33,21 +32,24 @@ export const WebMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
 
   const handleMouseDown = (e: any) => {
     if (scale > 1) {
+      e.preventDefault();
       setIsDragging(true);
     }
   };
 
   const handleMouseMove = (e: any) => {
     if (isDragging && scale > 1) {
+      e.preventDefault();
       const bounds = calculateBounds(scale, imageSize, containerSize);
       setPosition(prev => ({
-        x: clamp(prev.x + e.movementX, bounds.minX, bounds.maxX),
-        y: clamp(prev.y + e.movementY, bounds.minY, bounds.maxY)
+        x: clamp(prev.x + e.movementX / scale, bounds.minX, bounds.maxX),
+        y: clamp(prev.y + e.movementY / scale, bounds.minY, bounds.maxY)
       }));
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: any) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
