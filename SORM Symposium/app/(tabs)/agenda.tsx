@@ -1,11 +1,8 @@
 import { StyleSheet } from "react-native";
-import { View, ScrollView, Pressable } from "react-native";
+import { View, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Stack, router } from "expo-router";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import AgendaItem from "@/components/AgendaItem";
 
 function convert12HrFormatToSeconds(time: string): number {
@@ -21,6 +18,14 @@ function convert12HrFormatToSeconds(time: string): number {
   return hours * 3600 + minutes * 60;
 }
 
+/**
+ * Determine if two time intervals conflict.
+ * @param startTimeA Start time for first event.
+ * @param endTimeA End time for first event.
+ * @param startTimeB Start time for second event.
+ * @param endTimeB End time for second event.
+ * @returns
+ */
 function areTimesConflicting(
   startTimeA: string,
   endTimeA: string,
@@ -35,22 +40,6 @@ function areTimesConflicting(
   return startA < endB && startB < endA;
 }
 
-function groupBy<T, K extends PropertyKey>(
-  arr: T[],
-  func: (i: T) => K,
-): Record<K, T[]> {
-  return arr.reduce(
-    (acc, item) => {
-      const key = func(item);
-      acc[key] = acc[key] || [];
-      acc[key].push(item);
-
-      return acc;
-    },
-    {} as Record<K, T[]>,
-  );
-}
-
 // Placeholder data for agenda items
 const placeholderAgendaItems = [
   {
@@ -61,6 +50,13 @@ const placeholderAgendaItems = [
     location: "Main Hall",
   },
   {
+    id: "3",
+    title: "Break",
+    startTime: "10:30 AM",
+    endTime: "11:00 AM",
+    location: "Networking Area",
+  },
+  {
     id: "2",
     title: "Opening Keynote",
     startTime: "8:30 AM",
@@ -68,17 +64,15 @@ const placeholderAgendaItems = [
     location: "Auditorium A",
   },
   {
-    id: "3",
-    title: "Break",
-    startTime: "10:30 AM",
-    endTime: "11:00 AM",
-    location: "Networking Area",
+    id: "5",
+    title: "Cringe",
+    startTime: "8:00 AM",
+    endTime: "9:00 AM",
+    location: "Main Hall",
   },
 ];
 
 export default function AgendaScreen() {
-  const tintColor = Colors[useColorScheme() ?? "light"].tint;
-
   const navigateToEvent = (id: string) => {
     router.push({
       pathname: "/event/[id]",
@@ -86,29 +80,41 @@ export default function AgendaScreen() {
     });
   };
 
-  // Check for conflicts in the agenda items
-  // An O(n^2) approach to check conflicts, which is obviously not efficient for most cases.
-  // However, in our case, the number of agenda items will likely small, so this is might be acceptable.
-  // A more efficient algorithm would be to use the Line Sweep Algorithm.
-  const checkConflictItems = placeholderAgendaItems.map((item) => {
-    const conflictingItems = placeholderAgendaItems.filter((otherItem) => {
-      return (
-        otherItem.id !== item.id &&
-        areTimesConflicting(
-          item.startTime,
-          item.endTime,
-          otherItem.startTime,
-          otherItem.endTime,
-        )
-      );
-    });
+  const agendaItems = () => {
+    const conflictIds = new Set<string>();
+    const items = [];
 
-    return {
-      ...item,
-      hasConflict: conflictingItems.length > 0,
-      conflictingItems,
-    };
-  });
+    // Check for conflicts in the agenda items
+    // An O(n^2) approach to check conflicts, which is obviously not efficient for most cases.
+    // However, in our case, the number of agenda items will likely small, so this is might be acceptable.
+    // A more efficient algorithm would be to use something like the Line Sweep Algorithm.
+    for (const item of placeholderAgendaItems) {
+      if (conflictIds.has(item.id)) {
+        continue;
+      }
+
+      const conflicts = placeholderAgendaItems.filter(
+        (conflictItem) =>
+          conflictItem.id !== item.id &&
+          areTimesConflicting(
+            item.startTime,
+            item.endTime,
+            conflictItem.startTime,
+            conflictItem.endTime,
+          ),
+      );
+
+      items.push({
+        ...item,
+        conflictingItems: conflicts,
+      });
+      for (const conflictItem of conflicts) {
+        conflictIds.add(conflictItem.id);
+      }
+    }
+
+    return items;
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -123,18 +129,19 @@ export default function AgendaScreen() {
           Today's Schedule
         </ThemedText>
         <View style={styles.content}>
-          {checkConflictItems.map((item) => {
-            const onPress = () => navigateToEvent(item.id);
-
-            if (item.hasConflict) {
+          {agendaItems().map((item) => {
+            if (item.conflictingItems.length > 0) {
               return (
                 <View key={item.id} style={styles.conflictContent}>
-                  <AgendaItem onPress={onPress} {...item} />
+                  <AgendaItem
+                    onPress={() => navigateToEvent(item.id)}
+                    {...item}
+                  />
                   <View style={{ flex: 1 }}>
                     {item.conflictingItems.map((conflictItem) => (
                       <AgendaItem
                         key={conflictItem.id}
-                        onPress={onPress}
+                        onPress={() => navigateToEvent(conflictItem.id)}
                         {...conflictItem}
                       />
                     ))}
@@ -143,7 +150,13 @@ export default function AgendaScreen() {
               );
             }
 
-            return <AgendaItem key={item.id} onPress={onPress} {...item} />;
+            return (
+              <AgendaItem
+                key={item.id}
+                onPress={() => navigateToEvent(item.id)}
+                {...item}
+              />
+            );
           })}
         </View>
       </ScrollView>
