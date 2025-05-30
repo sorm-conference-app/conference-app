@@ -9,7 +9,7 @@ type IconMapping = Record<
   SymbolViewProps["name"],
   ComponentProps<typeof MaterialIcons>["name"]
 >;
-type IconSymbolName = keyof typeof MAPPING;
+export type IconSymbolName = keyof typeof MAPPING;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -27,6 +27,7 @@ const MAPPING = {
   "xmark.circle.fill": "close",
   "phone.fill": "phone",
   "envelope.fill": "email",
+  "message.fill": "message",
 } as IconMapping;
 
 /**
