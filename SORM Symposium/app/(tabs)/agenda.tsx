@@ -6,6 +6,7 @@ import { Stack, router } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import AgendaItem from "@/components/AgendaItem";
 
 function convert12HrFormatToSeconds(time: string): number {
   const [timePart, modifier] = time.split(" ");
@@ -118,49 +119,31 @@ export default function AgendaScreen() {
         }}
       />
       <ScrollView style={styles.scrollView}>
+        <ThemedText style={styles.header} type="title">
+          Today's Schedule
+        </ThemedText>
         <View style={styles.content}>
-          <ThemedText style={styles.header} type="title">
-            Today's Schedule
-          </ThemedText>
           {checkConflictItems.map((item) => {
-            const conflictingItems = item.conflictingItems
-              .map((i) => `"${i.title}"`)
-              .join(",");
-            return (
-              <Pressable
-                key={item.id}
-                style={({ pressed }) => [
-                  styles.agendaItem,
-                  pressed && styles.agendaItemPressed,
-                ]}
-                onPress={() => navigateToEvent(item.id)}
-              >
-                <ThemedView style={styles.agendaContent}>
-                  <ThemedText style={styles.title} type="defaultSemiBold">
-                    {item.title}
-                  </ThemedText>
-                  <ThemedView style={styles.infoRow}>
-                    <IconSymbol name="clock.fill" size={16} color={tintColor} />
-                    <ThemedText style={styles.time}>
-                      {item.startTime} - {item.endTime}{" "}
-                      {item.hasConflict &&
-                        `(Conflicts with: ${conflictingItems})`}
-                    </ThemedText>
-                  </ThemedView>
-                  <ThemedView style={styles.infoRow}>
-                    <IconSymbol
-                      name="mappin.circle.fill"
-                      size={16}
-                      color={tintColor}
-                    />
-                    <ThemedText style={styles.location}>
-                      {item.location}
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
-                <IconSymbol name="chevron.right" size={20} color={tintColor} />
-              </Pressable>
-            );
+            const onPress = () => navigateToEvent(item.id);
+
+            if (item.hasConflict) {
+              return (
+                <View key={item.id} style={styles.conflictContent}>
+                  <AgendaItem onPress={onPress} {...item} />
+                  <View style={{ flex: 1 }}>
+                    {item.conflictingItems.map((conflictItem) => (
+                      <AgendaItem
+                        key={conflictItem.id}
+                        onPress={onPress}
+                        {...conflictItem}
+                      />
+                    ))}
+                  </View>
+                </View>
+              );
+            }
+
+            return <AgendaItem key={item.id} onPress={onPress} {...item} />;
           })}
         </View>
       </ScrollView>
@@ -178,36 +161,14 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
-  header: {
-    marginBottom: 20,
-  },
-  agendaItem: {
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  agendaItemPressed: {
-    opacity: 0.7,
-  },
-  agendaContent: {
-    flex: 1,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  conflictContent: {
     gap: 8,
-    marginTop: 4,
+    flexDirection: "row",
   },
-  title: {
-    marginBottom: 8,
-  },
-  time: {
-    flex: 1,
-  },
-  location: {
-    flex: 1,
+  header: {
+    marginTop: 16,
+    marginLeft: 16,
+    marginRight: 16,
+    marginBottom: 20,
   },
 });
