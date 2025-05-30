@@ -7,24 +7,70 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 
+function convert12HrFormatToSeconds(time: string): number {
+  const [timePart, modifier] = time.split(" ");
+  let [hours, minutes] = timePart.split(":").map(Number);
+
+  if (modifier.toUpperCase() === "PM" && hours < 12) {
+    hours += 12;
+  } else if (modifier.toUpperCase() === "AM" && hours === 12) {
+    hours = 0;
+  }
+
+  return hours * 3600 + minutes * 60;
+}
+
+function areTimesConflicting(
+  startTimeA: string,
+  endTimeA: string,
+  startTimeB: string,
+  endTimeB: string,
+): boolean {
+  const startA = convert12HrFormatToSeconds(startTimeA);
+  const endA = convert12HrFormatToSeconds(endTimeA);
+  const startB = convert12HrFormatToSeconds(startTimeB);
+  const endB = convert12HrFormatToSeconds(endTimeB);
+
+  return startA < endB && startB < endA;
+}
+
+function groupBy<T, K extends PropertyKey>(
+  arr: T[],
+  func: (i: T) => K,
+): Record<K, T[]> {
+  return arr.reduce(
+    (acc, item) => {
+      const key = func(item);
+      acc[key] = acc[key] || [];
+      acc[key].push(item);
+
+      return acc;
+    },
+    {} as Record<K, T[]>,
+  );
+}
+
 // Placeholder data for agenda items
 const placeholderAgendaItems = [
   {
     id: "1",
     title: "Welcome and Registration",
-    time: "8:00 AM - 9:00 AM",
+    startTime: "8:00 AM",
+    endTime: "9:00 AM",
     location: "Main Hall",
   },
   {
     id: "2",
     title: "Opening Keynote",
-    time: "9:00 AM - 10:30 AM",
+    startTime: "8:30 AM",
+    endTime: "10:30 AM",
     location: "Auditorium A",
   },
   {
     id: "3",
     title: "Break",
-    time: "10:30 AM - 11:00 AM",
+    startTime: "10:30 AM",
+    endTime: "11:00 AM",
     location: "Networking Area",
   },
 ];
@@ -39,6 +85,30 @@ export default function AgendaScreen() {
     });
   };
 
+  // Check for conflicts in the agenda items
+  // An O(n^2) approach to check conflicts, which is obviously not efficient for most cases.
+  // However, in our case, the number of agenda items will likely small, so this is might be acceptable.
+  // A more efficient algorithm would be to use the Line Sweep Algorithm.
+  const checkConflictItems = placeholderAgendaItems.map((item) => {
+    const conflictingItems = placeholderAgendaItems.filter((otherItem) => {
+      return (
+        otherItem.id !== item.id &&
+        areTimesConflicting(
+          item.startTime,
+          item.endTime,
+          otherItem.startTime,
+          otherItem.endTime,
+        )
+      );
+    });
+
+    return {
+      ...item,
+      hasConflict: conflictingItems.length > 0,
+      conflictingItems,
+    };
+  });
+
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen
@@ -52,37 +122,46 @@ export default function AgendaScreen() {
           <ThemedText style={styles.header} type="title">
             Today's Schedule
           </ThemedText>
-          {placeholderAgendaItems.map((item) => (
-            <Pressable
-              key={item.id}
-              style={({ pressed }) => [
-                styles.agendaItem,
-                pressed && styles.agendaItemPressed,
-              ]}
-              onPress={() => navigateToEvent(item.id)}
-            >
-              <ThemedView style={styles.agendaContent}>
-                <ThemedText style={styles.title} type="defaultSemiBold">
-                  {item.title}
-                </ThemedText>
-                <ThemedView style={styles.infoRow}>
-                  <IconSymbol name="clock.fill" size={16} color={tintColor} />
-                  <ThemedText style={styles.time}>{item.time}</ThemedText>
-                </ThemedView>
-                <ThemedView style={styles.infoRow}>
-                  <IconSymbol
-                    name="mappin.circle.fill"
-                    size={16}
-                    color={tintColor}
-                  />
-                  <ThemedText style={styles.location}>
-                    {item.location}
+          {checkConflictItems.map((item) => {
+            const conflictingItems = item.conflictingItems
+              .map((i) => `"${i.title}"`)
+              .join(",");
+            return (
+              <Pressable
+                key={item.id}
+                style={({ pressed }) => [
+                  styles.agendaItem,
+                  pressed && styles.agendaItemPressed,
+                ]}
+                onPress={() => navigateToEvent(item.id)}
+              >
+                <ThemedView style={styles.agendaContent}>
+                  <ThemedText style={styles.title} type="defaultSemiBold">
+                    {item.title}
                   </ThemedText>
+                  <ThemedView style={styles.infoRow}>
+                    <IconSymbol name="clock.fill" size={16} color={tintColor} />
+                    <ThemedText style={styles.time}>
+                      {item.startTime} - {item.endTime}{" "}
+                      {item.hasConflict &&
+                        `(Conflicts with: ${conflictingItems})`}
+                    </ThemedText>
+                  </ThemedView>
+                  <ThemedView style={styles.infoRow}>
+                    <IconSymbol
+                      name="mappin.circle.fill"
+                      size={16}
+                      color={tintColor}
+                    />
+                    <ThemedText style={styles.location}>
+                      {item.location}
+                    </ThemedText>
+                  </ThemedView>
                 </ThemedView>
-              </ThemedView>
-              <IconSymbol name="chevron.right" size={20} color={tintColor} />
-            </Pressable>
-          ))}
+                <IconSymbol name="chevron.right" size={20} color={tintColor} />
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </ThemedView>
