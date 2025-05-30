@@ -140,7 +140,8 @@ export default function InfoScreen() {
             text: "Cancel",
             style: "cancel",
           },
-        ]
+        ],
+        { cancelable: true }
       );
     }
   };
