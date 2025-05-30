@@ -41,7 +41,7 @@ export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
     .onUpdate((e) => {
       try {
         // Calculate new scale based on the base scale and gesture scale
-        const newScale = clamp(scale.value * e.scale, 1, 4);
+        const newScale = clamp(baseScale.value * e.scale, 1, 4);
         scale.value = newScale;
       } catch (error) {
         scale.value = baseScale.value;

@@ -8,3 +8,4 @@ SORM Symposium/node_modules/
 .env.local
 
 expo-env.d.ts
+SORM Symposium/.env
