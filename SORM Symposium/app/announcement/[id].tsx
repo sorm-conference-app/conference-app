@@ -1,13 +1,16 @@
-import { StyleSheet } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { ScrollView } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
+
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { announcements } from "./announcementList";
+import { useAnnouncements } from "@/hooks/useAnnouncements";
 
 export default function AnnouncementDetailScreen() {
   const { id } = useLocalSearchParams();
-  const announcement = announcements.find(a => a.id === id);
+  const { announcements } = useAnnouncements();
+  
+  // Find the announcement by ID (convert string id to number for comparison)
+  const announcement = announcements.find((a) => a.id === parseInt(id as string, 10));
 
   if (!announcement) {
     return (
