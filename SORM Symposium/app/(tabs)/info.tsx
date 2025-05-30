@@ -48,6 +48,21 @@ const CONTACTS: ContactInfo[] = [
     phone: "936.662.2946",
     email: "monica.jackson@txdmv.gov",
   },
+  {
+    name: "Brandon Murphy",
+    phone: "512.936.2927",
+    email: "brandon.murphy@sorm.texas.gov",
+  },
+  {
+    name: "Mark Chadwick",
+    phone: "512.936.1555",
+    email: "mark.chadwick@sorm.texas.gov",
+  },
+  {
+    name: "Stephen Vollbrecht",
+    phone: "512.470.1989",
+    email: "stephen.vollbrecht@gmail.com",
+  },
 ];
 
 export default function InfoScreen() {
@@ -131,10 +146,12 @@ export default function InfoScreen() {
             ]}
           >
             <ThemedText style={styles.mapTitle}>Facility Map</ThemedText>
-            <TouchableOpacity onPress={() => {
-              setSelectedMap("esti");
-              setIsScrollEnabled(false);
-            }}>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedMap("esti");
+                setIsScrollEnabled(false);
+              }}
+            >
               <Image
                 source={require("@/assets/images/EstiMap.png")}
                 style={[
@@ -161,10 +178,12 @@ export default function InfoScreen() {
             ]}
           >
             <ThemedText style={styles.mapTitle}>Les Bunte Complex</ThemedText>
-            <TouchableOpacity onPress={() => {
-              setSelectedMap("bunte");
-              setIsScrollEnabled(false);
-            }}>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedMap("bunte");
+                setIsScrollEnabled(false);
+              }}
+            >
               <Image
                 source={require("@/assets/images/BunteSORM.png")}
                 style={[
