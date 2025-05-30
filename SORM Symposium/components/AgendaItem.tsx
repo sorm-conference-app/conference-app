@@ -31,9 +31,12 @@ export default function AgendaItem({
       onPress={onPress}
     >
       <ThemedView style={styles.agendaContent}>
-        <ThemedText style={styles.title} type="defaultSemiBold">
-          {title}
-        </ThemedText>
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText style={styles.title} type="defaultSemiBold">
+            {title}
+          </ThemedText>
+          <IconSymbol name="chevron.right" size={20} color={tintColor} />
+        </ThemedView>
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
           <ThemedText style={styles.time}>
@@ -45,7 +48,6 @@ export default function AgendaItem({
           <ThemedText style={styles.location}>{location}</ThemedText>
         </ThemedView>
       </ThemedView>
-      <IconSymbol name="chevron.right" size={20} color={tintColor} />
     </Pressable>
   );
 }
@@ -60,8 +62,12 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   title: {
-    marginBottom: 8,
+    marginBottom: 3,
   },
   time: {
     flex: 1,
@@ -77,6 +83,7 @@ const styles = StyleSheet.create({
     borderColor: "white",
     flexDirection: "row",
     alignItems: "center",
+    userSelect: "none",
   },
   agendaItemPressed: {
     opacity: 0.7,
