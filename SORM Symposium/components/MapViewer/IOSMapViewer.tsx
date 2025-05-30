@@ -14,8 +14,11 @@ import { calculateBounds, clamp } from './utils';
 
 export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps) => {
   const scale = useSharedValue(1);
+  const baseScale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const baseTranslateX = useSharedValue(0);
+  const baseTranslateY = useSharedValue(0);
   const [isLoading, setIsLoading] = useState(true);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -32,34 +35,54 @@ export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      scale.value = scale.value;
+      // Store the current scale as base for this pinch operation
+      baseScale.value = scale.value;
     })
     .onUpdate((e) => {
-      const newScale = clamp(scale.value * e.scale, 1, 4);
-      scale.value = newScale;
+      try {
+        // Calculate new scale based on the base scale and gesture scale
+        const newScale = clamp(scale.value * e.scale, 1, 4);
+        scale.value = newScale;
+      } catch (error) {
+        scale.value = baseScale.value;
+      }
     })
     .onEnd(() => {
+      // Apply spring animation when the gesture ends
       if (scale.value < 1) {
         scale.value = withSpring(1);
+      } else {
+        scale.value = withSpring(scale.value);
       }
     });
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      translateX.value = translateX.value;
-      translateY.value = translateY.value;
+      // Store the current translation as base for this pan operation
+      baseTranslateX.value = translateX.value;
+      baseTranslateY.value = translateY.value;
     })
     .onUpdate((e) => {
       if (scale.value > 1) {
-        const bounds = calculateBounds(scale.value, imageSize, containerSize);
-        translateX.value = clamp(e.translationX, bounds.minX, bounds.maxX);
-        translateY.value = clamp(e.translationY, bounds.minY, bounds.maxY);
+        try {
+          // Calculate the bounds and translation of the image
+          const bounds = calculateBounds(scale.value, imageSize, containerSize);
+          translateX.value = clamp(baseTranslateX.value + (e.translationX / scale.value), bounds.minX, bounds.maxX);
+          translateY.value = clamp(baseTranslateY.value + (e.translationY / scale.value), bounds.minY, bounds.maxY);
+        } catch (error) {
+          translateX.value = withSpring(baseTranslateX.value);
+          translateY.value = withSpring(baseTranslateY.value);
+        }
       }
     })
     .onEnd(() => {
+      // Apply spring animation when the gesture ends
       if (scale.value <= 1) {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
+      } else {
+        translateX.value = withSpring(translateX.value);
+        translateY.value = withSpring(translateY.value);
       }
     });
 

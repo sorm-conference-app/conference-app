@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, TouchableOpacity, ActivityIndicator, Modal, Dimensions } from 'react-native';
+import { View, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { Image, ImageLoadEventData } from 'expo-image';
-import { Gesture, GestureDetector, gestureHandlerRootHOC, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle,
   withSpring,
-  runOnJS
 } from 'react-native-reanimated';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { styles } from './styles';
@@ -37,7 +36,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
       'worklet';
-      // Store the current scale as our base for this pinch operation
+      // Store the current scale as base for this pinch operation
       baseScale.value = scale.value;
     })
     .onUpdate((e) => {
@@ -83,6 +82,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
     })
     .onEnd(() => {
       'worklet';
+      // Apply spring animation when the gesture ends
       if (scale.value <= 1) {
         translateX.value = withSpring(0);
         translateY.value = withSpring(0);
