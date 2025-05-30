@@ -1,2 +1,11 @@
 
 SORM Symposium/node_modules/
+
+**/pnpm-lock.yaml
+
+**/.expo/**
+
+.env.local
+
+expo-env.d.ts
+SORM Symposium/.env
