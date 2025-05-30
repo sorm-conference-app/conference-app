@@ -1,47 +1,63 @@
-import { StyleSheet } from "react-native";
-import { View, ScrollView } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { Stack } from "expo-router";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+
 import { Announcement } from "@/components/Announcement";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "react-native";
+import { Stack } from "expo-router";
 
-type Announcement = {
-  id: string;
-  title: string;
-  body: string;
-};
-
-// This would typically come from an API or database
-export const announcements: Announcement[] = [
-  {
-    id: "1",
-    title: "Welcome to the Symposium!",
-    body: "We're excited to have you join us for the SORM Symposium. Please check the agenda for today's schedule.",
-  },
-  {
-    id: "2",
-    title: "Lunch Location Update",
-    body: "Today's lunch will be served in the Main Hall instead of the previously announced location.",
-  },
-  {
-    id: "3",
-    title: "Keynote Speaker Announced",
-    body: "We're excited to announce that Dr. John Smith will be our keynote speaker. He will be speaking on the topic of 'The Future of SORM'.",
-  },
-  {
-    id: "4",
-    title: "Announcement 4",
-    body: "This is the body of the fourth announcement.",
-  },
-  {
-    id: "5",
-    title: "Announcement 5",
-    body: "This is the body of the fifth announcement.",
-  },
-]; 
+import { useAnnouncements } from "@/hooks/useAnnouncements";
+import { useCallback } from "react";
 
 export default function AnnouncementsScreen() {
+  const colorScheme = useColorScheme() ?? 'light';
+  const { announcements, loading, error, refresh } = useAnnouncements();
+
+  const renderContent = useCallback(() => {
+    if (loading && announcements.length === 0) {
+      return (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={Colors[colorScheme].tint} />
+        </View>
+      );
+    }
+
+    if (error && announcements.length === 0) {
+      return (
+        <View style={styles.errorContainer}>
+          <ThemedText style={styles.errorText}>
+            Could not load announcements. Please try again.
+          </ThemedText>
+          <ThemedText 
+            style={[styles.retryText, { color: Colors[colorScheme].tint }]}
+            onPress={refresh}
+          >
+            Tap to retry
+          </ThemedText>
+        </View>
+      );
+    }
+
+    if (announcements.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ThemedText style={styles.emptyText}>
+            No announcements available.
+          </ThemedText>
+        </View>
+      );
+    }
+
+    return announcements.map((announcement) => (
+      <Announcement
+        key={announcement.id}
+        title={announcement.title}
+        body={announcement.body}
+        useTruncation={false}
+      />
+    ));
+  }, [announcements, loading, error, refresh, colorScheme]);
+
   return (
     <ThemedView style={[styles.container, { backgroundColor: Colors[useColorScheme() ?? 'light'].secondaryBackgroundColor }]}>
       <Stack.Screen
@@ -50,16 +66,19 @@ export default function AnnouncementsScreen() {
           headerShown: true,
         }}
       />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && announcements.length > 0}
+            onRefresh={refresh}
+            colors={[Colors[colorScheme].tint]}
+            tintColor={Colors[colorScheme].tint}
+          />
+        }
+      >
         <View style={styles.content}>
-          {announcements.map((announcement) => (
-            <Announcement
-              key={announcement.id}
-              title={announcement.title}
-              body={announcement.body}
-              useTruncation={false}
-            />
-          ))}
+          {renderContent()}
         </View>
       </ScrollView>
     </ThemedView>
@@ -75,5 +94,29 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  loaderContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  retryText: {
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
   },
 }); 

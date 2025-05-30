@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
+import { Platform } from "react-native";
+import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 
 // Enable screens for better performance
 enableScreens();
@@ -14,7 +16,7 @@ enableScreens();
 export default function RootLayout() {
   const colorScheme = useColorScheme() ?? 'light';
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const { top: topInset } = useSafeAreaInsets();
 
@@ -25,20 +27,21 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ExpoPushTokenProvider>
         <Stack
           screenOptions={{
             contentStyle: {
               paddingTop: topInset,
             },
-            gestureEnabled: true,
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
-      </ThemeProvider>
+      </ExpoPushTokenProvider>
+    </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

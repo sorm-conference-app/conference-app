@@ -1,6 +1,7 @@
-import { ThemedView } from "@/components/ThemedView";
+import AnnouncementForm from "@/components/AnnouncementForm";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
+import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
 import { Button, SafeAreaView } from "react-native";
 
@@ -22,6 +23,7 @@ export default function Admin() {
       <SafeAreaView>
         <ThemedView>
           <ThemedText>Welcome to the admin panel!</ThemedText>
+          <AnnouncementForm />
           <Button onPress={resetPin} title="Go back" />
         </ThemedView>
       </SafeAreaView>
