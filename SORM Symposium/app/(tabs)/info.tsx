@@ -154,7 +154,7 @@ export default function InfoScreen() {
           {
             paddingBottom: Platform.select({
               ios: Math.max(insets.bottom + 20, 90),
-              default: 40,
+              default: 0,
             }),
           },
         ]}
@@ -354,7 +354,6 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingTop: 40,
   },
   container: {
     flex: 1,
@@ -363,7 +362,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    margin: 20,
   },
   sectionTitle: {
     fontSize: 24,
