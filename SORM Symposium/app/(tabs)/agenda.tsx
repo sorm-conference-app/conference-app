@@ -63,13 +63,6 @@ const placeholderAgendaItems = [
     endTime: "10:30 AM",
     location: "Auditorium A",
   },
-  {
-    id: "5",
-    title: "Cringe",
-    startTime: "8:00 AM",
-    endTime: "9:00 AM",
-    location: "Main Hall",
-  },
 ];
 
 export default function AgendaScreen() {
