@@ -10,6 +10,7 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         tabBarActiveTintColor: Colors[useColorScheme() ?? "light"].tabIconSelected,
         headerShown: false,
@@ -23,6 +24,15 @@ export default function TabLayout() {
         },
       }}
     >
+      <Tabs.Screen
+        name="info"
+        options={{
+          title: "Info",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="info.circle.fill" color={color} size={28} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{
