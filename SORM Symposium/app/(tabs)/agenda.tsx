@@ -7,17 +7,29 @@ import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
-function convert12HrFormatToSeconds(time: string): number {
-  const [timePart, modifier] = time.split(" ");
-  let [hours, minutes] = timePart.split(":").map(Number);
+function convert24HrTimeToSeconds(time: string): number {
+  // Handle 24-hour format (HH:mm:ss or HH:mm)
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 3600 + (minutes || 0) * 60;
+}
 
-  if (modifier.toUpperCase() === "PM" && hours < 12) {
-    hours += 12;
-  } else if (modifier.toUpperCase() === "AM" && hours === 12) {
-    hours = 0;
+function convert12HrTimeToSeconds(time: string): number {
+  // Only try to handle 12-hour format if it includes AM/PM
+  if (time.includes("AM") || time.includes("PM")) {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (modifier.toUpperCase() === "PM" && hours < 12) {
+      hours += 12;
+    } else if (modifier.toUpperCase() === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return hours * 3600 + minutes * 60;
   }
 
-  return hours * 3600 + minutes * 60;
+  // If no AM/PM, treat as 24-hour format
+  return convert24HrTimeToSeconds(time);
 }
 
 /**
@@ -34,10 +46,10 @@ function areTimesConflicting(
   startTimeB: string,
   endTimeB: string
 ): boolean {
-  const startA = convert12HrFormatToSeconds(startTimeA);
-  const endA = convert12HrFormatToSeconds(endTimeA);
-  const startB = convert12HrFormatToSeconds(startTimeB);
-  const endB = convert12HrFormatToSeconds(endTimeB);
+  const startA = convert24HrTimeToSeconds(startTimeA);
+  const endA = convert24HrTimeToSeconds(endTimeA);
+  const startB = convert24HrTimeToSeconds(startTimeB);
+  const endB = convert24HrTimeToSeconds(endTimeB);
 
   return startA < endB && startB < endA;
 }
