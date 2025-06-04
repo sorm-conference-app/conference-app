@@ -1,9 +1,10 @@
 import AnnouncementForm from "@/components/AnnouncementForm";
+import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { useState } from "react";
-import { Button, SafeAreaView } from "react-native";
+import { Button, SafeAreaView, ScrollView, StyleSheet, Platform, ViewStyle } from "react-native";
 
 const TEMPORARY_PIN = "1234";
 
@@ -20,18 +21,21 @@ export default function Admin() {
 
   if (pin === TEMPORARY_PIN) {
     return (
-      <SafeAreaView>
-        <ThemedView>
-          <ThemedText>Welcome to the admin panel!</ThemedText>
-          <AnnouncementForm />
-          <Button onPress={resetPin} title="Go back" />
-        </ThemedView>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <ThemedView>
+            <ThemedText>Welcome to the admin panel!</ThemedText>
+            <AnnouncementForm />
+            <AgendaEditor />
+            <Button onPress={resetPin} title="Go back" />
+          </ThemedView>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <ThemedView>
         <ThemedTextInput
           value={pin}
@@ -42,3 +46,16 @@ export default function Admin() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+  } as ViewStyle,
+  scrollView: {
+    flex: 1,
+  } as ViewStyle,
+  scrollContent: {
+    flexGrow: 1,
+  } as ViewStyle,
+});
