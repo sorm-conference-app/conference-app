@@ -1,9 +1,11 @@
-import { StyleSheet } from "react-native";
-import { View, ScrollView } from "react-native";
+import AgendaItem from "@/components/AgendaItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { getAllEvents } from "@/services/events";
+import type { Event } from "@/types/Events.types";
 import { Stack, router } from "expo-router";
-import AgendaItem from "@/components/AgendaItem";
+import { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 function convert12HrFormatToSeconds(time: string): number {
   const [timePart, modifier] = time.split(" ");
@@ -30,7 +32,7 @@ function areTimesConflicting(
   startTimeA: string,
   endTimeA: string,
   startTimeB: string,
-  endTimeB: string,
+  endTimeB: string
 ): boolean {
   const startA = convert12HrFormatToSeconds(startTimeA);
   const endA = convert12HrFormatToSeconds(endTimeA);
@@ -40,61 +42,76 @@ function areTimesConflicting(
   return startA < endB && startB < endA;
 }
 
-// Placeholder data for agenda items
-const placeholderAgendaItems = [
-  {
-    id: "1",
-    title: "Welcome and Registration",
-    startTime: "8:00 AM",
-    endTime: "9:00 AM",
-    location: "Main Hall",
-  },
-  {
-    id: "3",
-    title: "Break",
-    startTime: "10:30 AM",
-    endTime: "11:00 AM",
-    location: "Networking Area",
-  },
-  {
-    id: "2",
-    title: "Opening Keynote",
-    startTime: "8:30 AM",
-    endTime: "10:30 AM",
-    location: "Auditorium A",
-  },
-];
+type EventsByDate = {
+  [date: string]: Event[];
+};
+
+function groupEventsByDate(events: Event[]): EventsByDate {
+  return events.reduce((acc: EventsByDate, event) => {
+    if (!acc[event.event_date]) {
+      acc[event.event_date] = [];
+    }
+    acc[event.event_date].push(event);
+    return acc;
+  }, {});
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export default function AgendaScreen() {
-  const navigateToEvent = (id: string) => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const allEvents = await getAllEvents();
+        setEvents(allEvents);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const navigateToEvent = (id: number) => {
     router.push({
       pathname: "/event/[id]",
       params: { id },
     });
   };
 
-  const agendaItems = () => {
-    const conflictIds = new Set<string>();
+  const findConflicts = (events: Event[]) => {
+    const conflictIds = new Set<number>();
     const items = [];
 
-    // Check for conflicts in the agenda items
-    // An O(n^2) approach to check conflicts, which is obviously not efficient for most cases.
-    // However, in our case, the number of agenda items will likely small, so this is might be acceptable.
-    // A more efficient algorithm would be to use something like the Line Sweep Algorithm.
-    for (const item of placeholderAgendaItems) {
+    for (const item of events) {
       if (conflictIds.has(item.id)) {
         continue;
       }
 
-      const conflicts = placeholderAgendaItems.filter(
+      const conflicts = events.filter(
         (conflictItem) =>
           conflictItem.id !== item.id &&
           areTimesConflicting(
-            item.startTime,
-            item.endTime,
-            conflictItem.startTime,
-            conflictItem.endTime,
-          ),
+            item.start_time,
+            item.end_time,
+            conflictItem.start_time,
+            conflictItem.end_time
+          )
       );
 
       items.push({
@@ -109,6 +126,37 @@ export default function AgendaScreen() {
     return items;
   };
 
+  if (loading) {
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: "Agenda",
+            headerShown: true,
+          }}
+        />
+        <ThemedText style={styles.loadingText}>Loading events...</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (error) {
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: "Agenda",
+            headerShown: true,
+          }}
+        />
+        <ThemedText style={styles.errorText}>{error}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  const eventsByDate = groupEventsByDate(events);
+  const sortedDates = Object.keys(eventsByDate).sort();
+
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen
@@ -119,38 +167,54 @@ export default function AgendaScreen() {
       />
       <ScrollView style={styles.scrollView}>
         <ThemedText style={styles.header} type="title">
-          Today's Schedule
+          Conference Schedule
         </ThemedText>
         <View style={styles.content}>
-          {agendaItems().map((item) => {
-            if (item.conflictingItems.length > 0) {
-              return (
-                <View key={item.id} style={styles.conflictContent}>
-                  <AgendaItem
-                    onPress={() => navigateToEvent(item.id)}
-                    {...item}
-                  />
-                  <View style={{ flex: 1 }}>
-                    {item.conflictingItems.map((conflictItem) => (
+          {sortedDates.map((date) => (
+            <View key={date} style={styles.dateSection}>
+              <ThemedText style={styles.dateHeader} type="subtitle">
+                {formatDate(date)}
+              </ThemedText>
+              {findConflicts(eventsByDate[date]).map((item) => {
+                if (item.conflictingItems.length > 0) {
+                  return (
+                    <View key={item.id} style={styles.conflictContent}>
                       <AgendaItem
-                        key={conflictItem.id}
-                        onPress={() => navigateToEvent(conflictItem.id)}
-                        {...conflictItem}
+                        title={item.title}
+                        startTime={item.start_time}
+                        endTime={item.end_time}
+                        location={item.location}
+                        onPress={() => navigateToEvent(item.id)}
                       />
-                    ))}
-                  </View>
-                </View>
-              );
-            }
+                      <View style={{ flex: 1 }}>
+                        {item.conflictingItems.map((conflictItem) => (
+                          <AgendaItem
+                            key={conflictItem.id}
+                            title={conflictItem.title}
+                            startTime={conflictItem.start_time}
+                            endTime={conflictItem.end_time}
+                            location={conflictItem.location}
+                            onPress={() => navigateToEvent(conflictItem.id)}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  );
+                }
 
-            return (
-              <AgendaItem
-                key={item.id}
-                onPress={() => navigateToEvent(item.id)}
-                {...item}
-              />
-            );
-          })}
+                return (
+                  <AgendaItem
+                    key={item.id}
+                    title={item.title}
+                    startTime={item.start_time}
+                    endTime={item.end_time}
+                    location={item.location}
+                    onPress={() => navigateToEvent(item.id)}
+                  />
+                );
+              })}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </ThemedView>
@@ -176,5 +240,20 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     marginRight: 16,
     marginBottom: 20,
+  },
+  dateHeader: {
+    marginBottom: 12,
+  },
+  dateSection: {
+    marginBottom: 24,
+  },
+  loadingText: {
+    padding: 16,
+    textAlign: "center",
+  },
+  errorText: {
+    padding: 16,
+    textAlign: "center",
+    color: "red",
   },
 });
