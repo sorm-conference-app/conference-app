@@ -3,6 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { formatDate, formatTimeRange } from "@/lib/dateTime";
 import { getEventById } from "@/services/events";
 import type { Event } from "@/types/Events.types";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -65,12 +66,23 @@ export default function EventDetailScreen() {
         <ThemedView style={styles.infoSection}>
           <ThemedView style={styles.infoRow}>
             <IconSymbol
+              name="calendar"
+              size={20}
+              color={Colors[colorScheme].tabIconDefault}
+            />
+            <ThemedText style={styles.infoText}>
+              {formatDate(event.event_date)}
+            </ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.infoRow}>
+            <IconSymbol
               name="clock.fill"
               size={20}
               color={Colors[colorScheme].tabIconDefault}
             />
             <ThemedText style={styles.infoText}>
-              {event.start_time} - {event.end_time}
+              {formatTimeRange(event.start_time, event.end_time)}
             </ThemedText>
           </ThemedView>
 

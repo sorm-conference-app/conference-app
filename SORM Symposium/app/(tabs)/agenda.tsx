@@ -1,6 +1,7 @@
 import AgendaItem from "@/components/AgendaItem";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { formatDate } from "@/lib/dateTime";
 import { getAllEvents } from "@/services/events";
 import type { Event } from "@/types/Events.types";
 import { Stack, router } from "expo-router";
@@ -66,16 +67,6 @@ function groupEventsByDate(events: Event[]): EventsByDate {
     acc[event.event_date].push(event);
     return acc;
   }, {});
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 export default function AgendaScreen() {
@@ -182,51 +173,55 @@ export default function AgendaScreen() {
           Conference Schedule
         </ThemedText>
         <View style={styles.content}>
-          {sortedDates.map((date) => (
-            <View key={date} style={styles.dateSection}>
-              <ThemedText style={styles.dateHeader} type="subtitle">
-                {formatDate(date)}
-              </ThemedText>
-              {findConflicts(eventsByDate[date]).map((item) => {
-                if (item.conflictingItems.length > 0) {
-                  return (
-                    <View key={item.id} style={styles.conflictContent}>
-                      <AgendaItem
-                        title={item.title}
-                        startTime={item.start_time}
-                        endTime={item.end_time}
-                        location={item.location}
-                        onPress={() => navigateToEvent(item.id)}
-                      />
-                      <View style={{ flex: 1 }}>
-                        {item.conflictingItems.map((conflictItem) => (
-                          <AgendaItem
-                            key={conflictItem.id}
-                            title={conflictItem.title}
-                            startTime={conflictItem.start_time}
-                            endTime={conflictItem.end_time}
-                            location={conflictItem.location}
-                            onPress={() => navigateToEvent(conflictItem.id)}
-                          />
-                        ))}
+          {sortedDates.length === 0 ? (
+            <ThemedText style={styles.noEventsText}>No events found</ThemedText>
+          ) : (
+            sortedDates.map((date) => (
+              <View key={date} style={styles.dateSection}>
+                <ThemedText style={styles.dateHeader} type="subtitle">
+                  {formatDate(date)}
+                </ThemedText>
+                {findConflicts(eventsByDate[date]).map((item) => {
+                  if (item.conflictingItems.length > 0) {
+                    return (
+                      <View key={item.id} style={styles.conflictContent}>
+                        <AgendaItem
+                          title={item.title}
+                          startTime={item.start_time}
+                          endTime={item.end_time}
+                          location={item.location}
+                          onPress={() => navigateToEvent(item.id)}
+                        />
+                        <View style={{ flex: 1 }}>
+                          {item.conflictingItems.map((conflictItem) => (
+                            <AgendaItem
+                              key={conflictItem.id}
+                              title={conflictItem.title}
+                              startTime={conflictItem.start_time}
+                              endTime={conflictItem.end_time}
+                              location={conflictItem.location}
+                              onPress={() => navigateToEvent(conflictItem.id)}
+                            />
+                          ))}
+                        </View>
                       </View>
-                    </View>
-                  );
-                }
+                    );
+                  }
 
-                return (
-                  <AgendaItem
-                    key={item.id}
-                    title={item.title}
-                    startTime={item.start_time}
-                    endTime={item.end_time}
-                    location={item.location}
-                    onPress={() => navigateToEvent(item.id)}
-                  />
-                );
-              })}
-            </View>
-          ))}
+                  return (
+                    <AgendaItem
+                      key={item.id}
+                      title={item.title}
+                      startTime={item.start_time}
+                      endTime={item.end_time}
+                      location={item.location}
+                      onPress={() => navigateToEvent(item.id)}
+                    />
+                  );
+                })}
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </ThemedView>
@@ -267,5 +262,9 @@ const styles = StyleSheet.create({
     padding: 16,
     textAlign: "center",
     color: "red",
+  },
+  noEventsText: {
+    padding: 16,
+    textAlign: "center",
   },
 });
