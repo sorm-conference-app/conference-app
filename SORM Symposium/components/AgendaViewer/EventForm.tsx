@@ -68,7 +68,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              setCanSubmit(Boolean(text && startTime && endTime));
+              setCanSubmit(Boolean(text && location && startTime && endTime));
             }}
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -97,7 +97,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Location</ThemedText>
+          <ThemedText>Location *</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -108,7 +108,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               }
             ]}
             value={location}
-            onChangeText={setLocation}
+            onChangeText={(text) => {
+              setLocation(text);
+              setCanSubmit(Boolean(title && text && startTime && endTime));
+            }}
             placeholder="Event location"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
@@ -128,7 +131,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={startTime}
             onChangeText={(text) => {
               setStartTime(text);
-              setCanSubmit(Boolean(title && text && endTime));
+              setCanSubmit(Boolean(title && location && text && endTime));
             }}
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -149,7 +152,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={endTime}
             onChangeText={(text) => {
               setEndTime(text);
-              setCanSubmit(Boolean(title && startTime && text));
+              setCanSubmit(Boolean(title && location && startTime && text));
             }}
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
