@@ -19,9 +19,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [location, setLocation] = useState(event?.location ?? '');
   const [startTime, setStartTime] = useState(event?.startTime ?? '');
   const [endTime, setEndTime] = useState(event?.endTime ?? '');
+  const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
   const handleSubmit = () => {
-    if (!title || !startTime || !endTime) {
+    if (!canSubmit) {
       return;
     }
 
@@ -56,7 +57,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               }
             ]}
             value={title}
-            onChangeText={setTitle}
+            onChangeText={(text) => {
+              setTitle(text);
+              setCanSubmit(Boolean(text && startTime && endTime));
+            }}
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
@@ -113,7 +117,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               }
             ]}
             value={startTime}
-            onChangeText={setStartTime}
+            onChangeText={(text) => {
+              setStartTime(text);
+              setCanSubmit(Boolean(title && text && endTime));
+            }}
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
@@ -131,7 +138,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               }
             ]}
             value={endTime}
-            onChangeText={setEndTime}
+            onChangeText={(text) => {
+              setEndTime(text);
+              setCanSubmit(Boolean(title && startTime && text));
+            }}
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
@@ -141,15 +151,18 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <Pressable
             style={[
               styles.button,
-              { backgroundColor: Colors[colorScheme].adminButton },
+              { backgroundColor: canSubmit ? Colors[colorScheme].adminButton : Colors.light.tabIconDefault },
               { borderColor: Colors[colorScheme].tint }
             ]}
             onPress={handleSubmit}
+            disabled={!canSubmit}
           >
             <ThemedText style={[styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText }
+              { color: canSubmit ? Colors[colorScheme].adminButtonText : Colors[colorScheme].adminButtonText }
             ]}>
-              {event ? 'Update Event' : 'Add Event'}
+              {event ? 
+                canSubmit ? 'Update Event' : 'Fill required fields *'
+              : canSubmit ? 'Add Event' : 'Fill required fields *'}
             </ThemedText>
           </Pressable>
 
@@ -173,7 +186,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 16,
   },
   scrollView: {
