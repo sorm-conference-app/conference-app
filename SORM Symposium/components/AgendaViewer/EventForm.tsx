@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput, ScrollView, Pressable } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -20,6 +20,15 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [startTime, setStartTime] = useState(event?.startTime ?? '');
   const [endTime, setEndTime] = useState(event?.endTime ?? '');
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
+
+  useEffect(() => {
+    setTitle(event?.title ?? '');
+    setDescription(event?.description ?? '');
+    setLocation(event?.location ?? '');
+    setStartTime(event?.startTime ?? '');
+    setEndTime(event?.endTime ?? '');
+    setCanSubmit(event ? true : false);
+  }, [event]);
 
   const handleSubmit = () => {
     if (!canSubmit) {
