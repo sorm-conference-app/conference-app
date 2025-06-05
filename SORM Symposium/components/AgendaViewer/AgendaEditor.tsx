@@ -59,6 +59,9 @@ export function AgendaEditor() {
       newEvents.push(event);
     }
 
+    // Sort events by start time
+    newEvents.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
     const conflicts = detectTimeConflicts(newEvents);
     const relevantConflicts = conflicts.filter(conflict => 
       conflict.event1.id === event.id || conflict.event2.id === event.id
