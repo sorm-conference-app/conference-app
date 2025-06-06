@@ -20,17 +20,22 @@ export default function AgendaItem({
   location,
   onPress,
 }: AgendaItemProps) {
-  const tintColor = Colors[useColorScheme() ?? "light"].tint;
+  const colorScheme = useColorScheme() ?? "light";
+  const tintColor = Colors[colorScheme].tint;
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.agendaItem,
+        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
+        { borderColor: Colors[colorScheme].tint },
         pressed && styles.agendaItemPressed,
       ]}
       onPress={onPress}
     >
-      <ThemedView style={styles.agendaContent}>
+      <ThemedView style={[styles.agendaContent, 
+        { backgroundColor: colorScheme === "light" 
+          ? Colors[colorScheme].background : Colors[colorScheme].background }]}>
         <ThemedView style={styles.titleContainer}>
           <ThemedText style={styles.title} type="defaultSemiBold">
             {title}
@@ -61,10 +66,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginTop: 4,
+    backgroundColor: "transparent",
   },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "transparent",
   },
   title: {
     marginBottom: 3,
@@ -73,9 +80,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   agendaItem: {
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     flex: 1,
     minWidth: 0,
@@ -90,5 +96,6 @@ const styles = StyleSheet.create({
   },
   agendaContent: {
     flex: 1,
+    padding: 8,
   },
 });
