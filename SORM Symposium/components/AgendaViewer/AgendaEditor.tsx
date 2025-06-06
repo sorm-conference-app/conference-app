@@ -13,7 +13,11 @@ import { sampleEvents } from './sampleEvents';
 
 const BREAKPOINT = 700; // Threshold for wide screen
 
-export function AgendaEditor() {
+interface AgendaEditorProps {
+  onShowForm: () => void;
+}
+
+export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>(sampleEvents);
   const [showForm, setShowForm] = useState(false);
@@ -95,9 +99,18 @@ export function AgendaEditor() {
     }
   };
 
+  const handleShowForm = () => {
+    setEditingEvent(undefined);
+    setShowForm(true);
+    onShowForm();
+  };
+
   const handleEditEvent = (event: Event) => {
     setEditingEvent(event);
     setShowForm(true);
+    setTimeout(() => {
+      onShowForm();
+    }, 350);
   };
 
   const handleDeleteEvent = (event: Event) => {
@@ -137,10 +150,7 @@ export function AgendaEditor() {
               { backgroundColor: Colors[colorScheme].adminButton },
               { borderColor: Colors[colorScheme].tint }
             ]}
-            onPress={() => {
-              setEditingEvent(undefined);
-              setShowForm(true);
-            }}
+            onPress={handleShowForm}
           >
             <ThemedText style={[styles.addButtonText,
               { color: Colors[colorScheme].adminButtonText }
@@ -168,7 +178,6 @@ export function AgendaEditor() {
           onEditEvent={handleEditEvent}
           onDeleteEvent={handleDeleteEvent}
         />
-      
 
       <AlertModal
         visible={showAlert}

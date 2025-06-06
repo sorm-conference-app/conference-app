@@ -3,13 +3,15 @@ import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
-import { useState } from "react";
-import { Button, SafeAreaView, ScrollView, StyleSheet, Platform, ViewStyle } from "react-native";
+import { useState, useRef } from "react";
+import { Button, SafeAreaView, ScrollView, StyleSheet, ViewStyle, View } from "react-native";
 
 const TEMPORARY_PIN = "1234";
 
 export default function Admin() {
   const [pin, setPin] = useState<string>("");
+  const scrollViewRef = useRef<ScrollView>(null);
+  const agendaEditorRef = useRef<View>(null);
 
   function handlePinChange(text: string) {
     setPin(text);
@@ -19,14 +21,30 @@ export default function Admin() {
     setPin("");
   }
 
+  const scrollToAgendaEditor = () => {
+    if (scrollViewRef.current) {
+      agendaEditorRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y: y, animated: true });
+        }
+      });
+    }
+  };
+
   if (pin === TEMPORARY_PIN) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+        >
           <ThemedView>
             <ThemedText>Welcome to the admin panel!</ThemedText>
             <AnnouncementForm />
-            <AgendaEditor />
+            <View ref={agendaEditorRef}>
+              <AgendaEditor onShowForm={scrollToAgendaEditor} />
+            </View>
             <Button onPress={resetPin} title="Go back" />
           </ThemedView>
         </ScrollView>
