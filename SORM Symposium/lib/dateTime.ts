@@ -19,12 +19,15 @@ export function formatTime(time: string): string {
  * @returns Formatted date string
  */
 export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
+  // Append 'T12:00:00' to ensure the date is interpreted at noon UTC
+  // This prevents timezone issues from changing the date
+  const date = new Date(dateStr + 'T12:00:00Z');
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'UTC' // Ensure we use UTC to avoid timezone shifts
   });
 }
 
