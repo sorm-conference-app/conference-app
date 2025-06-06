@@ -13,6 +13,13 @@ type AgendaItemProps = {
   onPress: () => void;
 };
 
+const BASE_HEIGHT = 130; // Base height for 1-hour events
+
+const calculateHeight = (startTime: string, endTime: string) => {
+  const duration = parseInt(endTime) - parseInt(startTime);
+  return Math.max(BASE_HEIGHT, BASE_HEIGHT * duration);
+};
+
 export default function AgendaItem({
   title,
   startTime,
@@ -29,6 +36,7 @@ export default function AgendaItem({
         styles.agendaItem,
         { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
         { borderColor: Colors[colorScheme].tint },
+        { minHeight: calculateHeight(startTime, endTime) },
         pressed && styles.agendaItemPressed,
       ]}
       onPress={onPress}
@@ -88,7 +96,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
     userSelect: "none",
   },
   agendaItemPressed: {
@@ -96,6 +104,7 @@ const styles = StyleSheet.create({
   },
   agendaContent: {
     flex: 1,
+    display: "flex",
     padding: 8,
   },
 });
