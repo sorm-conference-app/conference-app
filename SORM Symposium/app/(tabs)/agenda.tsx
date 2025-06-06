@@ -40,6 +40,13 @@ function areTimesConflicting(
   return startA < endB && startB < endA;
 }
 
+function calculateTimeOffset(startTimeA: string, startTimeB: string): number {
+  const timeA = convert12HrFormatToSeconds(startTimeA);
+  const timeB = convert12HrFormatToSeconds(startTimeB);
+  // Convert time difference to pixels (e.g., 30 minutes = 50 pixels)
+  return Math.max(0, (timeB - timeA) * (50 / 1800)); // 1800 seconds = 30 minutes
+}
+
 // Placeholder data for agenda items
 const placeholderAgendaItems = [
   {
@@ -62,6 +69,20 @@ const placeholderAgendaItems = [
     startTime: "8:30 AM",
     endTime: "10:30 AM",
     location: "Auditorium A",
+  },
+  {
+    id: "4",
+    title: "Lunch Break",
+    startTime: "12:30 PM",
+    endTime: "1:30 PM",
+    location: "Main Hall",
+  },
+  {
+    id: "5",
+    title: "Afternoon Session",
+    startTime: "1:00 PM",
+    endTime: "3:00 PM",
+    location: "Auditorium B",
   },
 ];
 
@@ -132,11 +153,17 @@ export default function AgendaScreen() {
                   />
                   <View style={{ flex: 1 }}>
                     {item.conflictingItems.map((conflictItem) => (
-                      <AgendaItem
+                      <View 
                         key={conflictItem.id}
-                        onPress={() => navigateToEvent(conflictItem.id)}
-                        {...conflictItem}
-                      />
+                        style={{
+                          marginTop: calculateTimeOffset(item.startTime, conflictItem.startTime)
+                        }}
+                      >
+                        <AgendaItem
+                          onPress={() => navigateToEvent(conflictItem.id)}
+                          {...conflictItem}
+                        />
+                      </View>
                     ))}
                   </View>
                 </View>
@@ -170,6 +197,7 @@ const styles = StyleSheet.create({
   conflictContent: {
     gap: 8,
     flexDirection: "row",
+    alignItems: "flex-start",
   },
   header: {
     marginTop: 16,
