@@ -31,6 +31,17 @@ export default function Admin() {
     }
   };
 
+  const scrollToEvent = (eventY: number) => {
+    if (eventY === 0) return;
+    if (agendaEditorRef.current) {
+        agendaEditorRef.current.measure((x, y, width, height, pageX, pageY) => {
+          if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ y: y + eventY, animated: true });
+          }
+        });
+      }
+  };
+
   if (pin === TEMPORARY_PIN) {
     return (
       <SafeAreaView style={styles.container}>
@@ -43,7 +54,7 @@ export default function Admin() {
             <ThemedText>Welcome to the admin panel!</ThemedText>
             <AnnouncementForm />
             <View ref={agendaEditorRef}>
-              <AgendaEditor onShowForm={scrollToAgendaEditor} />
+              <AgendaEditor onShowForm={scrollToAgendaEditor} onCloseForm={scrollToEvent} />
             </View>
             <Button onPress={resetPin} title="Go back" />
           </ThemedView>

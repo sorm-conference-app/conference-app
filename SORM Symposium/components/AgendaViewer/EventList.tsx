@@ -11,14 +11,15 @@ type EventListProps = {
   events: Event[];
   onEditEvent: (event: Event) => void;
   onDeleteEvent: (event: Event) => void;
-};
+  onEventPosition: (event: Event, y: number) => void;
+}
 
 type EventGroup = {
   events: Event[];
   hasConflict: boolean;
 };
 
-export function EventList({ events, onEditEvent, onDeleteEvent }: EventListProps) {
+export function EventList({ events, onEditEvent, onDeleteEvent, onEventPosition }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -90,7 +91,11 @@ export function EventList({ events, onEditEvent, onDeleteEvent }: EventListProps
       { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
     ]}>
       {eventGroups.map((group, groupIndex) => (
-        <View key={groupIndex} style={styles.eventGroup}>
+        <View key={groupIndex} style={styles.eventGroup} 
+        onLayout={(e) => {
+          for (let event of group.events) 
+            { onEventPosition(event, e.nativeEvent.layout.y); }
+        }}>
           {group.events.map((event) => (
             <View 
               key={event.id} 
