@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { formatTimeRange } from "@/lib/dateTime";
+import { Pressable, StyleSheet } from "react-native";
 
 type AgendaItemProps = {
   title: string;
@@ -53,7 +54,7 @@ export default function AgendaItem({
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
           <ThemedText style={styles.time}>
-            {startTime} - {endTime}{" "}
+            {formatTimeRange(startTime, endTime)}
           </ThemedText>
         </ThemedView>
         <ThemedView style={styles.infoRow}>
