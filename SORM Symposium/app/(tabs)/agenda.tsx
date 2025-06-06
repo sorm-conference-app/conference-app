@@ -55,11 +55,13 @@ function areTimesConflicting(
   return startA < endB && startB < endA;
 }
 
+const PIXELS_PER_MINUTE = 130 / 60; // Same as in AgendaItem.tsx (130px per hour)
+
 function calculateTimeOffset(startTimeA: string, startTimeB: string): number {
-  const timeA = convert12HrFormatToSeconds(startTimeA);
-  const timeB = convert12HrFormatToSeconds(startTimeB);
-  // Convert time difference to pixels (e.g., 30 minutes = 50 pixels)
-  return Math.max(0, (timeB - timeA) * (50 / 1800)); // 1800 seconds = 30 minutes
+  const timeA = convert12HrTimeToSeconds(startTimeA);
+  const timeB = convert12HrTimeToSeconds(startTimeB);
+  // Convert time difference to pixels
+  return Math.max(0, (timeB - timeA) / 60 * PIXELS_PER_MINUTE);
 }
 
 type EventsByDate = {
@@ -199,7 +201,8 @@ export default function AgendaScreen() {
                           location={item.location}
                           onPress={() => navigateToEvent(item.id)}
                         />
-                        <View style={{ flex: 1 }}>
+                        <View style={[{ flex: 1 }, 
+                          { marginTop: calculateTimeOffset(item.start_time, item.conflictingItems[0].start_time) }]}>
                           {item.conflictingItems.map((conflictItem) => (
                             <AgendaItem
                               key={conflictItem.id}
