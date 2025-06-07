@@ -9,7 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default async function saveExpoPushToken(tok: string, deviceId: string) {
   const createdToken = await AsyncStorage.getItem("created-expo-token");
 
-  if (createdToken) {
+  if (createdToken === "true") {
     // No need to create another request.
     return;
   }
