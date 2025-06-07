@@ -7,11 +7,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  * @param deviceId The ID associated with the device.
  */
 export default async function saveExpoPushToken(tok: string, deviceId: string) {
-  const createdToken = await AsyncStorage.getItem("created-expo-token");
+  try {
+    const createdToken = await AsyncStorage.getItem("created-expo-token");
 
-  if (createdToken === "true") {
-    // No need to create another request.
-    return;
+    if (createdToken === "true") {
+      // No need to create another request.
+      return;
+    }
+  } catch (_) {
+    console.error("Couldn't verify if expo token was created before...");
   }
 
   const { error: insertError } = await supabase.from("test_profiles").upsert({

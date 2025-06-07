@@ -80,8 +80,12 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
       setToken(token);
 
       await saveExpoPushToken(token, deviceId);
-      
-      await AsyncStorage.setItem('created-expo-token', 'true');
+
+      try {
+        await AsyncStorage.setItem("created-expo-token", "true");
+      } catch (e) {
+        console.error("Failed to set `created-expo-token` in storage...");
+      }
     }
 
     const notificationListener = Notifications.addNotificationReceivedListener(
