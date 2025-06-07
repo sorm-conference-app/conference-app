@@ -1,9 +1,10 @@
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Button, StyleSheet } from "react-native";
+import { Alert, Button, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useState } from "react";
 import ThemedTextInput from "@/components/ThemedTextInput";
+import signinUser from "@/api/signinUser";
 
 export default function Login() {
   const [showLoginScreen, setShowLoginScreen] = useState<boolean>(false);
@@ -14,6 +15,7 @@ export default function Login() {
     email: "",
     password: "",
   });
+  const [err, setErr] = useState<string>("");
   const validEmail = /^[A-Za-z0-9]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(
     login.email,
   );
@@ -23,6 +25,17 @@ export default function Login() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleLogin = async () => {
+    const { email, password } = login;
+    setErr("");
+    try {
+      await signinUser(email, password);
+      router.push("/");
+    } catch (e) {
+      setErr("Failed to login: " + (e as Error).message);
+    }
   };
 
   const navigate = (type: "attendee" | "organizer") => {
@@ -81,8 +94,13 @@ export default function Login() {
         />
       </ThemedView>
 
-      <Button title="Sign In" disabled={!validEmail} />
+      <Button
+        title="Sign In"
+        onPress={handleLogin}
+        disabled={!validEmail || login.password.length === 0}
+      />
       <Button title="Back" onPress={() => setShowLoginScreen(false)} />
+      <ThemedText style={styles.invalid}>{err}</ThemedText>
     </ThemedView>
   );
 }
