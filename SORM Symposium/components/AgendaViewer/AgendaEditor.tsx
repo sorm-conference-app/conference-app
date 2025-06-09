@@ -4,12 +4,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Event } from './types';
 import { EventForm } from './EventForm';
 import { EventList } from './EventList';
 import { AlertModal } from './AlertModal';
-import { detectTimeConflicts, formatConflictMessage } from './utils';
-import { sampleEvents } from './sampleEvents';
+import type { Event } from '@/types/Events.types';
 
 const BREAKPOINT = 700; // Threshold for wide screen
 
@@ -19,11 +17,11 @@ interface AgendaEditorProps {
 
 export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
   const colorScheme = useColorScheme() ?? 'light';
-  const [events, setEvents] = useState<Event[]>(sampleEvents);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [isWideScreen, setIsWideScreen] = useState(true);
+
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
     message: string;
@@ -85,50 +83,50 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
   };
 
   const handleAddEvent = (event: Event) => {
-    const newEvents = [...events];
-    if (editingEvent) {
-      const index = newEvents.findIndex(e => e.id === event.id);
-      if (index !== -1) {
-        newEvents[index] = event;
-      }
-    } else {
-      newEvents.push(event);
-    }
+    // const newEvents = [...events];
+    // if (editingEvent) {
+    //   const index = newEvents.findIndex(e => e.id === event.id);
+    //   if (index !== -1) {
+    //     newEvents[index] = event;
+    //   }
+    // } else {
+    //   newEvents.push(event);
+    // }
 
-    // Sort events by start time
-    newEvents.sort((a, b) => a.startTime.localeCompare(b.startTime));
+    // // Sort events by start time
+    // newEvents.sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-    const conflicts = detectTimeConflicts(newEvents);
-    const relevantConflicts = conflicts.filter(conflict => 
-      conflict.event1.id === event.id || conflict.event2.id === event.id
-    );
+    // const conflicts = detectTimeConflicts(newEvents);
+    // const relevantConflicts = conflicts.filter(conflict => 
+    //   conflict.event1.id === event.id || conflict.event2.id === event.id
+    // );
 
-    if (relevantConflicts.length > 0) {
-      setAlertConfig({
-        title: 'Time Conflict Detected',
-        message: formatConflictMessage(relevantConflicts[0]),
-        buttons: [
-          {
-            text: 'Cancel',
-            onPress: () => {},
-            style: 'cancel',
-          },
-          {
-            text: editingEvent ? 'Update Anyway' : 'Add Anyway',
-            onPress: () => {
-              setEvents(newEvents);
-              setShowForm(false);
-              setEditingEvent(undefined);
-            },
-          },
-        ],
-      });
-      setShowAlert(true);
-    } else {
-      setEvents(newEvents);
-      setShowForm(false);
-      setEditingEvent(undefined);
-    }
+    // if (relevantConflicts.length > 0) {
+    //   setAlertConfig({
+    //     title: 'Time Conflict Detected',
+    //     message: formatConflictMessage(relevantConflicts[0]),
+    //     buttons: [
+    //       {
+    //         text: 'Cancel',
+    //         onPress: () => {},
+    //         style: 'cancel',
+    //       },
+    //       {
+    //         text: editingEvent ? 'Update Anyway' : 'Add Anyway',
+    //         onPress: () => {
+    //           setEvents(newEvents);
+    //           setShowForm(false);
+    //           setEditingEvent(undefined);
+    //         },
+    //       },
+    //     ],
+    //   });
+    //   setShowAlert(true);
+    // } else {
+    //   setEvents(newEvents);
+    //   setShowForm(false);
+    //   setEditingEvent(undefined);
+    // }
   };
 
   const handleShowForm = () => {
@@ -158,7 +156,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
         {
           text: 'Delete',
           onPress: () => {
-            setEvents(events.filter(e => e.id !== event.id));
+            // setEvents(events.filter(e => e.id !== event.id));
           },
           style: 'destructive',
         },
@@ -205,10 +203,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
           }}
         />
       )}
-        <EventList
-          events={events}
-          onSelectEvent={handleEventSelect}
-        />
+      <EventList onSelectEvent={handleEventSelect} />
 
       <AlertModal
         visible={showAlert}

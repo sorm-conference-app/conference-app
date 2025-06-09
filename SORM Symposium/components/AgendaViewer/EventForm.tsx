@@ -4,7 +4,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Event } from './types';
+import type { Event } from '@/types/Events.types';
 
 type EventFormProps = {
   event?: Event;
@@ -17,16 +17,16 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [title, setTitle] = useState(event?.title ?? '');
   const [description, setDescription] = useState(event?.description ?? '');
   const [location, setLocation] = useState(event?.location ?? '');
-  const [startTime, setStartTime] = useState(event?.startTime ?? '');
-  const [endTime, setEndTime] = useState(event?.endTime ?? '');
+  const [startTime, setStartTime] = useState(event?.start_time ?? '');
+  const [endTime, setEndTime] = useState(event?.end_time ?? '');
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
   useEffect(() => {
     setTitle(event?.title ?? '');
     setDescription(event?.description ?? '');
     setLocation(event?.location ?? '');
-    setStartTime(event?.startTime ?? '');
-    setEndTime(event?.endTime ?? '');
+    setStartTime(event?.start_time ?? '');
+    setEndTime(event?.end_time ?? '');
     setCanSubmit(event ? true : false);
   }, [event]);
 
@@ -36,12 +36,20 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     }
 
     onSubmit({
-      id: event?.id ?? Date.now().toString(),
+      id: event?.id ?? 0,
       title,
       description,
       location,
-      startTime,
-      endTime,
+      start_time: startTime,
+      end_time: endTime,
+      created_at: event?.created_at ?? new Date().toISOString(),
+      type: event?.type ?? 'event',
+      speaker: event?.speaker ?? '',
+      slides_url: event?.slides_url ?? '',
+      event_date: event?.event_date ?? new Date().toISOString(),
+      speaker_name: event?.speaker_name ?? '',
+      speaker_title: event?.speaker_title ?? '',
+      speaker_bio: event?.speaker_bio ?? '',
     });
   };
 

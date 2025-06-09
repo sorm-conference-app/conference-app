@@ -1,4 +1,57 @@
-import { Event, TimeConflict } from './types';
+import type { Event } from '@/types/Events.types';
+
+export type TimeConflict = {
+  event1: Event;
+  event2: Event;
+  type: 'contained' | 'overlap';
+};
+
+function convert24HrTimeToSeconds(time: string): number {
+  // Handle 24-hour format (HH:mm:ss or HH:mm)
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 3600 + (minutes || 0) * 60;
+}
+
+function convert12HrTimeToSeconds(time: string): number {
+  // Only try to handle 12-hour format if it includes AM/PM
+  if (time.includes("AM") || time.includes("PM")) {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (modifier.toUpperCase() === "PM" && hours < 12) {
+      hours += 12;
+    } else if (modifier.toUpperCase() === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return hours * 3600 + minutes * 60;
+  }
+
+  // If no AM/PM, treat as 24-hour format
+  return convert24HrTimeToSeconds(time);
+}
+
+/**
+ * Determine if two time intervals conflict.
+ * @param startTimeA Start time for first event.
+ * @param endTimeA End time for first event.
+ * @param startTimeB Start time for second event.
+ * @param endTimeB End time for second event.
+ * @returns
+ */
+export function areTimesConflicting(
+  startTimeA: string,
+  endTimeA: string,
+  startTimeB: string,
+  endTimeB: string
+): boolean {
+  const startA = convert24HrTimeToSeconds(startTimeA);
+  const endA = convert24HrTimeToSeconds(endTimeA);
+  const startB = convert24HrTimeToSeconds(startTimeB);
+  const endB = convert24HrTimeToSeconds(endTimeB);
+
+  return startA < endB && startB < endA;
+}
 
 export function parseTime(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -11,43 +64,59 @@ export function formatTime(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
-export function detectTimeConflicts(events: Event[]): TimeConflict[] {
-  const conflicts: TimeConflict[] = [];
+type EventsByDate = {
+  [date: string]: Event[];
+};
+export function groupEventsByDate(events: Event[]): EventsByDate {
+  return events.reduce((acc: EventsByDate, event) => {
+    if (!acc[event.event_date]) {
+      acc[event.event_date] = [];
+    }
+    acc[event.event_date].push(event);
+    return acc;
+  }, {});
+}
 
-  for (let i = 0; i < events.length; i++) {
-    for (let j = i + 1; j < events.length; j++) {
-      const event1 = events[i];
-      const event2 = events[j];
+export const findConflicts = (events: Event[]) => {
+  const conflictIds = new Set<number>();
+  const items = [];
 
-      const start1 = parseTime(event1.startTime);
-      const end1 = parseTime(event1.endTime);
-      const start2 = parseTime(event2.startTime);
-      const end2 = parseTime(event2.endTime);
+  for (const item of events) {
+    if (conflictIds.has(item.id)) {
+      continue;
+    }
 
-      // Check for overlap
-      if (start1 < end2 && start2 < end1) {
-        conflicts.push({
-          event1,
-          event2,
-          type: start1 <= start2 && end1 >= end2 || start2 <= start1 && end2 >= end1
-            ? 'contained'
-            : 'overlap'
-        });
-      }
+    const conflicts = events.filter(
+      (conflictItem) =>
+        conflictItem.id !== item.id &&
+        areTimesConflicting(
+          item.start_time,
+          item.end_time,
+          conflictItem.start_time,
+          conflictItem.end_time
+        )
+    );
+
+    items.push({
+      ...item,
+      conflictingItems: conflicts,
+    });
+    for (const conflictItem of conflicts) {
+      conflictIds.add(conflictItem.id);
     }
   }
 
-  return conflicts;
-}
+  return items;
+};
 
 export function formatConflictMessage(conflict: TimeConflict): string {
   const { event1, event2, type } = conflict;
   
   if (type === 'contained') {
-    const container = event1.startTime <= event2.startTime ? event1 : event2;
-    const contained = event1.startTime <= event2.startTime ? event2 : event1;
-    return `${container.title} (${container.startTime}-${container.endTime}) contains ${contained.title} (${contained.startTime}-${contained.endTime})`;
+    const container = event1.start_time <= event2.start_time ? event1 : event2;
+    const contained = event1.start_time <= event2.start_time ? event2 : event1;
+    return `${container.title} (${container.start_time}-${container.end_time}) contains ${contained.title} (${contained.start_time}-${contained.end_time})`;
   } else {
-    return `${event1.title} (${event1.startTime}-${event1.endTime}) overlaps with ${event2.title} (${event2.startTime}-${event2.endTime})`;
+    return `${event1.title} (${event1.start_time}-${event1.end_time}) overlaps with ${event2.title} (${event2.start_time}-${event2.end_time})`;
   }
 } 

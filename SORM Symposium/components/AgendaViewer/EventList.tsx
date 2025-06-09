@@ -1,94 +1,137 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Event } from './types';
+import type { Event } from '@/types/Events.types';
 import AgendaItem from '@/components/AgendaItem';
-import { detectTimeConflicts } from './utils';
+import { findConflicts, groupEventsByDate } from './utils';
+import { getAllEvents } from '@/services/events';
+import { ThemedView } from '../ThemedView';
+import { ThemedText } from '../ThemedText';
+import { Stack } from 'expo-router';
+import { formatDate } from '@/lib/dateTime';
 
 type EventListProps = {
-  events: Event[];
   onSelectEvent: (event: Event) => void;
 };
 
-type EventGroup = {
-  events: Event[];
-  hasConflict: boolean;
-};
-
-export function EventList({ events, onSelectEvent }: EventListProps) {
+export function EventList({ onSelectEvent }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Group events by time conflicts
-  const eventGroups: EventGroup[] = React.useMemo(() => {
-    const conflicts = detectTimeConflicts(events);
-    const conflictMap = new Map<string, Set<string>>();
-    
-    // Build a map of which events conflict with each other
-    conflicts.forEach(conflict => {
-      const { event1, event2 } = conflict;
-      if (!conflictMap.has(event1.id)) conflictMap.set(event1.id, new Set());
-      if (!conflictMap.has(event2.id)) conflictMap.set(event2.id, new Set());
-      conflictMap.get(event1.id)!.add(event2.id);
-      conflictMap.get(event2.id)!.add(event1.id);
-    });
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const allEvents = await getAllEvents();
+        setEvents(allEvents);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Group events that conflict with each other
-    const groups: EventGroup[] = [];
-    const processed = new Set<string>();
+    fetchEvents();
+  }, []);
 
-    events.forEach(event => {
-      if (processed.has(event.id)) return;
+  if (loading) {
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: "Event Viewer",
+            headerShown: true,
+          }}
+        />
+        <ThemedText style={styles.loadingText}>Loading events...</ThemedText>
+      </ThemedView>
+    );
+  }
 
-      const group: Event[] = [event];
-      processed.add(event.id);
+  if (error) {
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen
+          options={{
+            title: "Event Viewer",
+            headerShown: true,
+          }}
+        />
+        <ThemedText style={styles.errorText}>{error}</ThemedText>
+      </ThemedView>
+    );
+  }
 
-      // Find all events that conflict with this event
-      const conflictingIds = conflictMap.get(event.id) || new Set();
-      conflictingIds.forEach(id => {
-        const conflictingEvent = events.find(e => e.id === id);
-        if (conflictingEvent && !processed.has(id)) {
-          group.push(conflictingEvent);
-          processed.add(id);
-        }
-      });
-
-      groups.push({
-        events: group,
-        hasConflict: group.length > 1
-      });
-    });
-
-    return groups;
-  }, [events]);
+  const eventsByDate = groupEventsByDate(events);
+  const sortedDates = Object.keys(eventsByDate).sort();
 
   return (
-    <ScrollView style={[styles.container,
-      { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-    ]}>
-      {eventGroups.map((group, groupIndex) => (
-        <View key={groupIndex} style={styles.eventGroup}>
-          {group.events.map((event) => (
-            <View 
-              key={event.id} 
-              style={[
-                styles.eventWrapper,
-                { flex: group.hasConflict ? 1 : undefined, 
-                  width: group.hasConflict ? undefined : '100%' }
-              ]}
-            >
-              <AgendaItem
-                title={event.title}
-                startTime={event.startTime}
-                endTime={event.endTime}
-                location={event.location ?? ''}
-                onPress={() => onSelectEvent(event)}
-              />
-            </View>
-          ))}
+    <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: "Agenda",
+          headerShown: true,
+        }}
+      />
+      <ScrollView style={styles.scrollView}>
+        <ThemedText style={styles.header} type="title">
+          Conference Schedule
+        </ThemedText>
+        <View style={styles.content}>
+          {sortedDates.length === 0 ? (
+            <ThemedText style={styles.noEventsText}>No events found</ThemedText>
+          ) : (
+            sortedDates.map((date) => (
+              <View key={date} style={styles.dateSection}>
+                <ThemedText style={styles.dateHeader} type="subtitle">
+                  {formatDate(date)}
+                </ThemedText>
+                {findConflicts(eventsByDate[date]).map((item) => {
+                  if (item.conflictingItems.length > 0) {
+                    return (
+                      <View key={item.id} style={styles.conflictContent}>
+                        <AgendaItem
+                          title={item.title}
+                          startTime={item.start_time}
+                          endTime={item.end_time}
+                          location={item.location}
+                          onPress={() => onSelectEvent(item)}
+                        />
+                        <View style={{ flex: 1 }}>
+                          {item.conflictingItems.map((conflictItem) => (
+                            <AgendaItem
+                              key={conflictItem.id}
+                              title={conflictItem.title}
+                              startTime={conflictItem.start_time}
+                              endTime={conflictItem.end_time}
+                              location={conflictItem.location}
+                              onPress={() => onSelectEvent(conflictItem)}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    );
+                  }
+
+                  return (
+                    <AgendaItem
+                      key={item.id}
+                      title={item.title}
+                      startTime={item.start_time}
+                      endTime={item.end_time}
+                      location={item.location}
+                      onPress={() => onSelectEvent(item)}
+                    />
+                  );
+                })}
+              </View>
+            ))
+          )}
         </View>
-      ))}
-    </ScrollView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
@@ -104,5 +147,37 @@ const styles = StyleSheet.create({
   },
   eventWrapper: {
     minWidth: 0, // Allows flex items to shrink below their content size
+  },
+  loadingText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    padding: 16,
+  },
+  content: {
+    padding: 16,
+  },
+  noEventsText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  dateSection: {
+    marginBottom: 16,
+  },
+  dateHeader: {
+    marginBottom: 8,
+  },
+  conflictContent: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
   },
 }); 
