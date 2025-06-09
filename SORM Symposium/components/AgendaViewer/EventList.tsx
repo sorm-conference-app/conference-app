@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Event } from './types';
 import AgendaItem from '@/components/AgendaItem';
-import { AlertModal } from './AlertModal';
 import { detectTimeConflicts } from './utils';
 
 type EventListProps = {
   events: Event[];
-  onEditEvent: (event: Event) => void;
-  onDeleteEvent: (event: Event) => void;
+  onSelectEvent: (event: Event) => void;
 };
 
 type EventGroup = {
@@ -18,10 +16,8 @@ type EventGroup = {
   hasConflict: boolean;
 };
 
-export function EventList({ events, onEditEvent, onDeleteEvent }: EventListProps) {
+export function EventList({ events, onSelectEvent }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [showOptions, setShowOptions] = useState(false);
 
   // Group events by time conflicts
   const eventGroups: EventGroup[] = React.useMemo(() => {
@@ -66,25 +62,6 @@ export function EventList({ events, onEditEvent, onDeleteEvent }: EventListProps
     return groups;
   }, [events]);
 
-  const handleEventPress = (event: Event) => {
-    setSelectedEvent(event);
-    setShowOptions(true);
-  };
-
-  const handleEdit = () => {
-    if (selectedEvent) {
-      onEditEvent(selectedEvent);
-      setShowOptions(false);
-    }
-  };
-
-  const handleDelete = () => {
-    if (selectedEvent) {
-      onDeleteEvent(selectedEvent);
-      setShowOptions(false);
-    }
-  };
-
   return (
     <ScrollView style={[styles.container,
       { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
@@ -105,35 +82,12 @@ export function EventList({ events, onEditEvent, onDeleteEvent }: EventListProps
                 startTime={event.startTime}
                 endTime={event.endTime}
                 location={event.location ?? ''}
-                onPress={() => handleEventPress(event)}
+                onPress={() => onSelectEvent(event)}
               />
             </View>
           ))}
         </View>
       ))}
-
-      <AlertModal
-        visible={showOptions}
-        title={selectedEvent?.title ?? ''}
-        message="What would you like to do with this event?"
-        buttons={[
-          {
-            text: 'Edit',
-            onPress: handleEdit,
-          },
-          {
-            text: 'Delete',
-            onPress: handleDelete,
-            style: 'destructive',
-          },
-          {
-            text: 'Cancel',
-            onPress: () => setShowOptions(false),
-            style: 'cancel',
-          },
-        ]}
-        onClose={() => setShowOptions(false)}
-      />
     </ScrollView>
   );
 }

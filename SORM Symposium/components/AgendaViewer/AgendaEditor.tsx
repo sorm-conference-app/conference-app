@@ -52,6 +52,38 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
     };
   }, []);
 
+  const handleEventSelect = (event: Event) => {
+    setAlertConfig({
+      title: event.title,
+      message: "What would you like to do with this event?",
+      buttons: [
+        {
+          text: 'Edit',
+          onPress: () => {
+            setShowAlert(false);
+            handleEditEvent(event);
+          },
+        },
+        {
+          text: 'Delete',
+          onPress: () => {
+            setShowAlert(false);
+            setTimeout(() => {
+              handleDeleteEvent(event);
+            }, 100);
+          },
+          style: 'destructive',
+        },
+        {
+          text: 'Cancel',
+          onPress: () => setShowAlert(false),
+          style: 'cancel',
+        },
+      ],
+    });
+    setShowAlert(true);
+  };
+
   const handleAddEvent = (event: Event) => {
     const newEvents = [...events];
     if (editingEvent) {
@@ -175,8 +207,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
       )}
         <EventList
           events={events}
-          onEditEvent={handleEditEvent}
-          onDeleteEvent={handleDeleteEvent}
+          onSelectEvent={handleEventSelect}
         />
 
       <AlertModal
