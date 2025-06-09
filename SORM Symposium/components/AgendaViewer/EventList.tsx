@@ -12,9 +12,10 @@ import { formatDate } from '@/lib/dateTime';
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
   showHeader?: boolean;
+  reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, showHeader = true }: EventListProps) {
+export function EventList({ onSelectEvent, showHeader = true, reloadTrigger = 0 }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export function EventList({ onSelectEvent, showHeader = true }: EventListProps) 
     };
 
     fetchEvents();
-  }, []);
+  }, [reloadTrigger]);
 
   if (loading) {
     return (

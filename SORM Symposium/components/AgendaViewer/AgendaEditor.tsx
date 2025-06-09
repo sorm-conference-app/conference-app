@@ -22,7 +22,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
   const [editingEvent, setEditingEvent] = useState<Event | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [isWideScreen, setIsWideScreen] = useState(true);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -51,30 +51,6 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
       subscription.remove();
     };
   }, []);
-
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
-    try {
-      const allEvents = await getAllEvents();
-      setEvents(allEvents);
-    } catch (error) {
-      console.error('Error loading events:', error);
-      setAlertConfig({
-        title: 'Error',
-        message: 'Failed to load events. Please try again.',
-        buttons: [
-          {
-            text: 'OK',
-            onPress: () => setShowAlert(false),
-          },
-        ],
-      });
-      setShowAlert(true);
-    }
-  };
 
   const handleEventSelect = (event: Event) => {
     setAlertConfig({
@@ -132,8 +108,8 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
         await createEvent(createData);
       }
       
-      // Reload events to get the latest data
-      await loadEvents();
+      // Trigger a reload of the EventList
+      setReloadTrigger(prev => prev + 1);
       setShowForm(false);
       setEditingEvent(undefined);
     } catch (error) {
@@ -181,7 +157,8 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
           onPress: async () => {
             try {
               await deleteEvent(event.id);
-              await loadEvents();
+              // Trigger a reload of the EventList
+              setReloadTrigger(prev => prev + 1);
               setShowAlert(false);
             } catch (error) {
               console.error('Error deleting event:', error);
@@ -242,7 +219,11 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
           }}
         />
       )}
-      <EventList onSelectEvent={handleEventSelect} showHeader={false} />
+      <EventList 
+        onSelectEvent={handleEventSelect} 
+        showHeader={false} 
+        reloadTrigger={reloadTrigger}
+      />
 
       <AlertModal
         visible={showAlert}

@@ -19,6 +19,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [location, setLocation] = useState(event?.location ?? '');
   const [startTime, setStartTime] = useState(event?.start_time ?? '');
   const [endTime, setEndTime] = useState(event?.end_time ?? '');
+  const [eventDate, setEventDate] = useState(event?.event_date ?? '');
+  const [speaker, setSpeaker] = useState(event?.speaker ?? '');
+  const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? '');
+  const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? '');
+  const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? '');
+  const [speakerBio, setSpeakerBio] = useState(event?.speaker_bio ?? '');
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
   useEffect(() => {
@@ -27,6 +33,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     setLocation(event?.location ?? '');
     setStartTime(event?.start_time ?? '');
     setEndTime(event?.end_time ?? '');
+    setEventDate(event?.event_date ?? '');
+    setSpeaker(event?.speaker ?? '');
+    setSlidesUrl(event?.slides_url ?? '');
+    setSpeakerName(event?.speaker_name ?? '');
+    setSpeakerTitle(event?.speaker_title ?? '');
+    setSpeakerBio(event?.speaker_bio ?? '');
     setCanSubmit(event ? true : false);
   }, [event]);
 
@@ -44,12 +56,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       end_time: endTime,
       created_at: event?.created_at ?? new Date().toISOString(),
       type: event?.type ?? 'event',
-      speaker: event?.speaker ?? '',
-      slides_url: event?.slides_url ?? '',
-      event_date: event?.event_date ?? new Date().toISOString(),
-      speaker_name: event?.speaker_name ?? '',
-      speaker_title: event?.speaker_title ?? '',
-      speaker_bio: event?.speaker_bio ?? '',
+      speaker,
+      slides_url: slidesUrl,
+      event_date: eventDate,
+      speaker_name: speakerName,
+      speaker_title: speakerTitle,
+      speaker_bio: speakerBio,
     });
   };
 
@@ -76,7 +88,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              setCanSubmit(Boolean(text && location && startTime && endTime));
+              setCanSubmit(Boolean(text && location && startTime && endTime && eventDate));
             }}
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -118,9 +130,30 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={location}
             onChangeText={(text) => {
               setLocation(text);
-              setCanSubmit(Boolean(title && text && startTime && endTime));
+              setCanSubmit(Boolean(title && text && startTime && endTime && eventDate));
             }}
             placeholder="Event location"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Event Date *</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={eventDate}
+            onChangeText={(text) => {
+              setEventDate(text);
+              setCanSubmit(Boolean(title && location && startTime && endTime && text));
+            }}
+            placeholder="YYYY-MM-DD"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
         </View>
@@ -139,7 +172,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={startTime}
             onChangeText={(text) => {
               setStartTime(text);
-              setCanSubmit(Boolean(title && location && text && endTime));
+              setCanSubmit(Boolean(title && location && text && endTime && eventDate));
             }}
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -160,9 +193,106 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={endTime}
             onChangeText={(text) => {
               setEndTime(text);
-              setCanSubmit(Boolean(title && location && startTime && text));
+              setCanSubmit(Boolean(title && location && startTime && text && eventDate));
             }}
             placeholder="e.g. 10:30 AM"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText style={styles.subtitleText}>Leave Speaker-related fields blank if not applicable</ThemedText>
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={speaker}
+            onChangeText={setSpeaker}
+            placeholder="Speaker name"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker Name</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={speakerName}
+            onChangeText={setSpeakerName}
+            placeholder="Full name of the speaker"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker Title</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={speakerTitle}
+            onChangeText={setSpeakerTitle}
+            placeholder="Speaker's title or position"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker Bio</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              styles.textArea,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={speakerBio}
+            onChangeText={setSpeakerBio}
+            placeholder="Speaker's biography"
+            placeholderTextColor={Colors[colorScheme].text + '80'}
+            multiline
+            numberOfLines={4}
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Slides URL</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              { 
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + '40',
+              }
+            ]}
+            value={slidesUrl}
+            onChangeText={setSlidesUrl}
+            placeholder="URL to presentation slides"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
         </View>
@@ -246,5 +376,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: 'bold',
+  },
+  subtitleText: {
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 8,
   },
 }); 
