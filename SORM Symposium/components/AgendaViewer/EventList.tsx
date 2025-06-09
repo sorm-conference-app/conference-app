@@ -11,6 +11,7 @@ import { formatDate } from '@/lib/dateTime';
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
+  onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
   reloadTrigger?: number;
 };

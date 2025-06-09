@@ -14,14 +14,17 @@ const BREAKPOINT = 700; // Threshold for wide screen
 
 interface AgendaEditorProps {
   onShowForm: () => void;
+  onCloseForm: (y: number) => void;
 }
 
-export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
+export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [isWideScreen, setIsWideScreen] = useState(true);
+  const [eventPositions] = useState(new Map<number, number>());
+  const [headerHeight, setHeaderHeight] = useState(0);
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const [alertConfig, setAlertConfig] = useState<{
@@ -112,6 +115,10 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
       setReloadTrigger(prev => prev + 1);
       setShowForm(false);
       setEditingEvent(undefined);
+      setTimeout(() => {
+        const y = eventPositions.get(event.id) || 0;
+        onCloseForm(y + headerHeight);
+      }, 100);
     } catch (error) {
       console.error('Error saving event:', error);
       setAlertConfig({
@@ -120,7 +127,10 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
         buttons: [
           {
             text: 'OK',
-            onPress: () => setShowAlert(false),
+            onPress: () => {
+              onCloseForm(0);
+            },
+            style: 'cancel',
           },
         ],
       });
@@ -181,9 +191,16 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
     setShowAlert(true);
   };
 
+  const handleEventPosition = (event: Event, y: number) => {
+    eventPositions.set(event.id, y);
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
+      <View 
+        style={styles.header}
+        onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
+      >
         <View style={styles.headerTop}>
           <ThemedText type="title">Agenda Editor</ThemedText>
           {isWideScreen && (
@@ -216,6 +233,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
           onCancel={() => {
             setShowForm(false);
             setEditingEvent(undefined);
+            onCloseForm(0);
           }}
         />
       )}
@@ -223,6 +241,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
         onSelectEvent={handleEventSelect} 
         showHeader={false} 
         reloadTrigger={reloadTrigger}
+          onEventPosition={handleEventPosition}
       />
 
       <AlertModal
