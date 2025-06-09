@@ -7,14 +7,14 @@ import { findConflicts, groupEventsByDate } from './utils';
 import { getAllEvents } from '@/services/events';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
-import { Stack } from 'expo-router';
 import { formatDate } from '@/lib/dateTime';
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
+  showHeader?: boolean;
 };
 
-export function EventList({ onSelectEvent }: EventListProps) {
+export function EventList({ onSelectEvent, showHeader = true }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +39,6 @@ export function EventList({ onSelectEvent }: EventListProps) {
   if (loading) {
     return (
       <ThemedView style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: "Event Viewer",
-            headerShown: true,
-          }}
-        />
         <ThemedText style={styles.loadingText}>Loading events...</ThemedText>
       </ThemedView>
     );
@@ -53,12 +47,6 @@ export function EventList({ onSelectEvent }: EventListProps) {
   if (error) {
     return (
       <ThemedView style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: "Event Viewer",
-            headerShown: true,
-          }}
-        />
         <ThemedText style={styles.errorText}>{error}</ThemedText>
       </ThemedView>
     );
@@ -69,16 +57,12 @@ export function EventList({ onSelectEvent }: EventListProps) {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: "Agenda",
-          headerShown: true,
-        }}
-      />
       <ScrollView style={styles.scrollView}>
-        <ThemedText style={styles.header} type="title">
-          Conference Schedule
-        </ThemedText>
+        {showHeader && (
+          <ThemedText style={styles.header} type="title">
+            Conference Schedule
+          </ThemedText>
+        )}
         <View style={styles.content}>
           {sortedDates.length === 0 ? (
             <ThemedText style={styles.noEventsText}>No events found</ThemedText>

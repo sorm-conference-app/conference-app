@@ -62,4 +62,62 @@ export async function getEventById(id: number): Promise<Event | null> {
   }
 
   return data;
+}
+
+/**
+ * Creates a new event in the database
+ * @param event - The event data to create
+ * @returns The created event
+ */
+export async function createEvent(event: Omit<Event, 'id' | 'created_at'>): Promise<Event> {
+  const { data, error } = await supabase
+    .from('events')
+    .insert([event])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating event:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Updates an existing event in the database
+ * @param id - The ID of the event to update
+ * @param event - The updated event data
+ * @returns The updated event
+ */
+export async function updateEvent(id: number, event: Partial<Event>): Promise<Event> {
+  const { data, error } = await supabase
+    .from('events')
+    .update(event)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating event:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Deletes an event from the database
+ * @param id - The ID of the event to delete
+ */
+export async function deleteEvent(id: number): Promise<void> {
+  const { error } = await supabase
+    .from('events')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting event:', error);
+    throw error;
+  }
 } 

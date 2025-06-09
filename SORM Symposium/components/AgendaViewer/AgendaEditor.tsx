@@ -8,6 +8,7 @@ import { EventForm } from './EventForm';
 import { EventList } from './EventList';
 import { AlertModal } from './AlertModal';
 import type { Event } from '@/types/Events.types';
+import { createEvent, updateEvent, deleteEvent, getAllEvents } from '@/services/events';
 
 const BREAKPOINT = 700; // Threshold for wide screen
 
@@ -21,6 +22,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
   const [editingEvent, setEditingEvent] = useState<Event | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [isWideScreen, setIsWideScreen] = useState(true);
+  const [events, setEvents] = useState<Event[]>([]);
 
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -49,6 +51,30 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const allEvents = await getAllEvents();
+      setEvents(allEvents);
+    } catch (error) {
+      console.error('Error loading events:', error);
+      setAlertConfig({
+        title: 'Error',
+        message: 'Failed to load events. Please try again.',
+        buttons: [
+          {
+            text: 'OK',
+            onPress: () => setShowAlert(false),
+          },
+        ],
+      });
+      setShowAlert(true);
+    }
+  };
 
   const handleEventSelect = (event: Event) => {
     setAlertConfig({
@@ -82,51 +108,48 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
     setShowAlert(true);
   };
 
-  const handleAddEvent = (event: Event) => {
-    // const newEvents = [...events];
-    // if (editingEvent) {
-    //   const index = newEvents.findIndex(e => e.id === event.id);
-    //   if (index !== -1) {
-    //     newEvents[index] = event;
-    //   }
-    // } else {
-    //   newEvents.push(event);
-    // }
-
-    // // Sort events by start time
-    // newEvents.sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-    // const conflicts = detectTimeConflicts(newEvents);
-    // const relevantConflicts = conflicts.filter(conflict => 
-    //   conflict.event1.id === event.id || conflict.event2.id === event.id
-    // );
-
-    // if (relevantConflicts.length > 0) {
-    //   setAlertConfig({
-    //     title: 'Time Conflict Detected',
-    //     message: formatConflictMessage(relevantConflicts[0]),
-    //     buttons: [
-    //       {
-    //         text: 'Cancel',
-    //         onPress: () => {},
-    //         style: 'cancel',
-    //       },
-    //       {
-    //         text: editingEvent ? 'Update Anyway' : 'Add Anyway',
-    //         onPress: () => {
-    //           setEvents(newEvents);
-    //           setShowForm(false);
-    //           setEditingEvent(undefined);
-    //         },
-    //       },
-    //     ],
-    //   });
-    //   setShowAlert(true);
-    // } else {
-    //   setEvents(newEvents);
-    //   setShowForm(false);
-    //   setEditingEvent(undefined);
-    // }
+  const handleAddEvent = async (event: Event) => {
+    try {
+      if (editingEvent) {
+        // Update existing event - only send the fields that can be updated
+        const updateData = {
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          speaker: event.speaker,
+          slides_url: event.slides_url,
+          speaker_name: event.speaker_name,
+          speaker_title: event.speaker_title,
+          speaker_bio: event.speaker_bio,
+          event_date: event.event_date,
+        };
+        await updateEvent(editingEvent.id, updateData);
+      } else {
+        // Create new event - omit id and created_at
+        const { id, created_at, ...createData } = event;
+        await createEvent(createData);
+      }
+      
+      // Reload events to get the latest data
+      await loadEvents();
+      setShowForm(false);
+      setEditingEvent(undefined);
+    } catch (error) {
+      console.error('Error saving event:', error);
+      setAlertConfig({
+        title: 'Error',
+        message: 'Failed to save event. Please try again.',
+        buttons: [
+          {
+            text: 'OK',
+            onPress: () => setShowAlert(false),
+          },
+        ],
+      });
+      setShowAlert(true);
+    }
   };
 
   const handleShowForm = () => {
@@ -143,20 +166,36 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
     }, 350);
   };
 
-  const handleDeleteEvent = (event: Event) => {
+  const handleDeleteEvent = async (event: Event) => {
     setAlertConfig({
       title: 'Delete Event',
       message: `Are you sure you want to delete "${event.title}"?`,
       buttons: [
         {
           text: 'Cancel',
-          onPress: () => {},
+          onPress: () => setShowAlert(false),
           style: 'cancel',
         },
         {
           text: 'Delete',
-          onPress: () => {
-            // setEvents(events.filter(e => e.id !== event.id));
+          onPress: async () => {
+            try {
+              await deleteEvent(event.id);
+              await loadEvents();
+              setShowAlert(false);
+            } catch (error) {
+              console.error('Error deleting event:', error);
+              setAlertConfig({
+                title: 'Error',
+                message: 'Failed to delete event. Please try again.',
+                buttons: [
+                  {
+                    text: 'OK',
+                    onPress: () => setShowAlert(false),
+                  },
+                ],
+              });
+            }
           },
           style: 'destructive',
         },
@@ -203,7 +242,7 @@ export function AgendaEditor({ onShowForm }: AgendaEditorProps) {
           }}
         />
       )}
-      <EventList onSelectEvent={handleEventSelect} />
+      <EventList onSelectEvent={handleEventSelect} showHeader={false} />
 
       <AlertModal
         visible={showAlert}
