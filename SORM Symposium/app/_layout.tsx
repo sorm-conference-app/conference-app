@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { enableScreens } from "react-native-screens";
 import { Platform } from "react-native";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 
 // Enable screens for better performance
 enableScreens();
@@ -33,18 +34,20 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <ExpoPushTokenProvider>
-          <Stack
-            screenOptions={{
-              contentStyle: {
-                paddingTop: topInset,
-              },
-            }}
-          >
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
+          <AuthSessionProvider>
+            <Stack
+              screenOptions={{
+                contentStyle: {
+                  paddingTop: topInset,
+                },
+              }}
+            >
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </AuthSessionProvider>
         </ExpoPushTokenProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
