@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import type { Event } from '@/types/Events.types';
@@ -16,12 +16,14 @@ type EventListProps = {
   reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, showHeader = true, reloadTrigger = 0 }: EventListProps) {
+export function EventList({ onSelectEvent, onEventPosition, showHeader = true, reloadTrigger = 0 }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const dateRefs = useRef<{ [key: string]: View | null }>({});
+  const dateHeights = useRef<{ [key: string]: number }>({});
+  
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -70,31 +72,58 @@ export function EventList({ onSelectEvent, showHeader = true, reloadTrigger = 0 
             <ThemedText style={styles.noEventsText}>No events found</ThemedText>
           ) : (
             sortedDates.map((date) => (
-              <View key={date} style={styles.dateSection}>
+              <View 
+                key={date} 
+                style={styles.dateSection}
+                ref={ref => { dateRefs.current[date] = ref; }}
+                onLayout={(e) => {
+                  dateHeights.current[date] = e.nativeEvent.layout.height;
+                }}
+              >
                 <ThemedText style={styles.dateHeader} type="subtitle">
                   {formatDate(date)}
                 </ThemedText>
                 {findConflicts(eventsByDate[date]).map((item) => {
                   if (item.conflictingItems.length > 0) {
                     return (
-                      <View key={item.id} style={styles.conflictContent}>
-                        <AgendaItem
-                          title={item.title}
-                          startTime={item.start_time}
-                          endTime={item.end_time}
-                          location={item.location}
-                          onPress={() => onSelectEvent(item)}
-                        />
-                        <View style={{ flex: 1 }}>
+                      <View key={item.id} style={styles.conflictContent}
+                        onLayout={(e) => {
+                          // calculate the y position of the events in this row
+                          dateRefs.current[date]?.measure((y) => {
+                            const previousHeights = sortedDates
+                              .filter(d => d < date)
+                              .reduce((sum, d) => sum + (dateHeights.current[d] || 0), 0);
+                            
+                            // call the onEventPosition callback with the y position of the events in this row
+                            onEventPosition(item, y + e.nativeEvent.layout.y + previousHeights);
+                            for (const conflictItem of item.conflictingItems) {
+                              onEventPosition(conflictItem, y + e.nativeEvent.layout.y + previousHeights);
+                            }
+                          });
+                        }}
+                      >
+                        <View style={styles.eventWrapper}>
+                          <AgendaItem
+                            title={item.title}
+                            startTime={item.start_time}
+                            endTime={item.end_time}
+                            location={item.location}
+                            onPress={() => onSelectEvent(item)}
+                          />
+                        </View>
+                        <View style={styles.eventWrapper}>
                           {item.conflictingItems.map((conflictItem) => (
-                            <AgendaItem
+                            <View 
                               key={conflictItem.id}
-                              title={conflictItem.title}
-                              startTime={conflictItem.start_time}
-                              endTime={conflictItem.end_time}
-                              location={conflictItem.location}
-                              onPress={() => onSelectEvent(conflictItem)}
-                            />
+                            >
+                              <AgendaItem
+                                title={conflictItem.title}
+                                startTime={conflictItem.start_time}
+                                endTime={conflictItem.end_time}
+                                location={conflictItem.location}
+                                onPress={() => onSelectEvent(conflictItem)}
+                              />
+                            </View>
                           ))}
                         </View>
                       </View>
@@ -102,14 +131,28 @@ export function EventList({ onSelectEvent, showHeader = true, reloadTrigger = 0 
                   }
 
                   return (
-                    <AgendaItem
+                    <View 
                       key={item.id}
-                      title={item.title}
-                      startTime={item.start_time}
-                      endTime={item.end_time}
-                      location={item.location}
-                      onPress={() => onSelectEvent(item)}
-                    />
+                      onLayout={(e) => {
+                        // calculate the y position of the event
+                        dateRefs.current[date]?.measure((y) => {
+                          const previousHeights = sortedDates
+                            .filter(d => d < date)
+                            .reduce((sum, d) => sum + (dateHeights.current[d] || 0), 0);
+                          
+                          // call the onEventPosition callback with the y position of the event
+                          onEventPosition(item, y + e.nativeEvent.layout.y + previousHeights);
+                        });
+                      }}
+                    >
+                      <AgendaItem
+                        title={item.title}
+                        startTime={item.start_time}
+                        endTime={item.end_time}
+                        location={item.location}
+                        onPress={() => onSelectEvent(item)}
+                      />
+                    </View>
                   );
                 })}
               </View>
@@ -132,6 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eventWrapper: {
+    flex: 1,
     minWidth: 0, // Allows flex items to shrink below their content size
   },
   loadingText: {
