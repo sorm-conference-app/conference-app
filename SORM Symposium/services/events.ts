@@ -21,6 +21,39 @@ export async function getAllEvents(): Promise<Event[]> {
 }
 
 /**
+ * Subscribes to real-time updates for the events table
+ * @param callback - Function to call when events are updated
+ * @returns Unsubscribe function
+ */
+export function subscribeToEvents(callback: (events: Event[]) => void) {
+  // Initial fetch
+  getAllEvents().then(callback);
+
+  // Subscribe to real-time updates
+  const subscription = supabase
+    .channel('events_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*', // Listen for all changes (INSERT, UPDATE, DELETE)
+        schema: 'public',
+        table: 'events'
+      },
+      async () => {
+        // When any change occurs, fetch the latest events
+        const events = await getAllEvents();
+        callback(events);
+      }
+    )
+    .subscribe();
+
+  // Return unsubscribe function
+  return () => {
+    subscription.unsubscribe();
+  };
+}
+
+/**
  * Fetches events for a specific date
  * @param date - The date to fetch events for (YYYY-MM-DD format)
  * @returns Array of events for the specified date

@@ -4,7 +4,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import type { Event } from '@/types/Events.types';
 import AgendaItem from '@/components/AgendaViewer/AgendaItem';
 import { findConflicts, groupEventsByDate } from './utils';
-import { getAllEvents } from '@/services/events';
+import { getAllEvents, subscribeToEvents } from '@/services/events';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { formatDate } from '@/lib/dateTime';
@@ -39,6 +39,22 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
 
     fetchEvents();
   }, [reloadTrigger]);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToEvents((updatedEvents) => {
+      setEvents(updatedEvents);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   if (loading) {
     return (
