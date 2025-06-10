@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import type { Event } from '@/types/Events.types';
-import AgendaItem from '@/components/AgendaItem';
+import AgendaItem from '@/components/AgendaViewer/AgendaItem';
 import { findConflicts, groupEventsByDate } from './utils';
 import { getAllEvents } from '@/services/events';
 import { ThemedView } from '../ThemedView';
