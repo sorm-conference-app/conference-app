@@ -11,7 +11,7 @@ import type { Event } from '@/types/Events.types';
 import { createEvent, updateEvent, deleteEvent, getAllEvents } from '@/services/events';
 import { addCurrentYearToDate, isDateValid, isTimeValid } from './utils';
 
-const BREAKPOINT = 700; // Threshold for wide screen
+const BREAKPOINT = 1200; // Threshold for wide screen
 
 interface AgendaEditorProps {
   onShowForm: () => void;
@@ -27,6 +27,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const [eventPositions] = useState(new Map<number, number>());
   const [headerHeight, setHeaderHeight] = useState(0);
   const [reloadTrigger, setReloadTrigger] = useState(0);
+  const [showDeleted, setShowDeleted] = useState(true);
 
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -265,6 +266,35 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
     eventPositions.set(event.id, y);
   };
 
+  const toggleShowDeletedButton = () => {
+    return (
+      <ThemedView style={[
+        styles.toggleButtonContainer,
+        !isWideScreen && { borderColor: Colors[colorScheme].tint, borderWidth: 1, borderRadius: 8, 
+          padding: 8, backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
+      ]}
+      >
+        <ThemedText style={[
+          styles.subtitleText, 
+          { color: Colors[colorScheme].text },
+          !isWideScreen && { flex: 1, textAlign: 'center' }
+        ]} type="subtitle">Showing: {showDeleted ? "All" : "Active"} Events</ThemedText>
+        <Pressable
+          style={[
+            styles.addButton,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].tint }
+          ]}
+          onPress={() => setShowDeleted(!showDeleted)}
+        >
+          <ThemedText style={[styles.addButtonText,
+            { color: Colors[colorScheme].adminButtonText }
+          ]}>Toggle</ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
+  };
+  
   return (
     <ThemedView style={styles.container}>
       <View 
@@ -277,6 +307,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
             <ThemedText style={[styles.subtitleText, { color: Colors[colorScheme].text }
             ]} type="subtitle">Select an event to edit or delete it</ThemedText>
           )}
+          {isWideScreen && toggleShowDeletedButton()}
           <Pressable
             style={[
               styles.addButton,
@@ -294,6 +325,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           <ThemedText style={[styles.subtitleText, { color: Colors[colorScheme].text }
           ]} type="subtitle">Select an event to edit or delete it</ThemedText>
         )}
+        {!isWideScreen && toggleShowDeletedButton()}
       </View>
 
       {showForm && (
@@ -310,7 +342,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
       <EventList 
         onSelectEvent={handleEventSelect} 
         showHeader={false} 
-        showDeleted={true}
+        showDeleted={showDeleted}
         reloadTrigger={reloadTrigger}
         onEventPosition={handleEventPosition}
       />
@@ -346,11 +378,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
+    marginLeft: 10,
   },
   addButtonText: {
     fontWeight: 'bold',
   },
   subtitleText: {
     fontWeight: 'bold',
+  },
+  toggleButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
 });

@@ -39,7 +39,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
     };
 
     fetchEvents();
-  }, [reloadTrigger]);
+  }, [reloadTrigger, showDeleted]);
 
   useEffect(() => {
     setLoading(true);
