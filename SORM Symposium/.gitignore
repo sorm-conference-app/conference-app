@@ -45,3 +45,11 @@ supabase/.temp
 *.tsbuildinfo
 
 app-example
+
+# Android
+android/
+
+# iOS
+ios/
+
+
