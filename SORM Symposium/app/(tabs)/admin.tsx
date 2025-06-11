@@ -3,6 +3,10 @@ import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useState } from "react";
+import { Button, SafeAreaView } from "react-native";
+import { Redirect } from "expo-router";
 import { useState, useRef } from "react";
 import { Button, SafeAreaView, ScrollView, StyleSheet, ViewStyle, View } from "react-native";
 
@@ -10,6 +14,7 @@ const TEMPORARY_PIN = "1234";
 
 export default function Admin() {
   const [pin, setPin] = useState<string>("");
+  const user = useSupabaseAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const agendaEditorRef = useRef<View>(null);
 
@@ -19,6 +24,10 @@ export default function Admin() {
 
   function resetPin() {
     setPin("");
+  }
+
+  if (!user) {
+    return <Redirect href="/(tabs)/agenda" />;
   }
 
   const scrollToAgendaEditor = () => {
