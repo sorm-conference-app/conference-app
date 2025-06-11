@@ -12,4 +12,5 @@ export interface Event {
   speaker_title: string | null;
   speaker_bio: string | null;
   event_date: string;
+  is_deleted: boolean;
 } 

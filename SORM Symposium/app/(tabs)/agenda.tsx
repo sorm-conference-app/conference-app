@@ -25,6 +25,7 @@ export default function AgendaScreen() {
         onSelectEvent={navigateToEvent} 
         onEventPosition={() => {}} // No use for event postions in this screen
         showHeader={true} 
+        showDeleted={false}
         reloadTrigger={1} // Reload trigger not used on this screen
       />
     </ThemedView>

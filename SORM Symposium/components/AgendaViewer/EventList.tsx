@@ -13,10 +13,11 @@ type EventListProps = {
   onSelectEvent: (event: Event) => void;
   onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
+  showDeleted?: boolean;
   reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, onEventPosition, showHeader = true, reloadTrigger = 0 }: EventListProps) {
+export function EventList({ onSelectEvent, onEventPosition, showHeader = true, showDeleted = false, reloadTrigger = 0 }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
     const fetchEvents = async () => {
       try {
         const allEvents = await getAllEvents();
-        setEvents(allEvents);
+        setEvents(allEvents.filter(event => showDeleted || !event.is_deleted));
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events");
@@ -45,14 +46,14 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
     setError(null);
 
     // Subscribe to real-time updates
-    const unsubscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents);
+    const subscribe = subscribeToEvents((updatedEvents) => {
+      setEvents(updatedEvents.filter(event => showDeleted || !event.is_deleted));
       setLoading(false);
     });
 
     // Cleanup subscription on unmount
     return () => {
-      unsubscribe();
+      subscribe();
     };
   }, []);
 

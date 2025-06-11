@@ -127,6 +127,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           speaker_title: event.speaker_title,
           speaker_bio: event.speaker_bio,
           event_date: event.event_date,
+          is_deleted: event.is_deleted,
         };
         await updateEvent(editingEvent.id, updateData);
       } else {
@@ -143,6 +144,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           speaker_title: event.speaker_title,
           speaker_bio: event.speaker_bio,
           event_date: event.event_date,
+          is_deleted: false,
         };
         await createEvent(createData);
       }
@@ -202,8 +204,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           text: 'Delete',
           onPress: async () => {
             try {
-              await deleteEvent(event.id);
-              // Trigger a reload of the EventList
+              await updateEvent(event.id, { is_deleted: true });
               setReloadTrigger(prev => prev + 1);
               setShowAlert(false);
             } catch (error) {
@@ -276,8 +277,9 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
       <EventList 
         onSelectEvent={handleEventSelect} 
         showHeader={false} 
+        showDeleted={true}
         reloadTrigger={reloadTrigger}
-          onEventPosition={handleEventPosition}
+        onEventPosition={handleEventPosition}
       />
 
       <AlertModal
