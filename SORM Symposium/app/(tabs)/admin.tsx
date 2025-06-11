@@ -4,8 +4,6 @@ import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { useState } from "react";
-import { Button, SafeAreaView } from "react-native";
 import { Redirect } from "expo-router";
 import { useState, useRef } from "react";
 import { Button, SafeAreaView, ScrollView, StyleSheet, ViewStyle, View } from "react-native";
