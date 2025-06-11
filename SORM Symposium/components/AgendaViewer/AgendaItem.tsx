@@ -11,6 +11,7 @@ type AgendaItemProps = {
   startTime: string;
   endTime: string;
   location: string;
+  isDeleted: boolean;
   onPress: () => void;
 };
 
@@ -19,6 +20,7 @@ export default function AgendaItem({
   startTime,
   endTime,
   location,
+  isDeleted,
   onPress,
 }: AgendaItemProps) {
   const tintColor = Colors[useColorScheme() ?? "light"].tint;
@@ -36,6 +38,7 @@ export default function AgendaItem({
           <ThemedText style={styles.title} type="defaultSemiBold">
             {title}
           </ThemedText>
+          {isDeleted && <ThemedText style={styles.deletedTitle} type="defaultSemiBold"> - Deleted</ThemedText>}
           <IconSymbol name="chevron.right" size={20} color={tintColor} />
         </ThemedView>
         <ThemedView style={styles.infoRow}>
@@ -68,6 +71,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
+    marginBottom: 3,
+  },
+  deletedTitle: {
+    color: "red",
     marginBottom: 3,
   },
   time: {

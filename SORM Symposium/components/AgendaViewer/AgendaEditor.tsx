@@ -68,7 +68,16 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
             handleEditEvent(event);
           },
         },
-        {
+        event.is_deleted ? {
+          text: 'Reinstate',
+          onPress: () => {
+            setShowAlert(false);
+            setTimeout(() => {
+              handleReinstateEvent(event);
+            }, 100);
+          },
+          style: 'default',
+        } : {
           text: 'Delete',
           onPress: () => {
             setShowAlert(false);
@@ -222,6 +231,30 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
             }
           },
           style: 'destructive',
+        },
+      ],
+    });
+    setShowAlert(true);
+  };
+
+  const handleReinstateEvent = async (event: Event) => {
+    setAlertConfig({
+      title: 'Reinstate Event',
+      message: `Are you sure you want to reinstate "${event.title}"?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          onPress: () => setShowAlert(false),
+          style: 'cancel',
+        },
+        {
+          text: 'Reinstate',
+          onPress: async () => {
+            await updateEvent(event.id, { is_deleted: false });
+            setReloadTrigger(prev => prev + 1);
+            setShowAlert(false);
+          },
+          style: 'default',
         },
       ],
     });

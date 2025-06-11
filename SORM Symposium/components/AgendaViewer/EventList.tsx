@@ -125,6 +125,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                             startTime={item.start_time}
                             endTime={item.end_time}
                             location={item.location}
+                            isDeleted={item.is_deleted}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -138,6 +139,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                                 startTime={conflictItem.start_time}
                                 endTime={conflictItem.end_time}
                                 location={conflictItem.location}
+                                isDeleted={conflictItem.is_deleted}
                                 onPress={() => onSelectEvent(conflictItem)}
                               />
                             </View>
@@ -167,6 +169,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                         startTime={item.start_time}
                         endTime={item.end_time}
                         location={item.location}
+                        isDeleted={item.is_deleted}
                         onPress={() => onSelectEvent(item)}
                       />
                     </View>
