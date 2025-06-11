@@ -35,6 +35,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      contact_info: {
+        Row: {
+          id: number;
+          first_name: string;
+          last_name: string;
+          phone_number: string;
+          email: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          first_name: string;
+          last_name: string;
+          phone_number: string;
+          email: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          first_name?: string;
+          last_name?: string;
+          phone_number?: string;
+          email?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       test_profiles: {
         Row: {
           created_at: string;
