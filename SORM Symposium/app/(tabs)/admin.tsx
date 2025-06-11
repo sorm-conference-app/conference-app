@@ -3,48 +3,27 @@ import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, SafeAreaView } from "react-native";
 import { Redirect } from "expo-router";
-
-const TEMPORARY_PIN = "1234";
+import { supabase } from "@/constants/supabase";
+import useActiveUserCount from "@/hooks/useActiveUserCount";
 
 export default function Admin() {
-  const [pin, setPin] = useState<string>("");
+  const activeUsers = useActiveUserCount();
   const user = useSupabaseAuth();
 
-  function handlePinChange(text: string) {
-    setPin(text);
-  }
-
-  function resetPin() {
-    setPin("");
-  }
-
-  if (!user) {
-    return <Redirect href="/(tabs)/agenda" />;
-  }
-
-  if (pin === TEMPORARY_PIN) {
-    return (
-      <SafeAreaView>
-        <ThemedView>
-          <ThemedText>Welcome to the admin panel!</ThemedText>
-          <AnnouncementForm />
-          <Button onPress={resetPin} title="Go back" />
-        </ThemedView>
-      </SafeAreaView>
-    );
-  }
+  // if (!user) {
+  //   return <Redirect href="/(tabs)/agenda" />;
+  // }
 
   return (
     <SafeAreaView>
       <ThemedView>
-        <ThemedTextInput
-          value={pin}
-          onChangeText={handlePinChange}
-          placeholder="Enter PIN"
-        />
+        <ThemedText>
+          Welcome to the admin panel! | Active Users: {activeUsers}
+        </ThemedText>
+        <AnnouncementForm />
       </ThemedView>
     </SafeAreaView>
   );
