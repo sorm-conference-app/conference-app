@@ -9,6 +9,7 @@ import { EventList } from './EventList';
 import { AlertModal } from './AlertModal';
 import type { Event } from '@/types/Events.types';
 import { createEvent, updateEvent, deleteEvent, getAllEvents } from '@/services/events';
+import { addCurrentYearToDate, isDateValid, isTimeValid } from './utils';
 
 const BREAKPOINT = 700; // Threshold for wide screen
 
@@ -89,6 +90,29 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
 
   const handleAddEvent = async (event: Event) => {
     try {
+      if (!isDateValid(event.event_date)) { // If date is invalid, try to make year valid
+        const validDate = addCurrentYearToDate(event.event_date); 
+        if (isDateValid(validDate)) { // If date is now valid, update it
+          event.event_date = validDate;
+        } else { // If date is still invalid, show alert
+          setAlertConfig({
+            title: 'Invalid Date',
+            message: 'Please enter a valid date in the format MM-DD or YYYY-MM-DD.',
+            buttons: [{ text: 'OK', onPress: () => setShowAlert(false) }],
+          });
+          setShowAlert(true);
+          return;
+        }
+      }
+      if (!isTimeValid(event.start_time) || !isTimeValid(event.end_time)) {
+        setAlertConfig({
+          title: 'Invalid Time',
+          message: 'Please enter a valid time in the format HH:MM using 12-hour or 24-hour format.',
+          buttons: [{ text: 'OK', onPress: () => setShowAlert(false) }],
+        });
+        setShowAlert(true);
+        return;
+      }
       if (editingEvent) {
         // Update existing event - only send the fields that can be updated
         const updateData = {
@@ -107,7 +131,19 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
         await updateEvent(editingEvent.id, updateData);
       } else {
         // Create new event - omit id and created_at
-        const { id, created_at, ...createData } = event;
+        const createData = {
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          speaker: event.speaker,
+          slides_url: event.slides_url,
+          speaker_name: event.speaker_name,
+          speaker_title: event.speaker_title,
+          speaker_bio: event.speaker_bio,
+          event_date: event.event_date,
+        };
         await createEvent(createData);
       }
       

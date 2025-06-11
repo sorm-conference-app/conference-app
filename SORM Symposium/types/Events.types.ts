@@ -6,7 +6,6 @@ export interface Event {
   end_time: string;
   location: string;
   description: string | null;
-  type: string | null;
   speaker: string | null;
   slides_url: string | null;
   speaker_name: string | null;

@@ -64,6 +64,52 @@ export function formatTime(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
+export function isTimeValid(time: string): boolean {
+  // Check for 12-hour format (e.g., "1:30 PM" or "11:45 AM")
+  if (time.includes("AM") || time.includes("PM")) {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    // Validate hours and minutes
+    if (isNaN(hours) || isNaN(minutes) || minutes < 0 || minutes >= 60) {
+      return false;
+    }
+
+    // Validate hours based on AM/PM
+    if (modifier.toUpperCase() === "AM") {
+      return hours >= 1 && hours <= 12;
+    } else if (modifier.toUpperCase() === "PM") {
+      return hours >= 1 && hours <= 12;
+    }
+    return false;
+  }
+
+  // Check for 24-hour format (e.g., "13:30" or "09:45")
+  const [hours, minutes] = time.split(":").map(Number);
+  return !isNaN(hours) && !isNaN(minutes) && 
+         hours >= 0 && hours < 24 && 
+         minutes >= 0 && minutes < 60;
+}
+
+export function isDateValid(date: string): boolean {
+  const [year, month, day] = date.split('-').map(Number);
+  if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+    return false;
+  }
+  return !isNaN(new Date(year, month - 1, day).getTime());
+}
+
+/**
+ * Adds the current year to a date string that doesn't include a year.
+ * @param dateString - Date string in MM-DD format
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function addCurrentYearToDate(dateString: string): string {
+  const currentYear = new Date().getFullYear();
+  const [month, day] = dateString.split('-');
+  return `${currentYear}-${month}-${day}`;
+} 
+
 type EventsByDate = {
   [date: string]: Event[];
 };
