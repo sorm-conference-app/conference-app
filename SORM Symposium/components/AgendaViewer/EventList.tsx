@@ -13,11 +13,11 @@ type EventListProps = {
   onSelectEvent: (event: Event) => void;
   onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
-  showDeleted?: boolean;
+  showDeleted?: 'all' | 'active' | 'deleted';
   reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, onEventPosition, showHeader = true, showDeleted = false, reloadTrigger = 0 }: EventListProps) {
+export function EventList({ onSelectEvent, onEventPosition, showHeader = true, showDeleted = 'active', reloadTrigger = 0 }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,9 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
     const fetchEvents = async () => {
       try {
         const allEvents = await getAllEvents();
-        setEvents(allEvents.filter(event => showDeleted || !event.is_deleted));
+        setEvents(allEvents.filter(event => showDeleted === 'all' 
+          || showDeleted === 'active' && !event.is_deleted 
+          || showDeleted === 'deleted' && event.is_deleted));
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events");
@@ -47,7 +49,9 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
 
     // Subscribe to real-time updates
     const subscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents.filter(event => showDeleted || !event.is_deleted));
+      setEvents(updatedEvents.filter(event => showDeleted === 'all' 
+        || showDeleted === 'active' && !event.is_deleted 
+        || showDeleted === 'deleted' && event.is_deleted));
       setLoading(false);
     });
 
@@ -55,7 +59,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
     return () => {
       subscribe();
     };
-  }, []);
+  }, [showDeleted]);
 
   if (loading) {
     return (

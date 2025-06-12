@@ -27,7 +27,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const [eventPositions] = useState(new Map<number, number>());
   const [headerHeight, setHeaderHeight] = useState(0);
   const [reloadTrigger, setReloadTrigger] = useState(0);
-  const [showDeleted, setShowDeleted] = useState(true);
+  const [showDeleted, setShowDeleted] = useState<'all' | 'active' | 'deleted'>('all');
 
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -278,18 +278,22 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           styles.subtitleText, 
           { color: Colors[colorScheme].text },
           !isWideScreen && { flex: 1, textAlign: 'center' }
-        ]} type="subtitle">Showing: {showDeleted ? "All" : "Active"} Events</ThemedText>
+        ]} type="subtitle">Showing: {showDeleted === 'all' ? "All" : 
+              showDeleted === 'active' ? "Active" : "Deleted"} Events</ThemedText>
         <Pressable
           style={[
             styles.addButton,
             { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].tint }
           ]}
-          onPress={() => setShowDeleted(!showDeleted)}
+          onPress={() => {setShowDeleted(showDeleted === 'all' ? 'active' : 
+            showDeleted === 'active' ? 'deleted' : 'all'); 
+            setReloadTrigger(prev => prev + 1);
+          }}
         >
           <ThemedText style={[styles.addButtonText,
             { color: Colors[colorScheme].adminButtonText }
-          ]}>Toggle</ThemedText>
+          ]}>Cycle View</ThemedText>
         </Pressable>
       </ThemedView>
     );
