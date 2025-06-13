@@ -130,7 +130,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={location}
             onChangeText={(text) => {
               setLocation(text);
-              setCanSubmit(Boolean(title && text && startTime && endTime && eventDate));
+              setCanSubmit(Boolean(title && (title !== "Break" ? text : true) && startTime && endTime && eventDate));
             }}
             placeholder="Event location"
             placeholderTextColor={Colors[colorScheme].text + '80'}

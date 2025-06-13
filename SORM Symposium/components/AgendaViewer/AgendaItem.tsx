@@ -33,7 +33,7 @@ export default function AgendaItem({
         styles.agendaItem,
         { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
         { borderColor: Colors[colorScheme].tint },
-        { minHeight: calculateHeight(startTime, endTime) },
+        { minHeight: title === "Break" ? 65 : calculateHeight(startTime, endTime) },
         pressed && styles.agendaItemPressed,
       ]}
       onPress={onPress}
@@ -54,10 +54,10 @@ export default function AgendaItem({
             {formatTimeRange(startTime, endTime)}
           </ThemedText>
         </ThemedView>
-        <ThemedView style={styles.infoRow}>
+        {title !== "Break" && <ThemedView style={styles.infoRow}>
           <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
           <ThemedText style={styles.location}>{location}</ThemedText>
-        </ThemedView>
+        </ThemedView>}
       </ThemedView>
     </Pressable>
   );
