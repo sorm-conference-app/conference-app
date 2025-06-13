@@ -4,8 +4,10 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, Platform, View } from "react-native";
+import { ActivityIndicator, Alert, Button, Platform, StyleSheet, View } from "react-native";
+import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
+import { ThemedView } from "./ThemedView";
 
 /**
  * Form for editing existing contact information in Supabase.
@@ -101,7 +103,16 @@ export default function ContactEditForm() {
   }
 
   if (fetching) {
-    return <ActivityIndicator size="large" />;
+    return (
+      <ThemedView style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="title">Contact Editor</ThemedText>
+        </View>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" />
+        </View>
+      </ThemedView>
+    );
   }
 
   // Picker style for the actual picker component
@@ -117,72 +128,104 @@ export default function ContactEditForm() {
   };
 
   return (
-    <View style={{ gap: 16 }}>
-      {/* Picker for selecting a contact */}
-      <Picker
-        selectedValue={selectedId}
-        onValueChange={value => {
-          // Handle the "Select a contact" option and convert string to number if needed
-          if (value === null || value === undefined || value === "" || value === "select") {
-            setSelectedId("");
-          } else {
-            const numericValue = Number(value);
-            // Only set if it's a valid number to avoid NaN
-            if (!isNaN(numericValue)) {
-              setSelectedId(numericValue);
+    <ThemedView style={styles.container}>
+      <View style={[styles.header, { borderBottomColor: Colors[colorScheme].tint }]}>
+        <ThemedText type="title">Contact Editor</ThemedText>
+        <ThemedText 
+          style={[styles.subtitleText, { color: Colors[colorScheme].text }]} 
+          type="subtitle"
+        >
+          Select a contact from the list to edit their information
+        </ThemedText>
+      </View>
+      
+      <View style={styles.content}>
+        {/* Picker for selecting a contact */}
+        <Picker
+          selectedValue={selectedId}
+          onValueChange={value => {
+            // Handle the "Select a contact" option and convert string to number if needed
+            if (value === null || value === undefined || value === "" || value === "select") {
+              setSelectedId("");
+            } else {
+              const numericValue = Number(value);
+              // Only set if it's a valid number to avoid NaN
+              if (!isNaN(numericValue)) {
+                setSelectedId(numericValue);
+              }
             }
-          }
-        }}
-        style={pickerStyle}
-        dropdownIconColor={Colors[colorScheme].tint}
-        itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
-      >
-        <Picker.Item 
-          label="Select a contact" 
-          value="select" 
-          color={Colors[colorScheme].text}
-        />
-        {contacts.map(contact => (
-          <Picker.Item
-            key={contact.id}
-            label={`${contact.first_name} ${contact.last_name}`}
-            value={contact.id}
+          }}
+          style={pickerStyle}
+          dropdownIconColor={Colors[colorScheme].tint}
+          itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+        >
+          <Picker.Item 
+            label="Select a contact" 
+            value="select" 
             color={Colors[colorScheme].text}
           />
-        ))}
-      </Picker>
-      {/* Form fields for editing */}
-      <ThemedTextInput
-        value={firstName}
-        onChangeText={setFirstName}
-        placeholder="First Name"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-      />
-      <ThemedTextInput
-        value={lastName}
-        onChangeText={setLastName}
-        placeholder="Last Name"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-      />
-      <ThemedTextInput
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        placeholder="Phone Number"
-        keyboardType="phone-pad"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-      />
-      <ThemedTextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        keyboardType="email-address"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-      />
-      <Button
-        title={loading ? "Updating..." : "Update Contact"}
-        onPress={handleUpdate}
-        disabled={loading || selectedId === "" || typeof selectedId !== "number"}
-      />
-    </View>
+          {contacts.map(contact => (
+            <Picker.Item
+              key={contact.id}
+              label={`${contact.first_name} ${contact.last_name}`}
+              value={contact.id}
+              color={Colors[colorScheme].text}
+            />
+          ))}
+        </Picker>
+        
+        {/* Form fields for editing */}
+        <ThemedTextInput
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="First Name"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+        />
+        <ThemedTextInput
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Last Name"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+        />
+        <ThemedTextInput
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          placeholder="Phone Number"
+          keyboardType="phone-pad"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+        />
+        <ThemedTextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          keyboardType="email-address"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+        />
+        <Button
+          title={loading ? "Updating..." : "Update Contact"}
+          onPress={handleUpdate}
+          disabled={loading || selectedId === "" || typeof selectedId !== "number"}
+        />
+      </View>
+    </ThemedView>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    gap: 8,
+  },
+  subtitleText: {
+    fontWeight: 'bold',
+  },
+  content: {
+    padding: 16,
+    gap: 16,
+  },
+}); 
