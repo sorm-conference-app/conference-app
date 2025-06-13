@@ -1,4 +1,5 @@
 import { supabase } from "@/constants/supabase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Saves the Expo Push Token to the database.
@@ -6,26 +7,23 @@ import { supabase } from "@/constants/supabase";
  * @param deviceId The ID associated with the device.
  */
 export default async function saveExpoPushToken(tok: string, deviceId: string) {
-  // Check if the token exists first
-  const { data: existingToken, error } = await supabase
-    .from("test_profiles")
-    .select("expo_push_token")
-    .eq("id", deviceId)
-    .single();
+  try {
+    const createdToken = await AsyncStorage.getItem("created-expo-token");
 
-  // PGRST116 means that the row does not exist.
-  if (error && error.code !== "PGRST116") {
-    throw error;
+    if (createdToken === "true") {
+      // No need to create another request.
+      return;
+    }
+  } catch (_) {
+    console.error("Couldn't verify if expo token was created before...");
   }
 
-  if (!existingToken) {
-    const { error: insertError } = await supabase.from("test_profiles").upsert({
-      id: deviceId,
-      expo_push_token: tok,
-    });
+  const { error: insertError } = await supabase.from("test_profiles").upsert({
+    id: deviceId,
+    expo_push_token: tok,
+  });
 
-    if (insertError) {
-      throw insertError;
-    }
+  if (insertError) {
+    throw insertError;
   }
 }

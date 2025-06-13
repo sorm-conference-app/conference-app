@@ -13,10 +13,11 @@ type EventListProps = {
   onSelectEvent: (event: Event) => void;
   onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
+  showDeleted?: 'all' | 'active' | 'deleted';
   reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, onEventPosition, showHeader = true, reloadTrigger = 0 }: EventListProps) {
+export function EventList({ onSelectEvent, onEventPosition, showHeader = true, showDeleted = 'active', reloadTrigger = 0 }: EventListProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,9 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
     const fetchEvents = async () => {
       try {
         const allEvents = await getAllEvents();
-        setEvents(allEvents);
+        setEvents(allEvents.filter(event => showDeleted === 'all' 
+          || showDeleted === 'active' && !event.is_deleted 
+          || showDeleted === 'deleted' && event.is_deleted));
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events");
@@ -38,23 +41,25 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
     };
 
     fetchEvents();
-  }, [reloadTrigger]);
+  }, [reloadTrigger, showDeleted]);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
 
     // Subscribe to real-time updates
-    const unsubscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents);
+    const subscribe = subscribeToEvents((updatedEvents) => {
+      setEvents(updatedEvents.filter(event => showDeleted === 'all' 
+        || showDeleted === 'active' && !event.is_deleted 
+        || showDeleted === 'deleted' && event.is_deleted));
       setLoading(false);
     });
 
     // Cleanup subscription on unmount
     return () => {
-      unsubscribe();
+      subscribe();
     };
-  }, []);
+  }, [showDeleted]);
 
   if (loading) {
     return (
@@ -124,6 +129,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
                             startTime={item.start_time}
                             endTime={item.end_time}
                             location={item.location}
+                            isDeleted={item.is_deleted}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -137,6 +143,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
                                 startTime={conflictItem.start_time}
                                 endTime={conflictItem.end_time}
                                 location={conflictItem.location}
+                                isDeleted={conflictItem.is_deleted}
                                 onPress={() => onSelectEvent(conflictItem)}
                               />
                             </View>
@@ -166,6 +173,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, r
                         startTime={item.start_time}
                         endTime={item.end_time}
                         location={item.location}
+                        isDeleted={item.is_deleted}
                         onPress={() => onSelectEvent(item)}
                       />
                     </View>

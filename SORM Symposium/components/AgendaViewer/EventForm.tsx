@@ -55,13 +55,13 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       start_time: startTime,
       end_time: endTime,
       created_at: event?.created_at ?? new Date().toISOString(),
-      type: event?.type ?? 'event',
       speaker,
       slides_url: slidesUrl,
       event_date: eventDate,
       speaker_name: speakerName,
       speaker_title: speakerTitle,
       speaker_bio: speakerBio,
+      is_deleted: false,
     });
   };
 
@@ -153,7 +153,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setEventDate(text);
               setCanSubmit(Boolean(title && location && startTime && endTime && text));
             }}
-            placeholder="YYYY-MM-DD"
+            placeholder="MM-DD"
             placeholderTextColor={Colors[colorScheme].text + '80'}
           />
         </View>
