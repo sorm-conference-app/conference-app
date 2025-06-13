@@ -6,6 +6,7 @@ import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import saveExpoPushToken from "@/api/saveExpoPushToken";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -79,6 +80,12 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
       setToken(token);
 
       await saveExpoPushToken(token, deviceId);
+
+      try {
+        await AsyncStorage.setItem("created-expo-token", "true");
+      } catch (e) {
+        console.error("Failed to set `created-expo-token` in storage...");
+      }
     }
 
     const notificationListener = Notifications.addNotificationReceivedListener(
