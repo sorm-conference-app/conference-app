@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import type { Event } from '@/types/Events.types';
 import AgendaItem from '@/components/AgendaViewer/AgendaItem';
-import { findConflicts, groupEventsByDate } from './utils';
+import { findConflicts, groupEventsByDate, calculateEventOffset } from './utils';
 import { getAllEvents, subscribeToEvents } from '@/services/events';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
@@ -123,7 +123,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                           });
                         }}
                       >
-                        <View style={styles.eventWrapper}>
+                        <View style={[styles.eventWrapper, { alignSelf: 'flex-start' }]}>
                           <AgendaItem
                             title={item.title}
                             startTime={item.start_time}
@@ -137,6 +137,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                           {item.conflictingItems.map((conflictItem) => (
                             <View 
                               key={conflictItem.id}
+                              style={{ marginTop: calculateEventOffset(item.start_time, conflictItem.start_time) }}
                             >
                               <AgendaItem
                                 title={conflictItem.title}
@@ -232,6 +233,5 @@ const styles = StyleSheet.create({
   conflictContent: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
   },
 }); 

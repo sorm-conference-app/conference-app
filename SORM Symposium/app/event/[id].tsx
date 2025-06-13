@@ -86,22 +86,22 @@ export default function EventDetailScreen() {
             </ThemedText>
           </ThemedView>
 
-          <ThemedView style={styles.infoRow}>
+          {event.title !== "Break" && <ThemedView style={styles.infoRow}>
             <IconSymbol
               name="mappin.circle.fill"
               size={20}
               color={Colors[colorScheme].tabIconDefault}
             />
             <ThemedText style={styles.infoText}>{event.location}</ThemedText>
-          </ThemedView>
+          </ThemedView>}
         </ThemedView>
 
-        <ThemedView style={styles.section}>
+        {event.title !== "Break" && <ThemedView style={styles.section}>
           <ThemedText type="subtitle">About</ThemedText>
           <ThemedText style={styles.description}>
             {event.description || "No description available."}
           </ThemedText>
-        </ThemedView>
+        </ThemedView>}
 
         {event.speaker_name && (
           <>

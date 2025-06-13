@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   conflictContent: {
     gap: 8,
     flexDirection: "row",
+    alignItems: "flex-start",
   },
   header: {
     marginTop: 16,
