@@ -1,4 +1,5 @@
 import AnnouncementForm from "@/components/AnnouncementForm";
+import ContactEditForm from "@/components/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
@@ -24,6 +25,10 @@ export default function Admin() {
         <ThemedView>
           <ThemedText>Welcome to the admin panel!</ThemedText>
           <AnnouncementForm />
+          <ThemedText style={{ marginTop: 24, marginBottom: 8, fontWeight: "bold", fontSize: 18 }}>
+            Edit Event Organizer Contact Information
+          </ThemedText>
+          <ContactEditForm />
           <Button onPress={resetPin} title="Go back" />
         </ThemedView>
       </SafeAreaView>
