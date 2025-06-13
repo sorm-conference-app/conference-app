@@ -1,4 +1,5 @@
 import AnnouncementForm from "@/components/AnnouncementForm";
+import ContactEditForm from "@/components/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
