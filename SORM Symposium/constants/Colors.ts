@@ -11,6 +11,8 @@ export const Colors = {
     tabIconSelected: tintColorLight,
     tabBarBackground: '#071832',
     link: '#0a7ea4',
+    adminButton: '#2196f3',
+    adminButtonText: '#ECEDEE',
   },
   dark: {
     text: '#ECEDEE',
@@ -21,5 +23,7 @@ export const Colors = {
     tabIconSelected: tintColorDark,
     tabBarBackground: '#1D1D1D',
     link: '#0a7ea4',
+    adminButton: '#2196f3',
+    adminButtonText: '#ECEDEE',
   },
 }; 
