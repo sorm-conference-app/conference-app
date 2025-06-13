@@ -46,10 +46,8 @@ supabase/.temp
 
 app-example
 
-# Android
+# Platforms
+
 android/
 
-# iOS
 ios/
-
-

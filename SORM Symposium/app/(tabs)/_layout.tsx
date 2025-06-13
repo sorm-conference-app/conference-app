@@ -1,18 +1,21 @@
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
-
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 
 export default function TabLayout() {
+  const user = useSupabaseAuth();
+
   return (
     <Tabs
       initialRouteName="index"
       screenOptions={{
-        tabBarActiveTintColor: Colors[useColorScheme() ?? "light"].tabIconSelected,
+        tabBarActiveTintColor:
+          Colors[useColorScheme() ?? "light"].tabIconSelected,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -54,6 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="admin"
         options={{
+          href: user ? "/(tabs)/admin" : null,
           title: "Admin",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="person.fill" color={color} size={28} />
