@@ -88,7 +88,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              setCanSubmit(Boolean(text && location && startTime && endTime && eventDate));
+              setCanSubmit(Boolean(text && (title !== "Break" ? location : true) && startTime && endTime && eventDate));
             }}
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -151,7 +151,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={eventDate}
             onChangeText={(text) => {
               setEventDate(text);
-              setCanSubmit(Boolean(title && location && startTime && endTime && text));
+              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && endTime && text));
             }}
             placeholder="MM-DD"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -172,7 +172,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={startTime}
             onChangeText={(text) => {
               setStartTime(text);
-              setCanSubmit(Boolean(title && location && text && endTime && eventDate));
+              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && text && endTime && eventDate));
             }}
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
@@ -193,7 +193,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={endTime}
             onChangeText={(text) => {
               setEndTime(text);
-              setCanSubmit(Boolean(title && location && startTime && text && eventDate));
+              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && text && eventDate));
             }}
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].text + '80'}
