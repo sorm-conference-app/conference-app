@@ -166,3 +166,15 @@ export function formatConflictMessage(conflict: TimeConflict): string {
     return `${event1.title} (${event1.start_time}-${event1.end_time}) overlaps with ${event2.title} (${event2.start_time}-${event2.end_time})`;
   }
 } 
+
+export function calculateEventOffset(startTimeA: string, startTimeB: string): number {
+  const startA = convert24HrTimeToSeconds(startTimeA);
+  const startB = convert24HrTimeToSeconds(startTimeB);
+  return Math.max(0, (startB - startA) * (65 / 1800)); // 130px per hour
+}
+
+export function calculateHeight(startTime: string, endTime: string): number {
+  const duration = convert24HrTimeToSeconds(endTime) - convert24HrTimeToSeconds(startTime);
+  const BASE_HEIGHT = 130;
+  return Math.max(BASE_HEIGHT, BASE_HEIGHT / 3600 * duration);
+}

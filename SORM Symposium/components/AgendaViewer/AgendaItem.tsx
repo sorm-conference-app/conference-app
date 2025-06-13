@@ -4,6 +4,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { formatTimeRange } from "@/lib/dateTime";
+import { calculateHeight } from "./utils";
 import { Pressable, StyleSheet } from "react-native";
 
 type AgendaItemProps = {
@@ -13,13 +14,6 @@ type AgendaItemProps = {
   location: string;
   isDeleted: boolean;
   onPress: () => void;
-};
-
-const BASE_HEIGHT = 130; // Base height for 1-hour events
-
-const calculateHeight = (startTime: string, endTime: string) => {
-  const duration = parseInt(endTime) - parseInt(startTime);
-  return Math.max(BASE_HEIGHT, BASE_HEIGHT * duration);
 };
 
 export default function AgendaItem({
