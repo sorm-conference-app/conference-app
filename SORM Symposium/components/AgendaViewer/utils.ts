@@ -127,12 +127,27 @@ export const findConflicts = (events: Event[]) => {
   const conflictIds = new Set<number>();
   const items = [];
 
-  for (const item of events) {
+  // Sort events by start time, and for events with same start time, sort by duration (longer first)
+  const sortedEvents = [...events].sort((a, b) => {
+    const startTimeA = convert24HrTimeToSeconds(a.start_time);
+    const startTimeB = convert24HrTimeToSeconds(b.start_time);
+    
+    if (startTimeA !== startTimeB) {
+      return startTimeA - startTimeB;
+    }
+    
+    // If start times are equal, sort by duration (longer first)
+    const durationA = convert24HrTimeToSeconds(a.end_time) - startTimeA;
+    const durationB = convert24HrTimeToSeconds(b.end_time) - startTimeB;
+    return durationB - durationA;
+  });
+
+  for (const item of sortedEvents) {
     if (conflictIds.has(item.id)) {
       continue;
     }
 
-    const conflicts = events.filter(
+    const conflicts = sortedEvents.filter(
       (conflictItem) =>
         conflictItem.id !== item.id &&
         areTimesConflicting(

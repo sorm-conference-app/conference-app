@@ -123,7 +123,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                           });
                         }}
                       >
-                        <View style={styles.eventWrapper}>
+                        <View style={[styles.eventWrapper, { alignSelf: 'flex-start' }]}>
                           <AgendaItem
                             title={item.title}
                             startTime={item.start_time}

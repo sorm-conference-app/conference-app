@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
-    flex: 1,
     minWidth: 0,
     borderWidth: 1,
     borderColor: "white",
