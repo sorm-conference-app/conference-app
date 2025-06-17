@@ -20,7 +20,7 @@ import {
 const width = () => Math.min(Dimensions.get("window").width, 500);
 const height = () => (width() * 182) / 500;
 
-export default function Index() {
+export default function Home() {
   const navigateToAllAnnouncements = () => {
     router.push("/announcement/announcementList");
   };
