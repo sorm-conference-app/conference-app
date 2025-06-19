@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
-
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/Colors";
@@ -13,7 +12,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="index"
+      initialRouteName="home"
       screenOptions={{
         tabBarActiveTintColor:
           Colors[useColorScheme() ?? "light"].tabIconSelected,
@@ -38,7 +37,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (

@@ -45,3 +45,9 @@ supabase/.temp
 *.tsbuildinfo
 
 app-example
+
+# Platforms
+
+android/
+
+ios/
