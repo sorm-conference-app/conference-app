@@ -21,7 +21,7 @@ export default function Admin() {
   const agendaEditorRef = useRef<View>(null);
 
   if (!user) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/home" />;
   }
 
   const scrollToAgendaEditor = () => {
