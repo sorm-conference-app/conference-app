@@ -46,6 +46,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="connect"
+        options={{
+          title: "Connect",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="person.2.fill" color={color} size={28} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="agenda"
         options={{
           title: "Agenda",
