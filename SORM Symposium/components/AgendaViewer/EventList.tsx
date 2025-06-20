@@ -65,22 +65,6 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
     };
   }, [showDeleted]);
 
-  const verticalLine = (height: number) => {
-    return (
-      <View style={{ 
-        position: 'absolute',
-        zIndex: 0,
-        width: 0, 
-        height: height,
-        borderStyle: 'dashed',
-        borderWidth: 1,
-        borderColor: Colors[colorScheme].text,
-        alignSelf: 'center',
-        }}>
-      </View>
-    )
-  }
-
   if (loading) {
     return (
       <ThemedView style={styles.container}>
@@ -126,7 +110,6 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                 <ThemedText style={[styles.dateHeader, { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }]} type="subtitle">
                   {formatDate(date)}
                 </ThemedText>
-                {verticalLine(dateHeights.current[date] - 16)}
                 {findConflicts(eventsByDate[date]).map((item) => {
                   if (item.conflictingItems.length > 0) {
                     // Sort events based on location priority
