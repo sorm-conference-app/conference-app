@@ -30,7 +30,8 @@ export default function ThemedTextInput({
         },
         style,
       ]}
-      placeholderTextColor={Colors[colorScheme].text}
+      placeholder={placeholder}
+      placeholderTextColor={Colors[colorScheme].tabIconDefault}
       accessibilityLabel={accessibilityLabel || placeholder}
       accessibilityHint={accessibilityHint}
       accessibilityRole="text"
