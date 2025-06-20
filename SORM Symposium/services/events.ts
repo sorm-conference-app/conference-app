@@ -26,9 +26,7 @@ export async function getAllEvents(): Promise<Event[]> {
  * @returns An array consisting of the IDs of the events that the user RSVPed for.
  * An empty array means they are not RSVPed for any event.
  */
-export async function getRSVPedEvents(
-  deviceId: string,
-): Promise<number[]> {
+export async function getRSVPedEvents(deviceId: string): Promise<number[]> {
   const { data, error } = await supabase
     .from("event_attendees")
     .select("event_id")
@@ -39,8 +37,20 @@ export async function getRSVPedEvents(
     throw error;
   }
 
-  return data.map(d => d.event_id);
+  return data.map((d) => d.event_id);
 }
+
+/**
+ * Update the RSVP status for a user.
+ * @param eventId The ID of the event.
+ * @param deviceId The ID of the current device.
+ * @param status The new RSVP status.
+ */
+export async function toggleRSVPStatus(
+  eventId: number,
+  deviceId: string,
+  status: boolean,
+) {}
 
 /**
  * Subscribes to real-time updates for the events table

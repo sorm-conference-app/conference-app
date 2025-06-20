@@ -8,8 +8,10 @@ import { calculateHeight } from "./utils";
 import { Pressable, StyleSheet } from "react-native";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import AgendaItemSaveButton from "./AgendaItemSaveButton";
+import { Dispatch, SetStateAction } from "react";
 
 type AgendaItemProps = {
+  id: number;
   title: string;
   startTime: string;
   endTime: string;
@@ -17,15 +19,18 @@ type AgendaItemProps = {
   isDeleted: boolean;
   hasRSVP: boolean;
   onPress: () => void;
+  setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
 };
 
 export default function AgendaItem({
+  id,
   title,
   startTime,
   endTime,
   location,
   isDeleted,
   hasRSVP,
+  setRsvpEventIds,
   onPress,
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
@@ -71,7 +76,13 @@ export default function AgendaItem({
             <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
 
-          {!user && <AgendaItemSaveButton isRSVP={hasRSVP} />}
+          {!user && (
+            <AgendaItemSaveButton
+              eventId={id}
+              isRSVP={hasRSVP}
+              setRsvpEventIds={setRsvpEventIds}
+            />
+          )}
         </ThemedView>
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />

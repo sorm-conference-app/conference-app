@@ -173,12 +173,14 @@ export function EventList({
                           ]}
                         >
                           <AgendaItem
+                            id={item.id}
                             title={item.title}
                             startTime={item.start_time}
                             endTime={item.end_time}
                             location={item.location}
                             isDeleted={item.is_deleted}
                             hasRSVP={rsvpEventIds.has(item.id)}
+                            setRsvpEventIds={setRsvpEventIds}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -194,12 +196,14 @@ export function EventList({
                               }}
                             >
                               <AgendaItem
+                                id={item.id}
                                 title={conflictItem.title}
                                 startTime={conflictItem.start_time}
                                 endTime={conflictItem.end_time}
                                 location={conflictItem.location}
                                 isDeleted={conflictItem.is_deleted}
                                 hasRSVP={rsvpEventIds.has(item.id)}
+                                setRsvpEventIds={setRsvpEventIds}
                                 onPress={() => onSelectEvent(conflictItem)}
                               />
                             </View>
@@ -231,12 +235,14 @@ export function EventList({
                       }}
                     >
                       <AgendaItem
+                        id={item.id}
                         title={item.title}
                         startTime={item.start_time}
                         endTime={item.end_time}
                         location={item.location}
                         isDeleted={item.is_deleted}
                         hasRSVP={rsvpEventIds.has(item.id)}
+                        setRsvpEventIds={setRsvpEventIds}
                         onPress={() => onSelectEvent(item)}
                       />
                     </View>
