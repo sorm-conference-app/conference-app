@@ -183,16 +183,51 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                         });
                       }}
                     >
-                      <View style={[styles.eventWrapper]}>
-                        <AgendaItem
-                          title={item.title}
-                          startTime={item.start_time}
-                          endTime={item.end_time}
-                          location={item.location}
-                          isDeleted={item.is_deleted}
-                          onPress={() => onSelectEvent(item)}
-                        />
-                      </View>
+                      {item.location === COL_1_LOCATION ? (
+                        <>
+                          <View style={[styles.eventWrapper, { alignSelf: 'flex-start' }]}>
+                            <AgendaItem
+                              title={item.title}
+                              startTime={item.start_time}
+                              endTime={item.end_time}
+                              location={item.location}
+                              isDeleted={item.is_deleted}
+                              onPress={() => onSelectEvent(item)}
+                            />
+                          </View>
+                          <View style={styles.eventWrapper}>
+                            {/* Empty right column */}
+                          </View>
+                        </>
+                      ) : item.location === COL_2_LOCATION ? (
+                        <>
+                          <View style={[styles.eventWrapper, { alignSelf: 'flex-start' }]}>
+                            {/* Empty left column */}
+                          </View>
+                          <View style={styles.eventWrapper}>
+                            <AgendaItem
+                              title={item.title}
+                              startTime={item.start_time}
+                              endTime={item.end_time}
+                              location={item.location}
+                              isDeleted={item.is_deleted}
+                              onPress={() => onSelectEvent(item)}
+                            />
+                          </View>
+                        </>
+                      ) : (
+                        // Event with other location or null - use single column layout
+                        <View style={[styles.eventWrapper]}>
+                          <AgendaItem
+                            title={item.title}
+                            startTime={item.start_time}
+                            endTime={item.end_time}
+                            location={item.location}
+                            isDeleted={item.is_deleted}
+                            onPress={() => onSelectEvent(item)}
+                          />
+                        </View>
+                      )}
                     </View>
                   );
                 })}
