@@ -1,5 +1,5 @@
-import { supabase } from '@/constants/supabase';
-import type { Event } from '@/types/Events.types';
+import { supabase } from "@/constants/supabase";
+import type { Event } from "@/types/Events.types";
 
 /**
  * Fetches all events from the database
@@ -7,17 +7,39 @@ import type { Event } from '@/types/Events.types';
  */
 export async function getAllEvents(): Promise<Event[]> {
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .order('event_date', { ascending: true })
-    .order('start_time', { ascending: true });
+    .from("events")
+    .select("*")
+    .order("event_date", { ascending: true })
+    .order("start_time", { ascending: true });
 
   if (error) {
-    console.error('Error fetching events:', error);
+    console.error("Error fetching events:", error);
     throw error;
   }
 
   return data;
+}
+
+/**
+ * Get the event IDs that the current user is RSVPed for.
+ * @param deviceId The id that represents a user's device.
+ * @returns An array consisting of the IDs of the events that the user RSVPed for.
+ * An empty array means they are not RSVPed for any event.
+ */
+export async function getRSVPedEvents(
+  deviceId: string,
+): Promise<number[]> {
+  const { data, error } = await supabase
+    .from("event_attendees")
+    .select("event_id")
+    .eq("attendee_device_id", deviceId);
+
+  if (error) {
+    console.error("Error fetching RSVPed events: ", error);
+    throw error;
+  }
+
+  return data.map(d => d.event_id);
 }
 
 /**
@@ -31,19 +53,19 @@ export function subscribeToEvents(callback: (events: Event[]) => void) {
 
   // Subscribe to real-time updates
   const subscription = supabase
-    .channel('events_changes')
+    .channel("events_changes")
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*', // Listen for all changes (INSERT, UPDATE, DELETE)
-        schema: 'public',
-        table: 'events'
+        event: "*", // Listen for all changes (INSERT, UPDATE, DELETE)
+        schema: "public",
+        table: "events",
       },
       async () => {
         // When any change occurs, fetch the latest events
         const events = await getAllEvents();
         callback(events);
-      }
+      },
     )
     .subscribe();
 
@@ -60,13 +82,13 @@ export function subscribeToEvents(callback: (events: Event[]) => void) {
  */
 export async function getEventsByDate(date: string): Promise<Event[]> {
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('event_date', date)
-    .order('start_time', { ascending: true });
+    .from("events")
+    .select("*")
+    .eq("event_date", date)
+    .order("start_time", { ascending: true });
 
   if (error) {
-    console.error('Error fetching events by date:', error);
+    console.error("Error fetching events by date:", error);
     throw error;
   }
 
@@ -80,17 +102,17 @@ export async function getEventsByDate(date: string): Promise<Event[]> {
  */
 export async function getEventById(id: number): Promise<Event | null> {
   const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
+    .from("events")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // PGRST116 means no rows returned
       return null;
     }
-    console.error('Error fetching event by id:', error);
+    console.error("Error fetching event by id:", error);
     throw error;
   }
 
@@ -102,15 +124,17 @@ export async function getEventById(id: number): Promise<Event | null> {
  * @param event - The event data to create
  * @returns The created event
  */
-export async function createEvent(event: Omit<Event, 'id' | 'created_at'>): Promise<Event> {
+export async function createEvent(
+  event: Omit<Event, "id" | "created_at">,
+): Promise<Event> {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .insert([event])
     .select()
     .single();
 
   if (error) {
-    console.error('Error creating event:', error);
+    console.error("Error creating event:", error);
     throw error;
   }
 
@@ -123,16 +147,19 @@ export async function createEvent(event: Omit<Event, 'id' | 'created_at'>): Prom
  * @param event - The updated event data
  * @returns The updated event
  */
-export async function updateEvent(id: number, event: Partial<Event>): Promise<Event> {
+export async function updateEvent(
+  id: number,
+  event: Partial<Event>,
+): Promise<Event> {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .update(event)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
   if (error) {
-    console.error('Error updating event:', error);
+    console.error("Error updating event:", error);
     throw error;
   }
 
@@ -144,13 +171,10 @@ export async function updateEvent(id: number, event: Partial<Event>): Promise<Ev
  * @param id - The ID of the event to delete
  */
 export async function deleteEvent(id: number): Promise<void> {
-  const { error } = await supabase
-    .from('events')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from("events").delete().eq("id", id);
 
   if (error) {
-    console.error('Error deleting event:', error);
+    console.error("Error deleting event:", error);
     throw error;
   }
-} 
+}

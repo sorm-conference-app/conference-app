@@ -15,6 +15,7 @@ type AgendaItemProps = {
   endTime: string;
   location: string;
   isDeleted: boolean;
+  hasRSVP: boolean;
   onPress: () => void;
 };
 
@@ -24,6 +25,7 @@ export default function AgendaItem({
   endTime,
   location,
   isDeleted,
+  hasRSVP,
   onPress,
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
@@ -69,7 +71,7 @@ export default function AgendaItem({
             <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
 
-          {!user && <AgendaItemSaveButton />}
+          {!user && <AgendaItemSaveButton isRSVP={hasRSVP} />}
         </ThemedView>
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />

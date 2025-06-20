@@ -1,37 +1,62 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import type { Event } from '@/types/Events.types';
-import AgendaItem from '@/components/AgendaViewer/AgendaItem';
-import { findConflicts, groupEventsByDate, calculateEventOffset } from './utils';
-import { getAllEvents, subscribeToEvents } from '@/services/events';
-import { ThemedView } from '../ThemedView';
-import { ThemedText } from '../ThemedText';
-import { formatDate } from '@/lib/dateTime';
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import type { Event } from "@/types/Events.types";
+import AgendaItem from "@/components/AgendaViewer/AgendaItem";
+import {
+  findConflicts,
+  groupEventsByDate,
+  calculateEventOffset,
+} from "./utils";
+import {
+  getAllEvents,
+  getRSVPedEvents,
+  subscribeToEvents,
+} from "@/services/events";
+import { ThemedView } from "../ThemedView";
+import { ThemedText } from "../ThemedText";
+import * as Application from "expo-application";
+import { formatDate } from "@/lib/dateTime";
+import { getDeviceId } from "@/lib/user";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
   onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
-  showDeleted?: 'all' | 'active' | 'deleted';
+  showDeleted?: "all" | "active" | "deleted";
   reloadTrigger?: number;
 };
 
-export function EventList({ onSelectEvent, onEventPosition, showHeader = true, showDeleted = 'active', reloadTrigger = 0 }: EventListProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+export function EventList({
+  onSelectEvent,
+  onEventPosition,
+  showHeader = true,
+  showDeleted = "active",
+  reloadTrigger = 0,
+}: EventListProps) {
+  const colorScheme = useColorScheme() ?? "light";
   const [events, setEvents] = useState<Event[]>([]);
+  const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dateRefs = useRef<{ [key: string]: View | null }>({});
   const dateHeights = useRef<{ [key: string]: number }>({});
-  
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        const deviceId = await getDeviceId();
         const allEvents = await getAllEvents();
-        setEvents(allEvents.filter(event => showDeleted === 'all' 
-          || showDeleted === 'active' && !event.is_deleted 
-          || showDeleted === 'deleted' && event.is_deleted));
+        const rsvpedEventIds = await getRSVPedEvents(deviceId);
+        setEvents(
+          allEvents.filter(
+            (event) =>
+              showDeleted === "all" ||
+              (showDeleted === "active" && !event.is_deleted) ||
+              (showDeleted === "deleted" && event.is_deleted),
+          ),
+        );
+        setRsvpEventIds(new Set(rsvpedEventIds));
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events");
@@ -49,9 +74,14 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
 
     // Subscribe to real-time updates
     const subscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents.filter(event => showDeleted === 'all' 
-        || showDeleted === 'active' && !event.is_deleted 
-        || showDeleted === 'deleted' && event.is_deleted));
+      setEvents(
+        updatedEvents.filter(
+          (event) =>
+            showDeleted === "all" ||
+            (showDeleted === "active" && !event.is_deleted) ||
+            (showDeleted === "deleted" && event.is_deleted),
+        ),
+      );
       setLoading(false);
     });
 
@@ -93,10 +123,12 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
             <ThemedText style={styles.noEventsText}>No events found</ThemedText>
           ) : (
             sortedDates.map((date) => (
-              <View 
-                key={date} 
+              <View
+                key={date}
                 style={styles.dateSection}
-                ref={ref => { dateRefs.current[date] = ref; }}
+                ref={(ref) => {
+                  dateRefs.current[date] = ref;
+                }}
                 onLayout={(e) => {
                   dateHeights.current[date] = e.nativeEvent.layout.height;
                 }}
@@ -107,37 +139,59 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                 {findConflicts(eventsByDate[date]).map((item) => {
                   if (item.conflictingItems.length > 0) {
                     return (
-                      <View key={item.id} style={styles.conflictContent}
+                      <View
+                        key={item.id}
+                        style={styles.conflictContent}
                         onLayout={(e) => {
                           // calculate the y position of the events in this row
                           dateRefs.current[date]?.measure((y) => {
                             const previousHeights = sortedDates
-                              .filter(d => d < date)
-                              .reduce((sum, d) => sum + (dateHeights.current[d] || 0), 0);
-                            
+                              .filter((d) => d < date)
+                              .reduce(
+                                (sum, d) => sum + (dateHeights.current[d] || 0),
+                                0,
+                              );
+
                             // call the onEventPosition callback with the y position of the events in this row
-                            onEventPosition(item, y + e.nativeEvent.layout.y + previousHeights);
+                            onEventPosition(
+                              item,
+                              y + e.nativeEvent.layout.y + previousHeights,
+                            );
                             for (const conflictItem of item.conflictingItems) {
-                              onEventPosition(conflictItem, y + e.nativeEvent.layout.y + previousHeights);
+                              onEventPosition(
+                                conflictItem,
+                                y + e.nativeEvent.layout.y + previousHeights,
+                              );
                             }
                           });
                         }}
                       >
-                        <View style={[styles.eventWrapper, { alignSelf: 'flex-start' }]}>
+                        <View
+                          style={[
+                            styles.eventWrapper,
+                            { alignSelf: "flex-start" },
+                          ]}
+                        >
                           <AgendaItem
                             title={item.title}
                             startTime={item.start_time}
                             endTime={item.end_time}
                             location={item.location}
                             isDeleted={item.is_deleted}
+                            hasRSVP={rsvpEventIds.has(item.id)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
                         <View style={styles.eventWrapper}>
                           {item.conflictingItems.map((conflictItem) => (
-                            <View 
+                            <View
                               key={conflictItem.id}
-                              style={{ marginTop: calculateEventOffset(item.start_time, conflictItem.start_time) }}
+                              style={{
+                                marginTop: calculateEventOffset(
+                                  item.start_time,
+                                  conflictItem.start_time,
+                                ),
+                              }}
                             >
                               <AgendaItem
                                 title={conflictItem.title}
@@ -145,6 +199,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                                 endTime={conflictItem.end_time}
                                 location={conflictItem.location}
                                 isDeleted={conflictItem.is_deleted}
+                                hasRSVP={rsvpEventIds.has(item.id)}
                                 onPress={() => onSelectEvent(conflictItem)}
                               />
                             </View>
@@ -155,17 +210,23 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                   }
 
                   return (
-                    <View 
+                    <View
                       key={item.id}
                       onLayout={(e) => {
                         // calculate the y position of the event
                         dateRefs.current[date]?.measure((y) => {
                           const previousHeights = sortedDates
-                            .filter(d => d < date)
-                            .reduce((sum, d) => sum + (dateHeights.current[d] || 0), 0);
-                          
+                            .filter((d) => d < date)
+                            .reduce(
+                              (sum, d) => sum + (dateHeights.current[d] || 0),
+                              0,
+                            );
+
                           // call the onEventPosition callback with the y position of the event
-                          onEventPosition(item, y + e.nativeEvent.layout.y + previousHeights);
+                          onEventPosition(
+                            item,
+                            y + e.nativeEvent.layout.y + previousHeights,
+                          );
                         });
                       }}
                     >
@@ -175,6 +236,7 @@ export function EventList({ onSelectEvent, onEventPosition, showHeader = true, s
                         endTime={item.end_time}
                         location={item.location}
                         isDeleted={item.is_deleted}
+                        hasRSVP={rsvpEventIds.has(item.id)}
                         onPress={() => onSelectEvent(item)}
                       />
                     </View>
@@ -195,7 +257,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   eventGroup: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 8,
   },
@@ -205,11 +267,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   errorText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   scrollView: {
     flex: 1,
@@ -222,7 +284,7 @@ const styles = StyleSheet.create({
   },
   noEventsText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dateSection: {
     marginBottom: 16,
@@ -231,7 +293,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   conflictContent: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
-}); 
+});

@@ -1,10 +1,20 @@
 import { Pressable } from "react-native";
 import { IconSymbol, IconSymbolName } from "../ui/IconSymbol";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { Colors } from "@/constants/Colors";
 
-function AgendaItemSaveButton() {
-  const tintColor = useColorScheme() ?? "light";
+type AgendaItemSaveButtonProps = {
+  isRSVP: boolean;
+};
+
+function AgendaItemSaveButton({ isRSVP }: AgendaItemSaveButtonProps) {
+  const colorScheme = useColorScheme() ?? "light";
+  const tintColor = Colors[colorScheme].tint;
   let iconName = "star";
+
+  if (isRSVP) {
+    iconName += ".fill";
+  }
 
   function handleSave() {
     // ...
