@@ -235,19 +235,19 @@ export default function InfoScreen() {
                     {contact.name}
                   </ThemedText>
                   <ThemedView style={styles.contactDetail}>
-                    <IconSymbol name="phone.fill" color="#666" size={16} />
+                    <IconSymbol name="phone.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                     <ThemedText style={styles.contactText}>
                       {contact.phone}
                     </ThemedText>
                   </ThemedView>
                   <ThemedView style={styles.contactDetail}>
-                    <IconSymbol name="envelope.fill" color="#666" size={16} />
+                    <IconSymbol name="envelope.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                     <ThemedText style={styles.contactText}>
                       {contact.email}
                     </ThemedText>
                   </ThemedView>
                 </ThemedView>
-                <IconSymbol name="chevron.right" color="#666" size={24} />
+                <IconSymbol name="chevron.right" color={Colors[colorScheme].tabIconDefault} size={24} />
               </TouchableOpacity>
             ))}
           </ThemedView>

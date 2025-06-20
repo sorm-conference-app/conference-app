@@ -4,8 +4,9 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, Platform, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from "react-native";
 import ThemedTextInput from "./ThemedTextInput";
+import { ThemedText } from "./ThemedText";
 
 /**
  * Form for editing existing contact information in Supabase.
@@ -22,6 +23,7 @@ export default function ContactEditForm() {
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [disabled, setDisabled] = useState(true);
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -178,11 +180,35 @@ export default function ContactEditForm() {
         keyboardType="email-address"
         editable={selectedId !== "" && typeof selectedId === "number"}
       />
-      <Button
-        title={loading ? "Updating..." : "Update Contact"}
+      <Pressable
         onPress={handleUpdate}
         disabled={loading || selectedId === "" || typeof selectedId !== "number"}
-      />
+        style={[
+          styles.updateButton,
+          loading || selectedId === "" || typeof selectedId !== "number" ? 
+          { backgroundColor: Colors[colorScheme].tabIconDefault } : { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].adminButtonText },
+          { borderWidth: 1 },
+        ]}
+      >
+        <ThemedText style={[styles.updateButtonText,
+          { color: Colors[colorScheme].adminButtonText }
+        ]}>
+          {loading ? "Updating..." : "Update Contact"}
+        </ThemedText>
+      </Pressable>
     </View>
   );
 } 
+
+const styles = StyleSheet.create({
+  updateButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+});
