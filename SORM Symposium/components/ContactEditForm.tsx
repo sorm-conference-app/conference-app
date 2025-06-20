@@ -138,6 +138,9 @@ export default function ContactEditForm() {
         style={pickerStyle}
         dropdownIconColor={Colors[colorScheme].tint}
         itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+        accessibilityLabel="Contact selection dropdown"
+        accessibilityHint="Select a contact to edit their information"
+        accessibilityRole="combobox"
       >
         <Picker.Item 
           label="Select a contact" 
@@ -159,12 +162,16 @@ export default function ContactEditForm() {
         onChangeText={setFirstName}
         placeholder="First Name"
         editable={selectedId !== "" && typeof selectedId === "number"}
+        accessibilityLabel="First name input field"
+        accessibilityHint="Enter the contact's first name"
       />
       <ThemedTextInput
         value={lastName}
         onChangeText={setLastName}
         placeholder="Last Name"
         editable={selectedId !== "" && typeof selectedId === "number"}
+        accessibilityLabel="Last name input field"
+        accessibilityHint="Enter the contact's last name"
       />
       <ThemedTextInput
         value={phoneNumber}
@@ -172,6 +179,8 @@ export default function ContactEditForm() {
         placeholder="Phone Number"
         keyboardType="phone-pad"
         editable={selectedId !== "" && typeof selectedId === "number"}
+        accessibilityLabel="Phone number input field"
+        accessibilityHint="Enter the contact's phone number"
       />
       <ThemedTextInput
         value={email}
@@ -179,6 +188,8 @@ export default function ContactEditForm() {
         placeholder="Email"
         keyboardType="email-address"
         editable={selectedId !== "" && typeof selectedId === "number"}
+        accessibilityLabel="Email address input field"
+        accessibilityHint="Enter the contact's email address"
       />
       <Pressable
         onPress={handleUpdate}
@@ -190,6 +201,10 @@ export default function ContactEditForm() {
           { borderColor: Colors[colorScheme].adminButtonText },
           { borderWidth: 1 },
         ]}
+        accessibilityLabel="Update contact button"
+        accessibilityHint="Press to save changes to the selected contact"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
       >
         <ThemedText style={[styles.updateButtonText,
           { color: Colors[colorScheme].adminButtonText }

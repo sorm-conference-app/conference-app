@@ -3,10 +3,16 @@ import type { TextInputProps } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
 
-type ThemedTextInputProps = TextInputProps;
+type ThemedTextInputProps = TextInputProps & {
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+};
 
 export default function ThemedTextInput({
   style,
+  accessibilityLabel,
+  accessibilityHint,
+  placeholder,
   ...props
 }: ThemedTextInputProps) {
   const colorScheme = useColorScheme() ?? 'light';
@@ -25,6 +31,9 @@ export default function ThemedTextInput({
         style,
       ]}
       placeholderTextColor={Colors[colorScheme].text}
+      accessibilityLabel={accessibilityLabel || placeholder}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="text"
       {...props}
     />
   );

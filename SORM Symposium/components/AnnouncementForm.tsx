@@ -46,12 +46,16 @@ export default function AnnouncementForm() {
       <ThemedTextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Announcement title input field"
+        accessibilityHint="Enter the announcement title"
         placeholder="Enter announcement title"
       />
       <ThemedText>Body</ThemedText>
       <ThemedTextInput
         value={body}
         onChangeText={setBody}
+        accessibilityLabel="Announcement body input field"
+        accessibilityHint="Enter the announcement body"
         placeholder="Enter announcement body"
         multiline
         numberOfLines={4}
@@ -66,6 +70,10 @@ export default function AnnouncementForm() {
         ]}
         onPress={handleSubmit}
         disabled={loading}
+        accessibilityLabel="Post announcement button"
+        accessibilityHint="Press to post the announcement"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading }}
       >
         <ThemedText style={[styles.addButtonText,
           { color: Colors[colorScheme].adminButtonText }

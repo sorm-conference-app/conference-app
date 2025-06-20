@@ -99,6 +99,9 @@ export default function Login() {
           value={login.email}
           textContentType="emailAddress"
           onChangeText={(txt) => updateLoginDetails("email", txt)}
+          accessibilityLabel="Email input field"
+          accessibilityHint="Enter your email"
+          accessibilityRole="text"
         />
         {login.email.length > 0 && !validEmail && (
           <ThemedText style={styles.invalid}>Not a valid email.</ThemedText>
@@ -112,6 +115,9 @@ export default function Login() {
           textContentType="password"
           secureTextEntry
           onChangeText={(txt) => updateLoginDetails("password", txt)}
+          accessibilityLabel="Password input field"
+          accessibilityHint="Enter your password"
+          accessibilityRole="text"
         />
       </ThemedView>
 
