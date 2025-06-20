@@ -6,6 +6,8 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { formatTimeRange } from "@/lib/dateTime";
 import { calculateHeight } from "./utils";
 import { Pressable, StyleSheet } from "react-native";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import AgendaItemSaveButton from "./AgendaItemSaveButton";
 
 type AgendaItemProps = {
   title: string;
@@ -26,6 +28,7 @@ export default function AgendaItem({
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
   const tintColor = Colors[colorScheme].tint;
+  const user = useSupabaseAuth();
 
   return (
     <Pressable
@@ -33,20 +36,40 @@ export default function AgendaItem({
         styles.agendaItem,
         { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
         { borderColor: Colors[colorScheme].tint },
-        { minHeight: title === "Break" ? 65 : calculateHeight(startTime, endTime) },
+        {
+          minHeight:
+            title === "Break" ? 65 : calculateHeight(startTime, endTime),
+        },
         pressed && styles.agendaItemPressed,
       ]}
       onPress={onPress}
     >
-      <ThemedView style={[styles.agendaContent, 
-        { backgroundColor: colorScheme === "light" 
-          ? Colors[colorScheme].background : Colors[colorScheme].background }]}>
+      <ThemedView
+        style={[
+          styles.agendaContent,
+          {
+            backgroundColor:
+              colorScheme === "light"
+                ? Colors[colorScheme].background
+                : Colors[colorScheme].background,
+          },
+        ]}
+      >
         <ThemedView style={styles.titleContainer}>
-          <ThemedText style={styles.title} type="defaultSemiBold">
-            {title}
-          </ThemedText>
-          {isDeleted && <ThemedText style={styles.deletedTitle} type="defaultSemiBold"> - Deleted</ThemedText>}
-          <IconSymbol name="chevron.right" size={20} color={tintColor} />
+          <ThemedView>
+            <ThemedText style={styles.title} type="defaultSemiBold">
+              {title}
+            </ThemedText>
+            {isDeleted && (
+              <ThemedText style={styles.deletedTitle} type="defaultSemiBold">
+                {" "}
+                - Deleted
+              </ThemedText>
+            )}
+            <IconSymbol name="chevron.right" size={20} color={tintColor} />
+          </ThemedView>
+
+          {!user && <AgendaItemSaveButton />}
         </ThemedView>
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
@@ -54,10 +77,12 @@ export default function AgendaItem({
             {formatTimeRange(startTime, endTime)}
           </ThemedText>
         </ThemedView>
-        {title !== "Break" && <ThemedView style={styles.infoRow}>
-          <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
-          <ThemedText style={styles.location}>{location}</ThemedText>
-        </ThemedView>}
+        {title !== "Break" && (
+          <ThemedView style={styles.infoRow}>
+            <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
+            <ThemedText style={styles.location}>{location}</ThemedText>
+          </ThemedView>
+        )}
       </ThemedView>
     </Pressable>
   );
