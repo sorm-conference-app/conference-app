@@ -139,6 +139,28 @@ export function groupEventsByDate(events: Event[]): EventsByDate {
   }, {});
 }
 
+export function sortEventsByLocation(events: Event[], col1Location: string, col2Location: string): Event[] {
+  events.sort((a, b) => {
+    // Events with COL_1_LOCATION go to left column (first)
+    const aIsCol1 = a.location === col1Location;
+    const bIsCol1 = b.location === col1Location;
+    
+    if (aIsCol1 && !bIsCol1) return -1;
+    if (!aIsCol1 && bIsCol1) return 1;
+    
+    // Events with COL_2_LOCATION go to right column (last)
+    const aIsCol2 = a.location === col2Location;
+    const bIsCol2 = b.location === col2Location;
+    
+    if (aIsCol2 && !bIsCol2) return 1;
+    if (!aIsCol2 && bIsCol2) return -1;
+    
+    // For events with same location priority, maintain original order
+    return 0;
+  });
+  return events;
+}
+
 export const findConflicts = (events: Event[]) => {
   const conflictIds = new Set<number>();
   const items = [];
