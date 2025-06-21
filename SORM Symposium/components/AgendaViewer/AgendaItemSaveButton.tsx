@@ -28,7 +28,7 @@ function AgendaItemSaveButton({
   async function handleSave() {
     const deviceId = await getDeviceId();
     const isRSVPing = !isRSVP;
-    await toggleRSVPStatus(eventId, deviceId, !isRSVPing);
+    await toggleRSVPStatus(eventId, deviceId, isRSVPing);
 
     // Update the status in the UI.
     setRsvpEventIds((prev) => {

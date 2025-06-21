@@ -50,7 +50,20 @@ export async function toggleRSVPStatus(
   eventId: number,
   deviceId: string,
   status: boolean,
-) {}
+) {
+  // If is RSVPing...
+  if (status) {
+    const { error } = await supabase
+      .from("event_attendees")
+      .upsert({ event_id: eventId, attendee_device_id: deviceId });
+  } else {
+    const { error } = await supabase
+      .from("event_attendees")
+      .delete()
+      .eq("event_id", eventId)
+      .eq("attendee_device_id", deviceId);
+  }
+}
 
 /**
  * Subscribes to real-time updates for the events table

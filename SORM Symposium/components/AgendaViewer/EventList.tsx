@@ -46,8 +46,8 @@ export function EventList({
     const fetchEvents = async () => {
       try {
         const deviceId = await getDeviceId();
-        const allEvents = await getAllEvents();
         const rsvpedEventIds = await getRSVPedEvents(deviceId);
+        const allEvents = await getAllEvents();
         setEvents(
           allEvents.filter(
             (event) =>
@@ -196,13 +196,13 @@ export function EventList({
                               }}
                             >
                               <AgendaItem
-                                id={item.id}
+                                id={conflictItem.id}
                                 title={conflictItem.title}
                                 startTime={conflictItem.start_time}
                                 endTime={conflictItem.end_time}
                                 location={conflictItem.location}
                                 isDeleted={conflictItem.is_deleted}
-                                hasRSVP={rsvpEventIds.has(item.id)}
+                                hasRSVP={rsvpEventIds.has(conflictItem.id)}
                                 setRsvpEventIds={setRsvpEventIds}
                                 onPress={() => onSelectEvent(conflictItem)}
                               />
