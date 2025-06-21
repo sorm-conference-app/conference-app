@@ -62,8 +62,8 @@ export default function AgendaItem({
           },
         ]}
       >
-        <ThemedView style={styles.titleContainer}>
-          <ThemedView>
+        <ThemedView style={styles.titleRow}>
+          <ThemedView style={styles.titleContainer}>
             <ThemedText style={styles.title} type="defaultSemiBold">
               {title}
             </ThemedText>
@@ -111,6 +111,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
     backgroundColor: "transparent",
+  },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   titleContainer: {
     flexDirection: "row",
