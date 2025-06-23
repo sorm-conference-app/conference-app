@@ -1,3 +1,4 @@
+import { TopicColors } from '@/constants/Colors';
 import type { Event } from '@/types/Events.types';
 
 export type TimeConflict = {
@@ -208,4 +209,24 @@ export function calculateHeight(startTime: string, endTime: string): number {
   const duration = convert24HrTimeToSeconds(endTime) - convert24HrTimeToSeconds(startTime);
   const BASE_HEIGHT = 130;
   return Math.max(BASE_HEIGHT, BASE_HEIGHT / 3600 * duration);
+}
+
+/**
+ * Get the color for a given topic
+ * @param topic - The topic name
+ * @returns The color hex code for the topic, or a default gray if not found
+ */
+export function getTopicColor(topic: string | null): string {
+  if (!topic) return TopicColors.General;
+  return TopicColors[topic as keyof typeof TopicColors] || TopicColors.General;
+}
+
+/**
+ * Get a readable topic name, capitalizing the first letter
+ * @param topic - The topic name
+ * @returns The formatted topic name
+ */
+export function formatTopicName(topic: string | null): string {
+  if (!topic) return 'General';
+  return topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase();
 }

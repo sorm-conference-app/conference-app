@@ -5,6 +5,7 @@ export interface Event {
   location?: string;
   startTime: string;
   endTime: string;
+  topic?: string | null;
 }
 
 export interface TimeConflict {

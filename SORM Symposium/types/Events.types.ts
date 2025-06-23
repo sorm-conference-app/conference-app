@@ -13,4 +13,5 @@ export interface Event {
   speaker_bio: string | null;
   event_date: string;
   is_deleted: boolean;
+  topic: string | null;
 } 
