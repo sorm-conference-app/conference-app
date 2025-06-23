@@ -131,6 +131,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      attendee_info: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          name: string | null;
+          organization: string | null;
+          title: string | null;
+          additional_info: string | null;
+          verified_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          email: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          verified_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          email?: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          verified_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
