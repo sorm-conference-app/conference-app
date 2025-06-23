@@ -64,7 +64,23 @@ export function formatTime(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
+export function removeSecondsFromTime(time: string): string {
+  const parts = time.split(":");
+  if (parts.length === 3) {
+    // HH:mm:ss -> HH:mm
+    return `${parts[0]}:${parts[1]}`;
+  } else if (parts.length === 2) {
+    // HH:mm -> HH:mm
+    return time;
+  }
+  // If format is unexpected, return as is
+  return time;
+}
+
 export function isTimeValid(time: string): boolean {
+  // Remove seconds from time, if present
+  time = removeSecondsFromTime(time);
+
   // Check for 12-hour format (e.g., "1:30 PM" or "11:45 AM")
   if (time.includes("AM") || time.includes("PM")) {
     const [timePart, modifier] = time.split(" ");

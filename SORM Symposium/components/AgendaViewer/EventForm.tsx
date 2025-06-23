@@ -5,6 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import type { Event } from '@/types/Events.types';
+import { removeSecondsFromTime } from './utils';
 
 type EventFormProps = {
   event?: Event;
@@ -169,7 +170,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + '40',
               }
             ]}
-            value={startTime}
+            value={removeSecondsFromTime(startTime)}
             onChangeText={(text) => {
               setStartTime(text);
               setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && text && endTime && eventDate));
@@ -190,7 +191,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + '40',
               }
             ]}
-            value={endTime}
+            value={removeSecondsFromTime(endTime)}
             onChangeText={(text) => {
               setEndTime(text);
               setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && text && eventDate));

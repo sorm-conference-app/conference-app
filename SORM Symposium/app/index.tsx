@@ -32,7 +32,7 @@ export default function Login() {
     setErr("");
     try {
       await signinUser(email, password);
-      router.push("/");
+      router.push("/(tabs)/home");
     } catch (e) {
       setErr("Failed to login: " + (e as Error).message);
     }
@@ -40,7 +40,7 @@ export default function Login() {
 
   const navigate = (type: "attendee" | "organizer") => {
     if (type === "attendee") {
-      router.navigate("/");
+      router.navigate("/(tabs)/home");
     } else {
       setShowLoginScreen(true);
     }
