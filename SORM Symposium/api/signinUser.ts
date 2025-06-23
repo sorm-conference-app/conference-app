@@ -1,4 +1,6 @@
 import { supabase } from "@/constants/supabase";
+import { getAttendeeByEmail, verifyAttendeeEmail } from "@/services/attendees";
+import { isEmailVerifiedLocally, storeVerifiedEmail } from "@/lib/attendeeStorage";
 
 /**
  * Sign in a user.
@@ -17,4 +19,58 @@ export default async function signinUser(email: string, password: string) {
   }
   
   return data;
+}
+
+/**
+ * Sign in an attendee with email verification.
+ * @param email The attendee's email address.
+ * @returns Object containing verification status and attendee info.
+ */
+export async function signinAttendee(email: string) {
+  // Check if email is already verified on this device
+  const isLocallyVerified = await isEmailVerifiedLocally(email);
+  
+  if (isLocallyVerified) {
+    // Email is already verified on this device, proceed directly
+    return {
+      verified: true,
+      attendee: await getAttendeeByEmail(email),
+      message: "Email already verified on this device"
+    };
+  }
+  
+  // Check if attendee exists in database
+  const attendee = await getAttendeeByEmail(email);
+  
+  if (!attendee) {
+    throw new Error("Email not found in attendee database. Please contact the symposium organizers.");
+  }
+  
+  // Email needs verification - automatically verify it
+  try {
+    const verifiedAttendee = await verifyAttendeeEmail(email);
+    await storeVerifiedEmail(email);
+    return {
+      verified: true,
+      attendee: verifiedAttendee,
+      message: "Email verified successfully"
+    };
+  } catch (error) {
+    throw new Error(`Failed to verify email: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Verify an attendee's email address.
+ * @param email The attendee's email address.
+ * @returns The verified attendee object.
+ */
+export async function verifyAttendee(email: string) {
+  // Verify in database
+  const verifiedAttendee = await verifyAttendeeEmail(email);
+  
+  // Store verification locally
+  await storeVerifiedEmail(email);
+  
+  return verifiedAttendee;
 }
