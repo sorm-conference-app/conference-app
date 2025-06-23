@@ -64,7 +64,23 @@ export function formatTime(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
+export function removeSecondsFromTime(time: string): string {
+  const parts = time.split(":");
+  if (parts.length === 3) {
+    // HH:mm:ss -> HH:mm
+    return `${parts[0]}:${parts[1]}`;
+  } else if (parts.length === 2) {
+    // HH:mm -> HH:mm
+    return time;
+  }
+  // If format is unexpected, return as is
+  return time;
+}
+
 export function isTimeValid(time: string): boolean {
+  // Remove seconds from time, if present
+  time = removeSecondsFromTime(time);
+
   // Check for 12-hour format (e.g., "1:30 PM" or "11:45 AM")
   if (time.includes("AM") || time.includes("PM")) {
     const [timePart, modifier] = time.split(" ");
@@ -121,6 +137,28 @@ export function groupEventsByDate(events: Event[]): EventsByDate {
     acc[event.event_date].push(event);
     return acc;
   }, {});
+}
+
+export function sortEventsByLocation(events: Event[], col1Location: string, col2Location: string): Event[] {
+  events.sort((a, b) => {
+    // Events with COL_1_LOCATION go to left column (first)
+    const aIsCol1 = a.location === col1Location;
+    const bIsCol1 = b.location === col1Location;
+    
+    if (aIsCol1 && !bIsCol1) return -1;
+    if (!aIsCol1 && bIsCol1) return 1;
+    
+    // Events with COL_2_LOCATION go to right column (last)
+    const aIsCol2 = a.location === col2Location;
+    const bIsCol2 = b.location === col2Location;
+    
+    if (aIsCol2 && !bIsCol2) return 1;
+    if (!aIsCol2 && bIsCol2) return -1;
+    
+    // For events with same location priority, maintain original order
+    return 0;
+  });
+  return events;
 }
 
 export const findConflicts = (events: Event[]) => {
