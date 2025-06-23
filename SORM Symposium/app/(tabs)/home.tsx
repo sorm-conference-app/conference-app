@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { clearVerifiedEmails } from "@/lib/attendeeStorage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
@@ -33,6 +34,8 @@ export default function Home() {
    */
   const handleLogout = async () => {
     try {
+      // Clear verified emails from local storage
+      await clearVerifiedEmails();
       // Log out any admin users from Supabase
       await supabase.auth.signOut();
     } catch (error) {
