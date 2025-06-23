@@ -215,7 +215,7 @@ export function EventList({
                             endTime={col1Event.end_time}
                             location={col1Event.location}
                             isDeleted={col1Event.is_deleted}
-                            hasRSVP={rsvpEventIds.has(item.id)}
+                            hasRSVP={rsvpEventIds.has(col1Event.id)}
                             setRsvpEventIds={setRsvpEventIds}
                             onPress={() => onSelectEvent(col1Event)}
                           />
@@ -238,7 +238,7 @@ export function EventList({
                                 endTime={col2Event.end_time}
                                 location={col2Event.location}
                                 isDeleted={col2Event.is_deleted}
-                                hasRSVP={rsvpEventIds.has(item.id)}
+                                hasRSVP={rsvpEventIds.has(col2Event.id)}
                                 setRsvpEventIds={setRsvpEventIds}
                                 onPress={() => onSelectEvent(col2Event)}
                               />
