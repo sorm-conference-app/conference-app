@@ -28,19 +28,28 @@ function AgendaItemSaveButton({
   async function handleSave() {
     const deviceId = await getDeviceId();
     const isRSVPing = !isRSVP;
-    await toggleRSVPStatus(eventId, deviceId, isRSVPing);
+    try {
+      await toggleRSVPStatus(eventId, deviceId, isRSVPing);
 
-    // Update the status in the UI.
-    setRsvpEventIds((prev) => {
-      const newSet = new Set(prev);
-      if (isRSVPing) {
-        newSet.add(eventId);
-      } else {
-        newSet.delete(eventId);
-      }
+      // Update the status in the UI.
+      setRsvpEventIds((prev) => {
+        const newSet = new Set(prev);
+        if (isRSVPing) {
+          newSet.add(eventId);
+        } else {
+          newSet.delete(eventId);
+        }
 
-      return newSet;
-    });
+        return newSet;
+      });
+    } catch (e) {
+      console.error(
+        "Couldn't update save status for event with id " +
+          eventId +
+          ". Reason: " +
+          (e as Error).message,
+      );
+    }
   }
 
   return (
