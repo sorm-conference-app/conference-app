@@ -4,6 +4,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { supabase } from "@/constants/supabase";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Image } from "expo-image";
@@ -24,6 +25,24 @@ export default function Home() {
   const navigateToAllAnnouncements = () => {
     router.push("/announcement/announcementList");
   };
+
+  /**
+   * Handle logout functionality
+   * - Log out any admin users from Supabase
+   * - Redirect to login page for all users
+   */
+  const handleLogout = async () => {
+    try {
+      // Log out any admin users from Supabase
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+    
+    // Redirect to login page (index.tsx) for all users
+    router.replace("/");
+  };
+
   const colorScheme = useColorScheme() ?? "light";
   const { announcements, loading, error, refresh } = useAnnouncements(3);
 
@@ -141,6 +160,18 @@ export default function Home() {
           </ThemedText>
         </View>
       </ThemedView>
+      
+      {/* Footer with auth buttons */}
+      <ThemedView style={styles.footerContainer}>
+        <View style={styles.buttonRow}>
+          <ThemedText
+            style={[styles.footerButton, { color: Colors[colorScheme].text }]}
+            onPress={handleLogout}
+          >
+            Logout
+          </ThemedText>
+        </View>
+      </ThemedView>
     </ParallaxScrollView>
   );
 }
@@ -193,5 +224,18 @@ const styles = StyleSheet.create({
   },
   retryLink: {
     textAlign: "center",
+  },
+  footerContainer: {
+    padding: 12,
+    marginTop: 16,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  footerButton: {
+    fontSize: 12,
+    textDecorationLine: "underline",
+    opacity: 0.6,
   },
 });
