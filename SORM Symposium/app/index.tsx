@@ -4,9 +4,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { Alert, Button, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import ThemedTextInput from "@/components/ThemedTextInput";
-import signinUser, { signinAttendee } from "@/api/signinUser";
+import signinUser, { signinAttendee, isAdminEmail } from "@/api/signinUser";
 import { supabase } from "@/constants/supabase";
 import { getVerifiedEmails, clearVerifiedEmails } from "@/lib/attendeeStorage";
+import { isAttendeeEmail } from "@/services/attendees";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 type UserType = "attendee" | "organizer";
 
@@ -16,8 +18,9 @@ export default function Login() {
   const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   
-  const validEmail = /^[A-Za-z0-9]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(email);
+  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
 
   const handleSignIn = async () => {
@@ -26,15 +29,41 @@ export default function Login() {
       return;
     }
 
-    if (userType === "organizer" && !validPassword) {
-      setErr("Please enter your password");
-      return;
-    }
-
     setIsProcessing(true);
     setErr("");
     
     try {
+      // Check if user is using the wrong login path
+      const isAttendee = await isAttendeeEmail(email);
+      const isAdmin = await isAdminEmail(email);
+      if (userType === "organizer") {
+        if (isAttendee && !isAdmin) {
+          setErr("This email is registered as an attendee. Please go back and use the 'Symposium Attendee' option instead.");
+          setIsProcessing(false);
+          return;
+        }
+      } else if (userType === "attendee") {
+        if (isAdmin) {
+          if (isAttendee) {
+            // Show confirmation modal for dual-registered users
+            setShowConfirmationModal(true);
+            setIsProcessing(false);
+            return;
+          }
+          else {
+            setErr("This email is registered as an organizer. Please go back and use the 'Symposium Organizer' option instead.");
+            setIsProcessing(false);
+            return;
+          }
+        }
+      }
+
+      if (userType === "organizer" && !validPassword) {
+        setErr("Please enter your password");
+        return;
+      }
+
+      // Proceed with normal login
       if (userType === "attendee") {
         const result = await signinAttendee(email);
         if (result.verified) {
@@ -50,6 +79,30 @@ export default function Login() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleProceedAsAttendee = async () => {
+    setShowConfirmationModal(false);
+    setIsProcessing(true);
+    setErr("");
+    
+    try {
+      const result = await signinAttendee(email);
+      if (result.verified) {
+        router.push("/(tabs)/home");
+      }
+    } catch (e) {
+      setErr("Failed to sign in: " + (e as Error).message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleGoToAdminLogin = () => {
+    setShowConfirmationModal(false);
+    setUserType("organizer");
+    setPassword("");
+    setErr("");
   };
 
   const selectUserType = async (type: UserType) => {
@@ -137,6 +190,7 @@ export default function Login() {
 
   // Login screen for selected user type
   return (
+    <>
     <ThemedView style={styles.container}>
       <ThemedText type="title">{getTitle()}</ThemedText>
       <ThemedText>{getDescription()}</ThemedText>
@@ -175,6 +229,13 @@ export default function Login() {
       <Button title="Back" onPress={goBack} />
       <ThemedText style={styles.invalid}>{err}</ThemedText>
     </ThemedView>
+
+      <ConfirmationModal
+        visible={showConfirmationModal}
+        onProceedAsAttendee={handleProceedAsAttendee}
+        onGoToAdminLogin={handleGoToAdminLogin}
+      />
+    </>
   );
 }
 

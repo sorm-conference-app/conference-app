@@ -3,6 +3,29 @@ import { getAttendeeByEmail, verifyAttendeeEmail } from "@/services/attendees";
 import { isEmailVerifiedLocally, storeVerifiedEmail } from "@/lib/attendeeStorage";
 
 /**
+ * Check if an email is registered as an admin/organizer
+ * @param email - The email to check
+ * @returns True if the email exists in Supabase auth
+ */
+export async function isAdminEmail(email: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('check-admin-email', {
+      body: { email: email.toLowerCase() }
+    })
+    
+    if (error) {
+      console.error('Edge function error:', error)
+      return false
+    }
+    
+    return data?.isAdmin === true
+  } catch (error) {
+    console.error('Error checking admin email:', error)
+    return false
+  }
+}
+
+/**
  * Sign in a user.
  * @param email The user's email.
  * @param password The user's password.

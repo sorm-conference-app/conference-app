@@ -35,6 +35,16 @@ export async function getAttendeeByEmail(email: string): Promise<Attendee | null
 }
 
 /**
+ * Check if an email is registered as an attendee
+ * @param email - The email to check
+ * @returns True if the email exists in attendee_info table
+ */
+export async function isAttendeeEmail(email: string): Promise<boolean> {
+  const attendee = await getAttendeeByEmail(email);
+  return attendee !== null;
+}
+
+/**
  * Mark an attendee's email as verified
  * @param email - The email to verify
  * @returns The updated attendee object
