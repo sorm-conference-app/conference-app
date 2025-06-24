@@ -7,7 +7,7 @@ import useActiveUserCount from "@/hooks/useActiveUserCount";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Redirect } from "expo-router";
 import React, { useRef } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, View, ViewStyle } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -30,17 +30,12 @@ function UserStatsSection({ activeUsers }: { activeUsers: Record<string, number>
         borderColor: Colors[colorScheme].tint 
       }
     ]}>
-      {/* Header section */}
+      {/* Stats cards section */}
       <View style={styles.statsHeader}>
-        <ThemedText type="title" style={styles.welcomeTitle}>
-          Admin Panel
-        </ThemedText>
         <ThemedText type="subtitle" style={styles.statsSubtitle}>
-          Active Users Overview
+          Current Active Users
         </ThemedText>
       </View>
-      
-      {/* Stats cards section */}
       <View style={styles.statsGrid}>
         {Object.entries(activeUsers).map(([platform, count]) => (
           <ThemedView 
@@ -109,9 +104,14 @@ export default function Admin() {
         contentContainerStyle={styles.scrollContent}
       >
         <ThemedView>
+          {/* Admin Panel header moved outside of stats panel */}
+          <ThemedText type="title" style={styles.adminPanelHeader}>
+            Admin Panel
+          </ThemedText>
           <UserStatsSection activeUsers={activeUsers} />
           <AnnouncementForm />
           <ContactEditForm />
+          <View style={styles.sectionSpacer} />
           <View ref={agendaEditorRef}>
             <AgendaEditor onShowForm={scrollToAgendaEditor} onCloseForm={scrollToEvent} />
           </View>
@@ -145,12 +145,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     gap: 4,
   } as ViewStyle,
-  welcomeTitle: {
-    marginBottom: 4,
-  } as ViewStyle,
   statsSubtitle: {
-    opacity: 0.8,
-  } as ViewStyle,
+    marginBottom: 0,
+  } as TextStyle,
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -171,16 +168,27 @@ const styles = StyleSheet.create({
   platformName: {
     fontSize: 14,
     textAlign: 'center',
-  } as ViewStyle,
+  } as TextStyle,
   userCount: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 2,
-  } as ViewStyle,
+  } as TextStyle,
   userLabel: {
     fontSize: 12,
     opacity: 0.7,
     textAlign: 'center',
+  } as TextStyle,
+  adminPanelHeader: {
+    fontSize: 35,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 16,
+    textAlign: 'left',
+    marginLeft: 16,
+  } as TextStyle,
+  sectionSpacer: {
+    height: 32, // Adjust this value for more or less space
   } as ViewStyle,
 });
