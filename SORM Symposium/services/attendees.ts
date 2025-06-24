@@ -9,6 +9,7 @@ export interface Attendee {
   title: string | null;
   additional_info: string | null;
   is_admin: boolean;
+  share_info: boolean;
 }
 
 /**
@@ -69,6 +70,20 @@ export async function verifyAttendeeEmail(email: string): Promise<Attendee> {
 
   if (error) {
     console.error('Error verifying attendee email:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getAttendeeContactList(): Promise<Attendee[]> {
+  const { data, error } = await supabase
+    .from('test_attendee_info')
+    .select('*')
+    .eq('share_info', true);
+
+  if (error) {
+    console.error('Error fetching contacts:', error);
     throw error;
   }
 
