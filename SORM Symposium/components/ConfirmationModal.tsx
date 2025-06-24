@@ -40,7 +40,10 @@ export default function ConfirmationModal({
             Are you sure you want to sign in as an attendee?
           </ThemedText>
           
-          <ThemedView style={styles.buttonContainer}>
+          <ThemedView style={[
+          styles.buttonContainer,
+          { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
+        ]}>
             <Pressable
               style={[
                 styles.button,

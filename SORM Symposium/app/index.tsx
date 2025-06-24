@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Alert, Button, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import ThemedTextInput from "@/components/ThemedTextInput";
-import signinUser, { signinAttendee, isAdminEmail } from "@/api/signinUser";
+import signinUser, { signinAttendee } from "@/api/signinUser";
 import { supabase } from "@/constants/supabase";
 import { getVerifiedEmails, clearVerifiedEmails } from "@/lib/attendeeStorage";
-import { isAttendeeEmail } from "@/services/attendees";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 type UserType = "attendee" | "organizer";
@@ -23,9 +22,18 @@ export default function Login() {
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
 
+  useEffect(() => {
+    supabase.auth.signOut();
+  }, []);
+
   const handleSignIn = async () => {
     if (!validEmail) {
       setErr("Please enter a valid email address");
+      return;
+    }
+
+    if (userType === "organizer" && !validPassword) {
+      setErr("Please enter your password");
       return;
     }
 
@@ -33,39 +41,10 @@ export default function Login() {
     setErr("");
     
     try {
-      // Check if user is using the wrong login path
-      const isAttendee = await isAttendeeEmail(email);
-      const isAdmin = await isAdminEmail(email);
-      if (userType === "organizer") {
-        if (isAttendee && !isAdmin) {
-          setErr("This email is registered as an attendee. Please go back and use the 'Symposium Attendee' option instead.");
-          setIsProcessing(false);
-          return;
-        }
-      } else if (userType === "attendee") {
-        if (isAdmin) {
-          if (isAttendee) {
-            // Show confirmation modal for dual-registered users
-            setShowConfirmationModal(true);
-            setIsProcessing(false);
-            return;
-          }
-          else {
-            setErr("This email is registered as an organizer. Please go back and use the 'Symposium Organizer' option instead.");
-            setIsProcessing(false);
-            return;
-          }
-        }
-      }
-
-      if (userType === "organizer" && !validPassword) {
-        setErr("Please enter your password");
-        return;
-      }
-
-      // Proceed with normal login
       if (userType === "attendee") {
-        const result = await signinAttendee(email);
+        const result = await signinAttendee(email, () => {
+          setShowConfirmationModal(true);
+        });
         if (result.verified) {
           router.push("/(tabs)/home");
         }
