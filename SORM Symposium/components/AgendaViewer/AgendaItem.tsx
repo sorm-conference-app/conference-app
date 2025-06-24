@@ -3,33 +3,43 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { formatTimeRange } from "@/lib/dateTime";
+import { Dispatch, SetStateAction } from "react";
 import { Pressable, StyleSheet } from "react-native";
+import AgendaItemSaveButton from "./AgendaItemSaveButton";
 import { calculateHeight, formatTopicName, getTopicColor } from "./utils";
 
 type AgendaItemProps = {
+  id: number;
   title: string;
   startTime: string;
   endTime: string;
   location: string;
   isDeleted: boolean;
   topic?: string | null;
+  hasRSVP: boolean;
   onPress: () => void;
+  setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
 };
 
 export default function AgendaItem({
+  id,
   title,
   startTime,
   endTime,
   location,
   isDeleted,
   topic,
+  hasRSVP,
+  setRsvpEventIds,
   onPress,
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
   const tintColor = Colors[colorScheme].tint;
   const topicColor = getTopicColor(topic ?? null);
   const topicName = formatTopicName(topic ?? null);
+  const user = useSupabaseAuth();
 
   return (
     <Pressable
@@ -45,18 +55,18 @@ export default function AgendaItem({
       ]}
       onPress={onPress}
     >
-      <ThemedView style={[styles.topicBand, { backgroundColor: topicColor }]}>
-        <ThemedView
-          style={[
-            styles.agendaContent,
-            {
-              backgroundColor:
-                colorScheme === "light"
-                  ? Colors[colorScheme].background
-                  : Colors[colorScheme].background,
-            },
-          ]}
-        >
+      <ThemedView
+        style={[
+          styles.agendaContent,
+          {
+            backgroundColor:
+              colorScheme === "light"
+                ? Colors[colorScheme].background
+                : Colors[colorScheme].background,
+          },
+        ]}
+      >
+        <ThemedView style={styles.titleRow}>
           <ThemedView style={styles.titleContainer}>
             <ThemedText style={styles.title} type="defaultSemiBold">
               {title}
@@ -69,31 +79,32 @@ export default function AgendaItem({
             )}
             <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
-
-          {/* Topic Badge */}
-          <ThemedView
-            style={[styles.topicBadge, { backgroundColor: topicColor }]}
-          >
-            <ThemedText style={styles.topicText}>{topicName}</ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.infoRow}>
-            <IconSymbol name="clock.fill" size={16} color={tintColor} />
-            <ThemedText style={styles.time}>
-              {formatTimeRange(startTime, endTime)}
-            </ThemedText>
-          </ThemedView>
-          {title !== "Break" && (
-            <ThemedView style={styles.infoRow}>
-              <IconSymbol
-                name="mappin.circle.fill"
-                size={16}
-                color={tintColor}
-              />
-              <ThemedText style={styles.location}>{location}</ThemedText>
-            </ThemedView>
+          {!user && (
+            <AgendaItemSaveButton
+              eventId={id}
+              isRSVP={hasRSVP}
+              setRsvpEventIds={setRsvpEventIds}
+            />
           )}
         </ThemedView>
+        {/* Topic Badge */}
+        <ThemedView
+          style={[styles.topicBadge, { backgroundColor: topicColor }]}
+        >
+          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.infoRow}>
+          <IconSymbol name="clock.fill" size={16} color={tintColor} />
+          <ThemedText style={styles.time}>
+            {formatTimeRange(startTime, endTime)}
+          </ThemedText>
+        </ThemedView>
+        {title !== "Break" && (
+          <ThemedView style={styles.infoRow}>
+            <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
+            <ThemedText style={styles.location}>{location}</ThemedText>
+          </ThemedView>
+        )}
       </ThemedView>
     </Pressable>
   );
@@ -109,6 +120,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
     backgroundColor: "transparent",
+  },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   titleContainer: {
     flexDirection: "row",

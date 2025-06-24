@@ -2,7 +2,12 @@ import AgendaItem from "@/components/AgendaViewer/AgendaItem";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate } from "@/lib/dateTime";
-import { getAllEvents, subscribeToEvents } from "@/services/events";
+import { getDeviceId } from "@/lib/user";
+import {
+  getAllEvents,
+  getRSVPedEvents,
+  subscribeToEvents,
+} from "@/services/events";
 import type { Event } from "@/types/Events.types";
 import React, { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -23,9 +28,6 @@ type EventListProps = {
   reloadTrigger?: number;
 };
 
-const COL_1_LOCATION = "Room 1";
-const COL_2_LOCATION = "Room 2";
-
 export function EventList({
   onSelectEvent,
   onEventPosition,
@@ -34,7 +36,11 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
+  const COL_1_LOCATION = "Room 1";
+  const COL_2_LOCATION = "Room 2";
+
   const [events, setEvents] = useState<Event[]>([]);
+  const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dateRefs = useRef<{ [key: string]: View | null }>({});
@@ -43,6 +49,8 @@ export function EventList({
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        const deviceId = await getDeviceId();
+        const rsvpedEventIds = await getRSVPedEvents(deviceId);
         const allEvents = await getAllEvents();
         setEvents(
           allEvents.filter(
@@ -52,6 +60,7 @@ export function EventList({
               (showDeleted === "deleted" && event.is_deleted)
           )
         );
+        setRsvpEventIds(new Set(rsvpedEventIds));
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events");
@@ -174,12 +183,12 @@ export function EventList({
 
                             // call the onEventPosition callback with the y position of the events in this row
                             onEventPosition(
-                              col1Event,
+                              item,
                               y + e.nativeEvent.layout.y + previousHeights
                             );
-                            for (const col2Event of col2Events) {
+                            for (const conflictItem of item.conflictingItems) {
                               onEventPosition(
-                                col2Event,
+                                conflictItem,
                                 y + e.nativeEvent.layout.y + previousHeights
                               );
                             }
@@ -199,11 +208,14 @@ export function EventList({
                           ]}
                         >
                           <AgendaItem
+                            id={col1Event.id}
                             title={col1Event.title}
                             startTime={col1Event.start_time}
                             endTime={col1Event.end_time}
                             location={col1Event.location}
                             isDeleted={col1Event.is_deleted}
+                            hasRSVP={rsvpEventIds.has(col1Event.id)}
+                            setRsvpEventIds={setRsvpEventIds}
                             topic={col1Event.topic}
                             onPress={() => onSelectEvent(col1Event)}
                           />
@@ -220,11 +232,14 @@ export function EventList({
                               }}
                             >
                               <AgendaItem
+                                id={col2Event.id}
                                 title={col2Event.title}
                                 startTime={col2Event.start_time}
                                 endTime={col2Event.end_time}
                                 location={col2Event.location}
                                 isDeleted={col2Event.is_deleted}
+                                hasRSVP={rsvpEventIds.has(col2Event.id)}
+                                setRsvpEventIds={setRsvpEventIds}
                                 topic={col2Event.topic}
                                 onPress={() => onSelectEvent(col2Event)}
                               />
@@ -266,11 +281,14 @@ export function EventList({
                             ]}
                           >
                             <AgendaItem
+                              id={item.id}
                               title={item.title}
                               startTime={item.start_time}
                               endTime={item.end_time}
                               location={item.location}
                               isDeleted={item.is_deleted}
+                              hasRSVP={rsvpEventIds.has(item.id)}
+                              setRsvpEventIds={setRsvpEventIds}
                               topic={item.topic}
                               onPress={() => onSelectEvent(item)}
                             />
@@ -291,11 +309,14 @@ export function EventList({
                           </View>
                           <View style={styles.eventWrapper}>
                             <AgendaItem
+                              id={item.id}
                               title={item.title}
                               startTime={item.start_time}
                               endTime={item.end_time}
                               location={item.location}
                               isDeleted={item.is_deleted}
+                              hasRSVP={rsvpEventIds.has(item.id)}
+                              setRsvpEventIds={setRsvpEventIds}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -304,11 +325,14 @@ export function EventList({
                         // Event with other location or null - use single column layout
                         <View style={[styles.eventWrapper]}>
                           <AgendaItem
+                            id={item.id}
                             title={item.title}
                             startTime={item.start_time}
                             endTime={item.end_time}
                             location={item.location}
                             isDeleted={item.is_deleted}
+                            hasRSVP={rsvpEventIds.has(item.id)}
+                            setRsvpEventIds={setRsvpEventIds}
                             topic={item.topic}
                             onPress={() => onSelectEvent(item)}
                           />
