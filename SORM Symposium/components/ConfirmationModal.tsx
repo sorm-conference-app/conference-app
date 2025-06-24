@@ -35,7 +35,7 @@ export default function ConfirmationModal({
           </ThemedText>
           
           <ThemedText style={styles.message}>
-            This email is registered as both an attendee and an organizer. <br />
+            This email is registered as an organizer. <br />
             Logging in as an attendee will prevent you from accessing administration tools. <br />
             Are you sure you want to sign in as an attendee?
           </ThemedText>

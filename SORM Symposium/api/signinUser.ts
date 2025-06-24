@@ -1,5 +1,5 @@
 import { supabase } from "@/constants/supabase";
-import { getAttendeeByEmail, isAttendeeEmail, verifyAttendeeEmail } from "@/services/attendees";
+import { isAttendeeEmail, isAdminEmail, verifyAttendeeEmail } from "@/services/attendees";
 import { isEmailVerifiedLocally, storeVerifiedEmail } from "@/lib/attendeeStorage";
 
 /**
@@ -7,7 +7,7 @@ import { isEmailVerifiedLocally, storeVerifiedEmail } from "@/lib/attendeeStorag
  * @param email - The email to check
  * @returns True if the email exists in Supabase auth
  */
-export async function isAdminEmail(email: string): Promise<boolean> {
+export async function isAdminEmailOld(email: string): Promise<boolean> {
   try {
     const { data, error } = await supabase.functions.invoke('check-admin-email', {
       body: { email: email.toLowerCase() }
@@ -26,27 +26,30 @@ export async function isAdminEmail(email: string): Promise<boolean> {
 }
 
 /**
- * Sign in a user.
- * @param email The user's email.
- * @param password The user's password.
+ * Sign in an admin user.
+ * @param email The admin's email.
+ * @param password The admin's password.
  * @returns The user object returned by Supabase.
  */
-export default async function signinUser(email: string, password: string) {
+export default async function signinAdmin(email: string, password: string) {
+  const isAttendee = await isAttendeeEmail(email);
+  if (!isAttendee) {
+    throw new Error("This email is not registered. Please try a different email or contact a Symposium Organizer for a paper copy of the schedule.");
+  }
+
+  const isAdmin = await isAdminEmail(email);
+  if (!isAdmin) {
+    throw new Error("This email is registered as an attendee. Please go back and use the 'Symposium Attendee' option instead.");
+  }
+  
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
   
   if (error) {
-    // Provide more specific error messages
     if (error.message.includes('Invalid login credentials')) {
-      // Check if this email is actually registered as an admin
-      const isAttendee = await isAttendeeEmail(email);
-      if (isAttendee) {
-        throw new Error("This email is registered as an attendee. Please use the 'Symposium Attendee' option instead.");
-      } else {
-        throw new Error("Incorrect password. Please check your password and try again.");
-      }
+      throw new Error("Incorrect password. Please check your password and try again.");
     }
     throw error;
   }
@@ -68,25 +71,27 @@ export async function signinAttendee(email: string, dualRegistered: (() => void)
     // Email is already verified on this device, proceed directly
     return {
       verified: true,
-      attendee: await getAttendeeByEmail(email),
+      attendee: null,
       message: "Email already verified on this device"
     };
   }
   
-  const isAdmin = await isAdminEmail(email);
   const isAttendee = await isAttendeeEmail(email);
-  
-  if (isAdmin && isAttendee) {
-    dualRegistered?.();
-    return {
-      verified: false,
-      attendee: null,
-      message: "Email is registered as an organizer and an attendee."
-    };
+  if (!isAttendee) {
+    throw new Error("This email is not registered. Please try a different email or contact a Symposium Organizer for a paper copy of the schedule.");
   }
+
+  const isAdmin = await isAdminEmail(email);
   if (isAdmin) {
-    throw new Error("This email is registered as an organizer. Please use the 'Symposium Organizer' option instead.");
-  } 
+    if (dualRegistered) {
+      dualRegistered?.();
+      return {
+        verified: false,
+        attendee: null,
+        message: "Email is registered as an organizer and an attendee."
+      };
+    }
+  }
   
   try {
     const verifiedAttendee = await verifyAttendeeEmail(email);

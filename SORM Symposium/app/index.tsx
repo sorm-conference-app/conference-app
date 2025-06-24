@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Alert, Button, StyleSheet } from "react-native";
+import { Button, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import ThemedTextInput from "@/components/ThemedTextInput";
-import signinUser, { signinAttendee } from "@/api/signinUser";
+import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import { supabase } from "@/constants/supabase";
 import { getVerifiedEmails, clearVerifiedEmails } from "@/lib/attendeeStorage";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -49,7 +49,7 @@ export default function Login() {
           router.push("/(tabs)/home");
         }
       } else if (userType === "organizer") {
-        await signinUser(email, password);
+        await signinAdmin(email, password);
         await clearVerifiedEmails();
         router.push("/(tabs)/home");
       }

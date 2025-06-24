@@ -140,7 +140,7 @@ export type Database = {
           organization: string | null;
           title: string | null;
           additional_info: string | null;
-          verified_at: string | null;
+          is_admin: boolean;
         };
         Insert: {
           id?: number;
@@ -150,7 +150,7 @@ export type Database = {
           organization?: string | null;
           title?: string | null;
           additional_info?: string | null;
-          verified_at?: string | null;
+          is_admin?: boolean;
         };
         Update: {
           id?: number;
@@ -160,7 +160,7 @@ export type Database = {
           organization?: string | null;
           title?: string | null;
           additional_info?: string | null;
-          verified_at?: string | null;
+          is_admin?: boolean;
         };
         Relationships: [];
       };
