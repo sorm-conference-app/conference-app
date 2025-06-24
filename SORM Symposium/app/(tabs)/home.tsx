@@ -29,7 +29,8 @@ export default function Home() {
 
   /**
    * Handle logout functionality
-   * - Log out any admin users from Supabase
+   * - Log out any users from Supabase
+   * - Clear verified emails from local storage
    * - Redirect to login page for all users
    */
   const handleLogout = async () => {
@@ -166,10 +167,19 @@ export default function Home() {
       
       {/* Footer with auth buttons */}
       <ThemedView style={styles.footerContainer}>
-        <View style={styles.buttonRow}>
+        <View
+          style={[
+            styles.linkContainer,
+            {
+              borderColor: Colors[colorScheme].tint,
+              backgroundColor: Colors[colorScheme].background,
+            },
+          ]}
+        >
           <ThemedText
-            style={[styles.footerButton, { color: Colors[colorScheme].text }]}
+            type="link"
             onPress={handleLogout}
+            style={[styles.viewAllLink, { color: Colors[colorScheme].text }]}
           >
             Logout
           </ThemedText>
@@ -231,14 +241,6 @@ const styles = StyleSheet.create({
   footerContainer: {
     padding: 12,
     marginTop: 16,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  footerButton: {
-    fontSize: 12,
-    textDecorationLine: "underline",
-    opacity: 0.6,
+    alignItems: "center",
   },
 });
