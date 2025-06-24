@@ -244,11 +244,11 @@ export function getTopicColor(topic: string | null): string {
 }
 
 /**
- * Get a readable topic name, capitalizing the first letter
+ * Get a readable topic name, preserving the original case
  * @param topic - The topic name
- * @returns The formatted topic name
+ * @returns The topic name as-is, or 'General' if null
  */
 export function formatTopicName(topic: string | null): string {
   if (!topic) return 'General';
-  return topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase();
+  return topic;
 }

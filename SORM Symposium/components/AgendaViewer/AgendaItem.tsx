@@ -28,15 +28,15 @@ export default function AgendaItem({
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
   const tintColor = Colors[colorScheme].tint;
-  const topicColor = getTopicColor(topic);
-  const topicName = formatTopicName(topic);
+  const topicColor = getTopicColor(topic ?? null);
+  const topicName = formatTopicName(topic ?? null);
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.agendaItem,
-        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
-        { borderColor: topicColor },
+        { backgroundColor: topicColor },
+        { borderColor: Colors[colorScheme].tint },
         {
           minHeight:
             title === "Break" ? 65 : calculateHeight(startTime, endTime),
@@ -45,49 +45,55 @@ export default function AgendaItem({
       ]}
       onPress={onPress}
     >
-      <ThemedView
-        style={[
-          styles.agendaContent,
-          {
-            backgroundColor:
-              colorScheme === "light"
-                ? Colors[colorScheme].background
-                : Colors[colorScheme].background,
-          },
-        ]}
-      >
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText style={styles.title} type="defaultSemiBold">
-            {title}
-          </ThemedText>
-          {isDeleted && (
-            <ThemedText style={styles.deletedTitle} type="defaultSemiBold">
-              {" "}
-              - Deleted
-            </ThemedText>
-          )}
-          <IconSymbol name="chevron.right" size={20} color={tintColor} />
-        </ThemedView>
-
-        {/* Topic Badge */}
+      <ThemedView style={[styles.topicBand, { backgroundColor: topicColor }]}>
         <ThemedView
-          style={[styles.topicBadge, { backgroundColor: topicColor }]}
+          style={[
+            styles.agendaContent,
+            {
+              backgroundColor:
+                colorScheme === "light"
+                  ? Colors[colorScheme].background
+                  : Colors[colorScheme].background,
+            },
+          ]}
         >
-          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
-        </ThemedView>
-
-        <ThemedView style={styles.infoRow}>
-          <IconSymbol name="clock.fill" size={16} color={tintColor} />
-          <ThemedText style={styles.time}>
-            {formatTimeRange(startTime, endTime)}
-          </ThemedText>
-        </ThemedView>
-        {title !== "Break" && (
-          <ThemedView style={styles.infoRow}>
-            <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
-            <ThemedText style={styles.location}>{location}</ThemedText>
+          <ThemedView style={styles.titleContainer}>
+            <ThemedText style={styles.title} type="defaultSemiBold">
+              {title}
+            </ThemedText>
+            {isDeleted && (
+              <ThemedText style={styles.deletedTitle} type="defaultSemiBold">
+                {" "}
+                - Deleted
+              </ThemedText>
+            )}
+            <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
-        )}
+
+          {/* Topic Badge */}
+          <ThemedView
+            style={[styles.topicBadge, { backgroundColor: topicColor }]}
+          >
+            <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.infoRow}>
+            <IconSymbol name="clock.fill" size={16} color={tintColor} />
+            <ThemedText style={styles.time}>
+              {formatTimeRange(startTime, endTime)}
+            </ThemedText>
+          </ThemedView>
+          {title !== "Break" && (
+            <ThemedView style={styles.infoRow}>
+              <IconSymbol
+                name="mappin.circle.fill"
+                size={16}
+                color={tintColor}
+              />
+              <ThemedText style={styles.location}>{location}</ThemedText>
+            </ThemedView>
+          )}
+        </ThemedView>
       </ThemedView>
     </Pressable>
   );
@@ -146,9 +152,15 @@ const styles = StyleSheet.create({
   agendaItemPressed: {
     opacity: 0.7,
   },
+  topicBand: {
+    flex: 1,
+    borderRadius: 6,
+    padding: 3,
+  },
   agendaContent: {
     flex: 1,
     display: "flex",
     padding: 8,
+    borderRadius: 3,
   },
 });
