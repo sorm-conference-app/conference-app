@@ -146,7 +146,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                     {
                       color:
                         topic === topicOption
-                          ? "white"
+                          ? "black"
                           : Colors[colorScheme].text,
                     },
                   ]}
