@@ -91,6 +91,7 @@ export type Database = {
           speaker_title: string | null
           start_time: string
           title: string
+          topic: string | null
         }
         Insert: {
           created_at?: string
@@ -107,6 +108,7 @@ export type Database = {
           speaker_title?: string | null
           start_time: string
           title: string
+          topic?: string | null
         }
         Update: {
           created_at?: string
@@ -123,6 +125,7 @@ export type Database = {
           speaker_title?: string | null
           start_time?: string
           title?: string
+          topic?: string | null
         }
         Relationships: []
       }
