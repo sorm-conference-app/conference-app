@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   topicText: {
-    color: "white",
+    color: "black",
     fontSize: 14,
     fontWeight: "600",
   },

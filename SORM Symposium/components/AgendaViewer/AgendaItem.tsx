@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   topicText: {
-    color: "white",
+    color: "black",
     fontSize: 12,
     fontWeight: "600",
   },
