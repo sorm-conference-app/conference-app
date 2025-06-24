@@ -8,9 +8,9 @@ export const TopicColors = {
   'Updates in Continuity': '#45B7D1',        // Blue
   'The Human Element': '#96CEB4', // Green
   'Collaborating with Others': '#FFEAA7',   // Yellow
-  'Keynote': '#6C5B7B',       // Purple
+  'Keynote': '#DDA0DD',       // Plum
   'Lunch': '#F8B195',        // Peach
-  'Break': '#DDA0DD',        // Plum
+  'Break': '#808080',        // Gray
   'General': '#808080',      // Gray
 };
 
