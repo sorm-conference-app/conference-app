@@ -8,6 +8,7 @@ export interface Attendee {
   organization: string | null;
   title: string | null;
   additional_info: string | null;
+  is_admin: boolean;
 }
 
 /**
@@ -32,6 +33,26 @@ export async function getAttendeeByEmail(email: string): Promise<Attendee | null
   }
 
   return data;
+}
+
+/**
+ * Check if an email is registered as an attendee
+ * @param email - The email to check
+ * @returns True if the email exists in attendee_info table and is_admin is false
+ */
+export async function isAttendeeEmail(email: string): Promise<boolean> {
+  const attendee = await getAttendeeByEmail(email);
+  return attendee !== null;
+}
+
+/**
+ * Check if an email is registered as an admin
+ * @param email - The email to check
+ * @returns True if the email exists in attendee_info table and is_admin is true
+ */
+export async function isAdminEmail(email: string): Promise<boolean> {
+  const attendee = await getAttendeeByEmail(email);
+  return attendee !== null && attendee.is_admin === true;
 }
 
 /**
