@@ -3,12 +3,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { formatTimeRange } from "@/lib/dateTime";
-import { calculateHeight } from "./utils";
-import { Pressable, StyleSheet } from "react-native";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import AgendaItemSaveButton from "./AgendaItemSaveButton";
+import { formatTimeRange } from "@/lib/dateTime";
 import { Dispatch, SetStateAction } from "react";
+import { Pressable, StyleSheet } from "react-native";
+import AgendaItemSaveButton from "./AgendaItemSaveButton";
+import { calculateHeight, formatTopicName, getTopicColor } from "./utils";
 
 type AgendaItemProps = {
   id: number;
@@ -17,6 +17,7 @@ type AgendaItemProps = {
   endTime: string;
   location: string;
   isDeleted: boolean;
+  topic?: string | null;
   hasRSVP: boolean;
   onPress: () => void;
   setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
@@ -29,19 +30,22 @@ export default function AgendaItem({
   endTime,
   location,
   isDeleted,
+  topic,
   hasRSVP,
   setRsvpEventIds,
   onPress,
 }: AgendaItemProps) {
   const colorScheme = useColorScheme() ?? "light";
   const tintColor = Colors[colorScheme].tint;
+  const topicColor = getTopicColor(topic ?? null);
+  const topicName = formatTopicName(topic ?? null);
   const user = useSupabaseAuth();
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.agendaItem,
-        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
+        { backgroundColor: topicColor },
         { borderColor: Colors[colorScheme].tint },
         {
           minHeight:
@@ -75,7 +79,6 @@ export default function AgendaItem({
             )}
             <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
-
           {!user && (
             <AgendaItemSaveButton
               eventId={id}
@@ -83,6 +86,12 @@ export default function AgendaItem({
               setRsvpEventIds={setRsvpEventIds}
             />
           )}
+        </ThemedView>
+        {/* Topic Badge */}
+        <ThemedView
+          style={[styles.topicBadge, { backgroundColor: topicColor }]}
+        >
+          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
         </ThemedView>
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
@@ -131,6 +140,19 @@ const styles = StyleSheet.create({
   time: {
     flex: 1,
   },
+  topicBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  topicText: {
+    color: "black",
+    fontSize: 12,
+    fontWeight: "600",
+  },
   agendaItem: {
     borderRadius: 8,
     padding: 12,
@@ -145,9 +167,15 @@ const styles = StyleSheet.create({
   agendaItemPressed: {
     opacity: 0.7,
   },
+  topicBand: {
+    flex: 1,
+    borderRadius: 6,
+    padding: 3,
+  },
   agendaContent: {
     flex: 1,
     display: "flex",
     padding: 8,
+    borderRadius: 3,
   },
 });

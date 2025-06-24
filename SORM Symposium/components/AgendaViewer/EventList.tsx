@@ -1,25 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import type { Event } from "@/types/Events.types";
 import AgendaItem from "@/components/AgendaViewer/AgendaItem";
-import {
-  findConflicts,
-  groupEventsByDate,
-  calculateEventOffset,
-  sortEventsByLocation,
-} from "./utils";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { formatDate } from "@/lib/dateTime";
+import { getDeviceId } from "@/lib/user";
 import {
   getAllEvents,
   getRSVPedEvents,
   subscribeToEvents,
 } from "@/services/events";
-import { ThemedView } from "../ThemedView";
+import type { Event } from "@/types/Events.types";
+import React, { useEffect, useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
-import * as Application from "expo-application";
-import { formatDate } from "@/lib/dateTime";
-import { Colors } from "@/constants/Colors";
-import { getDeviceId } from "@/lib/user";
+import { ThemedView } from "../ThemedView";
+import {
+  calculateEventOffset,
+  findConflicts,
+  groupEventsByDate,
+  sortEventsByLocation,
+} from "./utils";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
@@ -58,8 +57,8 @@ export function EventList({
             (event) =>
               showDeleted === "all" ||
               (showDeleted === "active" && !event.is_deleted) ||
-              (showDeleted === "deleted" && event.is_deleted),
-          ),
+              (showDeleted === "deleted" && event.is_deleted)
+          )
         );
         setRsvpEventIds(new Set(rsvpedEventIds));
       } catch (err) {
@@ -84,8 +83,8 @@ export function EventList({
           (event) =>
             showDeleted === "all" ||
             (showDeleted === "active" && !event.is_deleted) ||
-            (showDeleted === "deleted" && event.is_deleted),
-        ),
+            (showDeleted === "deleted" && event.is_deleted)
+        )
       );
       setLoading(false);
     });
@@ -163,7 +162,7 @@ export function EventList({
                     const sortedEvents = sortEventsByLocation(
                       [item, ...item.conflictingItems],
                       COL_1_LOCATION,
-                      COL_2_LOCATION,
+                      COL_2_LOCATION
                     );
                     const col1Event = sortedEvents[0];
                     const col2Events = sortedEvents.slice(1);
@@ -179,18 +178,18 @@ export function EventList({
                               .filter((d) => d < date)
                               .reduce(
                                 (sum, d) => sum + (dateHeights.current[d] || 0),
-                                0,
+                                0
                               );
 
                             // call the onEventPosition callback with the y position of the events in this row
                             onEventPosition(
                               item,
-                              y + e.nativeEvent.layout.y + previousHeights,
+                              y + e.nativeEvent.layout.y + previousHeights
                             );
                             for (const conflictItem of item.conflictingItems) {
                               onEventPosition(
                                 conflictItem,
-                                y + e.nativeEvent.layout.y + previousHeights,
+                                y + e.nativeEvent.layout.y + previousHeights
                               );
                             }
                           });
@@ -203,7 +202,7 @@ export function EventList({
                             {
                               marginTop: calculateEventOffset(
                                 col2Events[0].start_time,
-                                col1Event.start_time,
+                                col1Event.start_time
                               ),
                             },
                           ]}
@@ -217,6 +216,7 @@ export function EventList({
                             isDeleted={col1Event.is_deleted}
                             hasRSVP={rsvpEventIds.has(col1Event.id)}
                             setRsvpEventIds={setRsvpEventIds}
+                            topic={col1Event.topic}
                             onPress={() => onSelectEvent(col1Event)}
                           />
                         </View>
@@ -227,7 +227,7 @@ export function EventList({
                               style={{
                                 marginTop: calculateEventOffset(
                                   col1Event.start_time,
-                                  col2Event.start_time,
+                                  col2Event.start_time
                                 ),
                               }}
                             >
@@ -240,6 +240,7 @@ export function EventList({
                                 isDeleted={col2Event.is_deleted}
                                 hasRSVP={rsvpEventIds.has(col2Event.id)}
                                 setRsvpEventIds={setRsvpEventIds}
+                                topic={col2Event.topic}
                                 onPress={() => onSelectEvent(col2Event)}
                               />
                             </View>
@@ -260,13 +261,13 @@ export function EventList({
                             .filter((d) => d < date)
                             .reduce(
                               (sum, d) => sum + (dateHeights.current[d] || 0),
-                              0,
+                              0
                             );
 
                           // call the onEventPosition callback with the y position of the event
                           onEventPosition(
                             item,
-                            y + e.nativeEvent.layout.y + previousHeights,
+                            y + e.nativeEvent.layout.y + previousHeights
                           );
                         });
                       }}
@@ -288,6 +289,7 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={setRsvpEventIds}
+                              topic={item.topic}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -331,6 +333,7 @@ export function EventList({
                             isDeleted={item.is_deleted}
                             hasRSVP={rsvpEventIds.has(item.id)}
                             setRsvpEventIds={setRsvpEventIds}
+                            topic={item.topic}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
