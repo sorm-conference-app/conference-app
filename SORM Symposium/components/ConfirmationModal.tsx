@@ -34,11 +34,9 @@ export default function ConfirmationModal({
             You Have Organizer Access
           </ThemedText>
           
-          <ThemedText style={styles.message}>
-            This email is registered as an organizer. <br />
-            Logging in as an attendee will prevent you from accessing administration tools. <br />
-            Are you sure you want to sign in as an attendee?
-          </ThemedText>
+          <ThemedText style={styles.message}> This email is registered as an organizer. </ThemedText>
+          <ThemedText style={styles.message}> Logging in as an attendee will prevent you from accessing administration tools. </ThemedText>
+          <ThemedText style={styles.message}> Are you sure you want to sign in as an attendee? </ThemedText>
           
           <ThemedView style={[
           styles.buttonContainer,
@@ -105,18 +103,19 @@ const styles = StyleSheet.create({
     minWidth: 300,
   },
   title: {
-    marginBottom: 15,
+    marginBottom: 25,
     textAlign: 'center',
   },
   message: {
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     lineHeight: 20,
   },
   buttonContainer: {
     flexDirection: 'column',
     gap: 10,
     width: '100%',
+    marginTop: 10,
   },
   button: {
     paddingHorizontal: 20,
