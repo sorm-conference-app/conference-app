@@ -1,4 +1,5 @@
 import { supabase } from "@/constants/supabase";
+import { Platform } from "react-native";
 
 /**
  * A function to log an event to the database.
@@ -11,6 +12,7 @@ export async function sendLogMessage(
 ): Promise<void> {
   await supabase.from("dev_event_logs").insert({
     event_type: event,
+    OS: Platform.OS,
     message: message ?? null,
   });
 }

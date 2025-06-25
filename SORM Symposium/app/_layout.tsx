@@ -38,17 +38,8 @@ export default function RootLayout() {
         // If the app has already been opened, do not log again.
         return;
       }
-
-      let start = "A";
-      if (Platform.OS !== "web") {
-        start += "n"; // Use "An" for Android and iOS, "A" for web.
-      }
       try {
-        const deviceId = await getDeviceId();
-        await sendLogMessage(
-          "app-open",
-          `${start} ${Platform.OS} device has opened the app. ID: ${deviceId}.`,
-        );
+        await sendLogMessage("app-open");
         initialLoad.current = true;
       } catch (error) {
         console.error("Failed to log app open:", error);
