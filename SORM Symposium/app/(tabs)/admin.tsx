@@ -1,50 +1,36 @@
 import AnnouncementForm from "@/components/AnnouncementForm";
+import ContactEditForm from "@/components/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
-import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { useState } from "react";
-import { Button, SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native";
 import { Redirect } from "expo-router";
+import useActiveUserCount from "@/hooks/useActiveUserCount";
 
-const TEMPORARY_PIN = "1234";
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 export default function Admin() {
-  const [pin, setPin] = useState<string>("");
+  const activeUsers = useActiveUserCount();
   const user = useSupabaseAuth();
 
-  function handlePinChange(text: string) {
-    setPin(text);
-  }
-
-  function resetPin() {
-    setPin("");
-  }
-
   if (!user) {
-    return <Redirect href="/(tabs)/agenda" />;
-  }
-
-  if (pin === TEMPORARY_PIN) {
-    return (
-      <SafeAreaView>
-        <ThemedView>
-          <ThemedText>Welcome to the admin panel!</ThemedText>
-          <AnnouncementForm />
-          <Button onPress={resetPin} title="Go back" />
-        </ThemedView>
-      </SafeAreaView>
-    );
+    return <Redirect href="/(tabs)" />;
   }
 
   return (
     <SafeAreaView>
       <ThemedView>
-        <ThemedTextInput
-          value={pin}
-          onChangeText={handlePinChange}
-          placeholder="Enter PIN"
-        />
+        <ThemedText>
+          Welcome to the admin panel! | Active Users:{" "}
+          {Object.entries(activeUsers).map(([platform, count]) => (
+            <>
+              {capitalize(platform)}: {count}{" "}
+            </>
+          ))}
+        </ThemedText>
+        <AnnouncementForm />
       </ThemedView>
     </SafeAreaView>
   );

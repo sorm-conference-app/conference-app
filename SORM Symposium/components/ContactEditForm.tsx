@@ -1,0 +1,188 @@
+import { Colors } from "@/constants/Colors";
+import { supabase } from "@/constants/supabase";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Tables } from "@/types/Supabase.types";
+import { Picker } from "@react-native-picker/picker";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Button, Platform, View } from "react-native";
+import ThemedTextInput from "./ThemedTextInput";
+
+/**
+ * Form for editing existing contact information in Supabase.
+ * Allows selection of a contact, editing their info, and updating in the database.
+ * @returns JSX.Element
+ */
+export default function ContactEditForm() {
+  // State for all contacts
+  const [contacts, setContacts] = useState<Tables<'contact_info'>[]>([]);
+  // State for selected contact id (use empty string for web compatibility)
+  const [selectedId, setSelectedId] = useState<number | string>("");
+  // State for form fields
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  // Loading and error state
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  // Get current color scheme for theming
+  const colorScheme = useColorScheme() ?? 'light';
+
+  // Fetch all contacts on mount
+  useEffect(() => {
+    async function fetchContacts() {
+      setFetching(true);
+      const { data, error } = await supabase
+        .from("contact_info")
+        .select("*")
+        .order("last_name", { ascending: true });
+      if (error) {
+        Alert.alert("Error", error.message);
+        setContacts([]);
+      } else {
+        setContacts(data || []);
+      }
+      setFetching(false);
+    }
+    fetchContacts();
+  }, []);
+
+  // When a contact is selected, always prefill the form fields
+  useEffect(() => {
+    if (selectedId !== "" && typeof selectedId === "number") {
+      const contact = contacts.find(c => c.id === selectedId);
+      if (contact) {
+        setFirstName(contact.first_name);
+        setLastName(contact.last_name);
+        setPhoneNumber(contact.phone_number);
+        setEmail(contact.email);
+      }
+    } else {
+      // Clear fields if no contact is selected
+      setFirstName("");
+      setLastName("");
+      setPhoneNumber("");
+      setEmail("");
+    }
+  }, [selectedId, contacts]);
+
+  /**
+   * Handle updating the selected contact in Supabase
+   */
+  async function handleUpdate() {
+    if (selectedId === "" || typeof selectedId !== "number") return;
+    if (!firstName.trim() || !lastName.trim() || !phoneNumber.trim() || !email.trim()) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase
+      .from("contact_info")
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        email: email,
+      })
+      .eq("id", selectedId);
+    setLoading(false);
+    if (error) {
+      Alert.alert("Error", error.message);
+    } else {
+      Alert.alert("Success", "Contact updated");
+      // Optionally refresh contacts
+      const { data } = await supabase
+        .from("contact_info")
+        .select("*")
+        .order("last_name", { ascending: true });
+      setContacts(data || []);
+    }
+  }
+
+  if (fetching) {
+    return <ActivityIndicator size="large" />;
+  }
+
+  // Picker style for the actual picker component
+  const pickerStyle = {
+    color: Colors[colorScheme].text,
+    backgroundColor: Colors[colorScheme].background,
+    flex: 1,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: Colors[colorScheme].tint,
+    paddingHorizontal: 10,
+    minHeight: 48,
+  };
+
+  return (
+    <View style={{ gap: 16 }}>
+      {/* Picker for selecting a contact */}
+      <Picker
+        selectedValue={selectedId}
+        onValueChange={value => {
+          // Handle the "Select a contact" option and convert string to number if needed
+          if (value === null || value === undefined || value === "" || value === "select") {
+            setSelectedId("");
+          } else {
+            const numericValue = Number(value);
+            // Only set if it's a valid number to avoid NaN
+            if (!isNaN(numericValue)) {
+              setSelectedId(numericValue);
+            }
+          }
+        }}
+        style={pickerStyle}
+        dropdownIconColor={Colors[colorScheme].tint}
+        itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+      >
+        <Picker.Item 
+          label="Select a contact" 
+          value="select" 
+          color={Colors[colorScheme].text}
+        />
+        {contacts.map(contact => (
+          <Picker.Item
+            key={contact.id}
+            label={`${contact.first_name} ${contact.last_name}`}
+            value={contact.id}
+            color={Colors[colorScheme].text}
+          />
+        ))}
+      </Picker>
+      {/* Form fields for editing */}
+      <ThemedTextInput
+        value={firstName}
+        onChangeText={setFirstName}
+        placeholder="First Name"
+        editable={selectedId !== "" && typeof selectedId === "number"}
+      />
+      <ThemedTextInput
+        value={lastName}
+        onChangeText={setLastName}
+        placeholder="Last Name"
+        editable={selectedId !== "" && typeof selectedId === "number"}
+      />
+      <ThemedTextInput
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+        placeholder="Phone Number"
+        keyboardType="phone-pad"
+        editable={selectedId !== "" && typeof selectedId === "number"}
+      />
+      <ThemedTextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        keyboardType="email-address"
+        editable={selectedId !== "" && typeof selectedId === "number"}
+      />
+      <Button
+        title={loading ? "Updating..." : "Update Contact"}
+        onPress={handleUpdate}
+        disabled={loading || selectedId === "" || typeof selectedId !== "number"}
+      />
+    </View>
+  );
+} 

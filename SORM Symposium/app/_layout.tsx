@@ -18,6 +18,7 @@ import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { sendLogMessage } from "@/services/logging";
 import { getDeviceId } from "@/lib/user";
+import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
 
 // Enable screens for better performance
 enableScreens();
@@ -67,18 +68,20 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <ExpoPushTokenProvider>
           <AuthSessionProvider>
-            <Stack
-              screenOptions={{
-                contentStyle: {
-                  paddingTop: topInset,
-                },
-              }}
-            >
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
+            <ActiveUsersProvider>
+              <Stack
+                screenOptions={{
+                  contentStyle: {
+                    paddingTop: topInset,
+                  },
+                }}
+              >
+                <Stack.Screen name="login" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </ActiveUsersProvider>
           </AuthSessionProvider>
         </ExpoPushTokenProvider>
       </ThemeProvider>

@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { useContacts, ContactInfo } from "@/hooks/useContacts";
 import { Colors } from "@/constants/Colors";
 import { Image } from "expo-image";
 import {
@@ -24,49 +25,6 @@ import type { IconSymbolName } from "@/components/ui/IconSymbol";
 const defaultWidth = () => Math.min(Dimensions.get("window").width, 400);
 const wideHeight = () => Dimensions.get("window").width / 3;
 
-type ContactInfo = {
-  name: string;
-  phone: string;
-  email: string;
-};
-
-const CONTACTS: ContactInfo[] = [
-  {
-    name: "Robert Turner",
-    phone: "512.751.3511",
-    email: "rturner@nbcesd1.com",
-  },
-  {
-    name: "Chris Bygum",
-    phone: "805.889.1807",
-    email: "cbygum@gmail.com",
-  },
-  {
-    name: "Shelby Hyman",
-    phone: "512.653.5827",
-    email: "shelby.hyman@sorm.texas.gov",
-  },
-  {
-    name: "Monica Jackson",
-    phone: "936.662.2946",
-    email: "monica.jackson@txdmv.gov",
-  },
-  {
-    name: "Brandon Murphy",
-    phone: "512.936.2927",
-    email: "brandon.murphy@sorm.texas.gov",
-  },
-  {
-    name: "Mark Chadwick",
-    phone: "512.936.1555",
-    email: "mark.chadwick@sorm.texas.gov",
-  },
-  {
-    name: "Stephen Vollbrecht",
-    phone: "512.470.1989",
-    email: "stephen.vollbrecht@gmail.com",
-  },
-];
 
 type ContactAction = {
   icon: IconSymbolName;
@@ -84,6 +42,9 @@ export default function InfoScreen() {
   const [selectedContact, setSelectedContact] = useState<ContactInfo | null>(
     null
   );
+
+  // Fetch contacts from Supabase
+  const { contacts, loading: contactsLoading, error: contactsError } = useContacts();
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone.replace(/\./g, "")}`);
@@ -245,8 +206,17 @@ export default function InfoScreen() {
             Please text before calling or emailing
           </ThemedText>
 
-          <ThemedView style={styles.contactsContainer}>
-            {CONTACTS.map((contact, index) => (
+           <ThemedView style={styles.contactsContainer}>
+            {contactsLoading && (
+              <ThemedText style={styles.contactText}>Loading contacts…</ThemedText>
+            )}
+            {contactsError && (
+              <ThemedText style={[styles.contactText, { color: 'red' }]}>Failed to load contacts.</ThemedText>
+            )}
+            {!contactsLoading && !contactsError && contacts.length === 0 && (
+              <ThemedText style={styles.contactText}>No contacts available.</ThemedText>
+            )}
+            {!contactsLoading && !contactsError && contacts.map((contact, index) => (
               <TouchableOpacity
                 key={contact.email}
                 onPress={() => showContactOptions(contact)}
@@ -257,7 +227,7 @@ export default function InfoScreen() {
                       Colors[colorScheme].secondaryBackgroundColor,
                     borderColor: Colors[colorScheme].tint,
                   },
-                  index !== CONTACTS.length - 1 && styles.contactCardMargin,
+                  index !== contacts.length - 1 && styles.contactCardMargin,
                 ]}
               >
                 <ThemedView style={styles.contactInfo}>
