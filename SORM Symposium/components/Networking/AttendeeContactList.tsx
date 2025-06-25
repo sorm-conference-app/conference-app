@@ -71,7 +71,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           : userShareInfo === false ? <ThemedText style={{ fontWeight: "bold" }}>Your contact information is not being shared. </ThemedText>
           : "Loading your contact sharing preference... "}
         </ThemedText>
-        <ThemedView style={styles.row}>
+        {userEmail !== null && userShareInfo !== null && <ThemedView style={styles.row}>
           <Pressable 
             onPress={() => { setUserShareInfo(!userShareInfo); /* TODO: Add a modal to change the user's contact sharing preference */ }}
             style={[styles.button, { 
@@ -86,11 +86,10 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
               </ThemedText>
             )}
           </Pressable>
-          <ThemedText style={[styles.subtitle, { flexWrap: "wrap", flexShrink: 1, alignSelf: "flex-start" }]}>
-            {" "}to change your contact-sharing preference.
+          <ThemedText style={[styles.subtitle, { flexShrink: 1, marginLeft: 5, backgroundColor: "transparent", alignSelf: "flex-start" }]}>
+            to manage your contact sharing preferences.
           </ThemedText>
-        {/* {isAdmin && " You are an admin, so your contact info will always be shown on the info page."} */}
-        </ThemedView>
+        </ThemedView>}
         <ThemedText style={[styles.subtitle, { fontStyle: "italic" }]}>
           {Platform.OS === "web" ? "Click on an attendee to view more contact information." 
           : "Tap on an attendee to view more contact information."}
@@ -115,15 +114,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
       <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
       {disclosureArea()}
       <ScrollView 
-        style={[styles.contactList, { borderColor: Colors[colorScheme].tint, borderWidth: 1 }]}
-        refreshControl={
-          <RefreshControl
-            refreshing={loading}
-            onRefresh={refresh}
-            colors={colorScheme === 'dark' ? ['#ffffff'] : ['#000000']}
-            tintColor={colorScheme === 'dark' ? '#ffffff' : '#000000'}
-          />
-        }
+        style={[styles.contactList, { backgroundColor: Colors[colorScheme].background, borderColor: Colors[colorScheme].tint, borderWidth: 1 }]}
       >
         {contacts.map((contact) => <ContactRow attendee={contact} key={contact.id} />)}
       </ScrollView>
@@ -173,10 +164,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     marginBottom: 5,
+    marginLeft: 0,
+    bottom: 2,
   },
   buttonText: {
     textAlign: "center",
     fontSize: 16,
+    fontWeight: "bold",
     marginLeft: 5,
     marginRight: 5,
     lineHeight: 20,
