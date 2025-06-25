@@ -14,54 +14,183 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      events: {
+      attendee_info: {
         Row: {
-          id: number;
+          additional_info: string | null;
           created_at: string;
-          title: string;
-          start_time: string;
-          end_time: string;
-          location: string;
-          description: string | null;
-          type: string | null;
-          speaker: string | null;
-          slides_url: string | null;
-          speaker_name: string | null;
-          speaker_title: string | null;
-          speaker_bio: string | null;
-          event_date: string;
+          email: string | null;
+          id: number;
+          is_admin: boolean;
+          name: string | null;
+          organization: string | null;
+          share_info: boolean;
+          title: string | null;
         };
         Insert: {
-          id?: number;
+          additional_info?: string | null;
           created_at?: string;
-          title: string;
-          start_time: string;
-          end_time: string;
-          location: string;
-          description?: string | null;
-          type?: string | null;
-          speaker?: string | null;
-          slides_url?: string | null;
-          speaker_name?: string | null;
-          speaker_title?: string | null;
-          speaker_bio?: string | null;
-          event_date: string;
+          email?: string | null;
+          id?: number;
+          is_admin?: boolean;
+          name?: string | null;
+          organization?: string | null;
+          share_info?: boolean;
+          title?: string | null;
         };
         Update: {
-          id?: number;
+          additional_info?: string | null;
           created_at?: string;
-          title?: string;
-          start_time?: string;
-          end_time?: string;
-          location?: string;
+          email?: string | null;
+          id?: number;
+          is_admin?: boolean;
+          name?: string | null;
+          organization?: string | null;
+          share_info?: boolean;
+          title?: string | null;
+        };
+        Relationships: [];
+      };
+      contact_info: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          first_name: string | null;
+          id: number;
+          last_name: string | null;
+          phone_number: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string | null;
+          id?: number;
+          last_name?: string | null;
+          phone_number?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string | null;
+          id?: number;
+          last_name?: string | null;
+          phone_number?: string | null;
+        };
+        Relationships: [];
+      };
+      dev_event_logs: {
+        Row: {
+          created_at: string;
+          event_type: string;
+          id: number;
+          message: string | null;
+          OS: string;
+        };
+        Insert: {
+          created_at?: string;
+          event_type: string;
+          id?: number;
+          message?: string | null;
+          OS: string;
+        };
+        Update: {
+          created_at?: string;
+          event_type?: string;
+          id?: number;
+          message?: string | null;
+          OS?: string;
+        };
+        Relationships: [];
+      };
+      event_attendees: {
+        Row: {
+          attendee_device_id: string;
+          event_id: number;
+          id: number;
+          notified: boolean;
+          rsvp_at: string;
+        };
+        Insert: {
+          attendee_device_id: string;
+          event_id: number;
+          id?: number;
+          notified?: boolean;
+          rsvp_at?: string;
+        };
+        Update: {
+          attendee_device_id?: string;
+          event_id?: number;
+          id?: number;
+          notified?: boolean;
+          rsvp_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_attendee_device_id_fkey";
+            columns: ["attendee_device_id"];
+            isOneToOne: false;
+            referencedRelation: "test_profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_attendees_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      events: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          end_time: string;
+          event_date: string;
+          id: number;
+          is_deleted: boolean;
+          location: string;
+          slides_url: string | null;
+          speaker: string | null;
+          speaker_bio: string | null;
+          speaker_name: string | null;
+          speaker_title: string | null;
+          start_time: string;
+          title: string;
+          topic: string | null;
+        };
+        Insert: {
+          created_at?: string;
           description?: string | null;
-          type?: string | null;
-          speaker?: string | null;
+          end_time: string;
+          event_date: string;
+          id?: number;
+          is_deleted?: boolean;
+          location: string;
           slides_url?: string | null;
+          speaker?: string | null;
+          speaker_bio?: string | null;
           speaker_name?: string | null;
           speaker_title?: string | null;
-          speaker_bio?: string | null;
+          start_time: string;
+          title: string;
+          topic?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          end_time?: string;
           event_date?: string;
+          id?: number;
+          is_deleted?: boolean;
+          location?: string;
+          slides_url?: string | null;
+          speaker?: string | null;
+          speaker_bio?: string | null;
+          speaker_name?: string | null;
+          speaker_title?: string | null;
+          start_time?: string;
+          title?: string;
+          topic?: string | null;
         };
         Relationships: [];
       };
@@ -86,30 +215,39 @@ export type Database = {
         };
         Relationships: [];
       };
-      contact_info: {
+      test_attendee_info: {
         Row: {
-          id: number;
-          first_name: string;
-          last_name: string;
-          phone_number: string;
-          email: string;
+          additional_info: string | null;
           created_at: string;
+          email: string | null;
+          id: number;
+          is_admin: boolean;
+          name: string | null;
+          organization: string | null;
+          share_info: boolean;
+          title: string | null;
         };
         Insert: {
-          id?: number;
-          first_name: string;
-          last_name: string;
-          phone_number: string;
-          email: string;
+          additional_info?: string | null;
           created_at?: string;
+          email?: string | null;
+          id?: number;
+          is_admin?: boolean;
+          name?: string | null;
+          organization?: string | null;
+          share_info?: boolean;
+          title?: string | null;
         };
         Update: {
-          id?: number;
-          first_name?: string;
-          last_name?: string;
-          phone_number?: string;
-          email?: string;
+          additional_info?: string | null;
           created_at?: string;
+          email?: string | null;
+          id?: number;
+          is_admin?: boolean;
+          name?: string | null;
+          organization?: string | null;
+          share_info?: boolean;
+          title?: string | null;
         };
         Relationships: [];
       };
@@ -122,7 +260,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           expo_push_token: string;
-          id?: string;
+          id: string;
         };
         Update: {
           created_at?: string;
