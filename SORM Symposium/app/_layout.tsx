@@ -67,8 +67,8 @@ export default function RootLayout() {
                   },
                 }}
               >
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="index" options={{ headerShown: false, title: "Login" }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "SORM Symposium" }} />
                 <Stack.Screen name="+not-found" />
               </Stack>
               <StatusBar style="auto" />
