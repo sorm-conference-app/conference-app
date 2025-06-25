@@ -1,8 +1,9 @@
 import { supabase } from '@/constants/supabase'
 import React from 'react'
-import { Alert, Button, View } from 'react-native'
+import { Alert, Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { ThemedText } from './ThemedText'
 import ThemedTextInput from './ThemedTextInput'
+import { Colors } from '@/constants/Colors'
 
 /**
  * A form component for submitting announcements to the test_announcements table in Supabase.
@@ -10,6 +11,7 @@ import ThemedTextInput from './ThemedTextInput'
  * @returns JSX.Element
  */
 export default function AnnouncementForm() {
+  const colorScheme = useColorScheme() || 'light'
   // State for the announcement title and body
   const [title, setTitle] = React.useState('')
   const [body, setBody] = React.useState('')
@@ -44,22 +46,53 @@ export default function AnnouncementForm() {
       <ThemedTextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Announcement title input field"
+        accessibilityHint="Enter the announcement title"
         placeholder="Enter announcement title"
       />
       <ThemedText>Body</ThemedText>
       <ThemedTextInput
         value={body}
         onChangeText={setBody}
+        accessibilityLabel="Announcement body input field"
+        accessibilityHint="Enter the announcement body"
         placeholder="Enter announcement body"
         multiline
         numberOfLines={4}
         style={{ minHeight: 80 }}
       />
-      <Button
-        title={loading ? 'Posting...' : 'Post Announcement'}
+      <Pressable
+        style={[
+          styles.addButton,
+          { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].adminButtonText },
+          { borderWidth: 1 },
+        ]}
         onPress={handleSubmit}
         disabled={loading}
-      />
+        accessibilityLabel="Post announcement button"
+        accessibilityHint="Press to post the announcement"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading }}
+      >
+        <ThemedText style={[styles.addButtonText,
+          { color: Colors[colorScheme].adminButtonText }
+        ]}>
+          {loading ? 'Posting...' : 'Post Announcement'}
+        </ThemedText>
+      </Pressable>
     </View>
   )
 } 
+
+const styles = StyleSheet.create({
+  addButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+})
