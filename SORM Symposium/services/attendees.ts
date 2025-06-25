@@ -78,7 +78,7 @@ export async function verifyAttendeeEmail(email: string): Promise<Attendee> {
 
 export async function getAttendeeContactList(): Promise<Attendee[]> {
   const { data, error } = await supabase
-    .from('test_attendee_info')
+    .from('attendee_info')
     .select('*')
     .eq('share_info', true);
 
