@@ -20,7 +20,7 @@ import {
 const width = () => Math.min(Dimensions.get("window").width, 500);
 const height = () => (width() * 182) / 500;
 
-export default function Index() {
+export default function Home() {
   const navigateToAllAnnouncements = () => {
     router.push("/announcement/announcementList");
   };
@@ -81,6 +81,7 @@ export default function Index() {
         <Image
           source={require("@/assets/images/sorm-logo.png")}
           style={[styles.logoImage, { width: width(), height: height() }]}
+          alt="SORM Symposium Logo"
         />
       }
     >

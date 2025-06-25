@@ -4,7 +4,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
 import { ThemedView } from "./ThemedView";
@@ -24,6 +24,7 @@ export default function ContactEditForm() {
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [disabled, setDisabled] = useState(true);
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -158,6 +159,9 @@ export default function ContactEditForm() {
           style={pickerStyle}
           dropdownIconColor={Colors[colorScheme].tint}
           itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+          accessibilityLabel="Contact selection dropdown"
+          accessibilityHint="Select a contact to edit their information"
+          accessibilityRole="combobox"
         >
           <Picker.Item 
             label="Select a contact" 
@@ -180,12 +184,16 @@ export default function ContactEditForm() {
           onChangeText={setFirstName}
           placeholder="First Name"
           editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="First name input field"
+          accessibilityHint="Enter the contact's first name"
         />
         <ThemedTextInput
           value={lastName}
           onChangeText={setLastName}
           placeholder="Last Name"
           editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Last name input field"
+          accessibilityHint="Enter the contact's last name"
         />
         <ThemedTextInput
           value={phoneNumber}
@@ -193,6 +201,8 @@ export default function ContactEditForm() {
           placeholder="Phone Number"
           keyboardType="phone-pad"
           editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Phone number input field"
+          accessibilityHint="Enter the contact's phone number"
         />
         <ThemedTextInput
           value={email}
@@ -200,12 +210,30 @@ export default function ContactEditForm() {
           placeholder="Email"
           keyboardType="email-address"
           editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Email input field"
+          accessibilityHint="Enter the contact's email address"
         />
-        <Button
-          title={loading ? "Updating..." : "Update Contact"}
-          onPress={handleUpdate}
-          disabled={loading || selectedId === "" || typeof selectedId !== "number"}
-        />
+        <Pressable
+        onPress={handleUpdate}
+        disabled={loading || selectedId === "" || typeof selectedId !== "number"}
+        style={[
+          styles.updateButton,
+          loading || selectedId === "" || typeof selectedId !== "number" ? 
+          { backgroundColor: Colors[colorScheme].tabIconDefault } : { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].adminButtonText },
+          { borderWidth: 1 },
+        ]}
+        accessibilityLabel="Update contact button"
+        accessibilityHint="Press to save changes to the selected contact"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
+      >
+        <ThemedText style={[styles.updateButtonText,
+          { color: Colors[colorScheme].adminButtonText }
+        ]}>
+          {loading ? "Updating..." : "Update Contact"}
+        </ThemedText>
+      </Pressable>
       </View>
     </ThemedView>
   );
@@ -228,4 +256,13 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
-}); 
+  updateButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+});

@@ -2,9 +2,10 @@ import { Colors } from '@/constants/Colors'
 import { supabase } from '@/constants/supabase'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import React from 'react'
-import { Alert, Button, StyleSheet, View } from 'react-native'
+import { Alert, Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from './ThemedText'
 import ThemedTextInput from './ThemedTextInput'
+
 import { ThemedView } from './ThemedView'
 
 /**
@@ -13,6 +14,7 @@ import { ThemedView } from './ThemedView'
  * @returns JSX.Element
  */
 export default function AnnouncementForm() {
+  const colorScheme = useColorScheme() || 'light'
   // State for the announcement title and body
   const [title, setTitle] = React.useState('')
   const [body, setBody] = React.useState('')
@@ -72,11 +74,26 @@ export default function AnnouncementForm() {
           numberOfLines={4}
           style={{ minHeight: 80 }}
         />
-        <Button
-          title={loading ? 'Posting...' : 'Post Announcement'}
-          onPress={handleSubmit}
-          disabled={loading}
-        />
+        <Pressable
+        style={[
+          styles.addButton,
+          { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].adminButtonText },
+          { borderWidth: 1 },
+        ]}
+        onPress={handleSubmit}
+        disabled={loading}
+        accessibilityLabel="Post announcement button"
+        accessibilityHint="Press to post the announcement"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: loading }}
+      >
+      <ThemedText style={[styles.addButtonText,
+        { color: Colors[colorScheme].adminButtonText }
+      ]}>
+        {loading ? 'Posting...' : 'Post Announcement'}
+      </ThemedText>
+    </Pressable>
       </View>
     </ThemedView>
   )
@@ -99,4 +116,13 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-}) 
+  addButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+})
