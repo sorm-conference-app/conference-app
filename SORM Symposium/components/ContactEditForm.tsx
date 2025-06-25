@@ -121,11 +121,16 @@ export default function ContactEditForm() {
     color: Colors[colorScheme].text,
     backgroundColor: Colors[colorScheme].background,
     flex: 1,
+    minHeight: 48,
+  };
+
+  // Container style for the picker to show border properly
+  const pickerContainerStyle = {
     borderRadius: 5,
     borderWidth: 1,
     borderColor: Colors[colorScheme].tint,
-    paddingHorizontal: 10,
-    minHeight: 48,
+    backgroundColor: Colors[colorScheme].background,
+    overflow: 'hidden' as 'hidden',
   };
 
   return (
@@ -142,41 +147,43 @@ export default function ContactEditForm() {
       
       <View style={styles.content}>
         {/* Picker for selecting a contact */}
-        <Picker
-          selectedValue={selectedId}
-          onValueChange={value => {
-            // Handle the "Select a contact" option and convert string to number if needed
-            if (value === null || value === undefined || value === "" || value === "select") {
-              setSelectedId("");
-            } else {
-              const numericValue = Number(value);
-              // Only set if it's a valid number to avoid NaN
-              if (!isNaN(numericValue)) {
-                setSelectedId(numericValue);
+        <View style={pickerContainerStyle}>
+          <Picker
+            selectedValue={selectedId}
+            onValueChange={value => {
+              // Handle the "Select a contact" option and convert string to number if needed
+              if (value === null || value === undefined || value === "" || value === "select") {
+                setSelectedId("");
+              } else {
+                const numericValue = Number(value);
+                // Only set if it's a valid number to avoid NaN
+                if (!isNaN(numericValue)) {
+                  setSelectedId(numericValue);
+                }
               }
-            }
-          }}
-          style={pickerStyle}
-          dropdownIconColor={Colors[colorScheme].tint}
-          itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
-          accessibilityLabel="Contact selection dropdown"
-          accessibilityHint="Select a contact to edit their information"
-          accessibilityRole="combobox"
-        >
-          <Picker.Item 
-            label="Select a contact" 
-            value="select" 
-            color={Colors[colorScheme].text}
-          />
-          {contacts.map(contact => (
-            <Picker.Item
-              key={contact.id}
-              label={`${contact.first_name} ${contact.last_name}`}
-              value={contact.id}
-              color={Colors[colorScheme].text}
+            }}
+            style={pickerStyle}
+            dropdownIconColor={Colors[colorScheme].tint}
+            itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+            accessibilityLabel="Contact selection dropdown"
+            accessibilityHint="Select a contact to edit their information"
+            accessibilityRole="combobox"
+          >
+            <Picker.Item 
+              label="Select a contact" 
+              value="select" 
+              color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
             />
-          ))}
-        </Picker>
+            {contacts.map(contact => (
+              <Picker.Item
+                key={contact.id}
+                label={`${contact.first_name} ${contact.last_name}`}
+                value={contact.id}
+                color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+              />
+            ))}
+          </Picker>
+        </View>
         
         {/* Form fields for editing */}
         <ThemedTextInput
