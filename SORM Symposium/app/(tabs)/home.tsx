@@ -104,6 +104,7 @@ export default function Home() {
         <Image
           source={require("@/assets/images/sorm-logo.png")}
           style={[styles.logoImage, { width: width(), height: height() }]}
+          alt="SORM Symposium Logo"
         />
       }
     >

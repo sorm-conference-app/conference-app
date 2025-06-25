@@ -7,12 +7,16 @@ import { supabase } from "@/constants/supabase";
 import { clearVerifiedEmails, getVerifiedEmails, storeVerifiedEmail } from "@/lib/attendeeStorage";
 import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
+
 import React, { useEffect, useState } from "react";
-import { Button, StyleSheet } from "react-native";
+
+import { Colors } from "@/constants/Colors";
 
 type UserType = "attendee" | "organizer";
 
 export default function Login() {
+  const colorScheme = useColorScheme() || "light";
   const [userType, setUserType] = useState<UserType | null>(null);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -194,18 +198,34 @@ export default function Login() {
   if (!userType) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText type="title">{getTitle()}</ThemedText>
+        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
         <ThemedText>{getDescription()}</ThemedText>
 
-        <ThemedText>I am a...</ThemedText>
-        <Button 
-          title="Symposium Attendee" 
-          onPress={() => selectUserType("attendee")} 
-        />
-        <Button
-          title="Symposium Organizer"
+        <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+        <Pressable
+          onPress={() => selectUserType("attendee")}
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].text },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
+          >Symposium Attendee</ThemedText>
+        </Pressable>
+        <Pressable
           onPress={() => selectUserType("organizer")}
-        />
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].text },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
+          >Symposium Organizer</ThemedText>
+        </Pressable>
       </ThemedView>
     );
   }
@@ -214,7 +234,7 @@ export default function Login() {
   return (
     <>
     <ThemedView style={styles.container}>
-      <ThemedText type="title">{getTitle()}</ThemedText>
+      <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
       <ThemedText>{getDescription()}</ThemedText>
 
       <ThemedView style={styles.inputContainer}>
@@ -224,6 +244,9 @@ export default function Login() {
           textContentType="emailAddress"
           onChangeText={setEmail}
           placeholder="Enter your email"
+          accessibilityLabel="Email input field"
+          accessibilityHint="Enter your email"
+          accessibilityRole="text"
         />
         {email.length > 0 && !validEmail && (
           <ThemedText style={styles.invalid}>Not a valid email.</ThemedText>
@@ -239,16 +262,38 @@ export default function Login() {
             secureTextEntry
             onChangeText={setPassword}
             placeholder="Enter your password"
+          accessibilityLabel="Password input field"
+          accessibilityHint="Enter your password"
+          accessibilityRole="text"
           />
         </ThemedView>
       )}
 
-      <Button
-        title={getButtonText()}
+      <Pressable
         onPress={handleSignIn}
         disabled={isButtonDisabled()}
-      />
-      <Button title="Back" onPress={goBack} />
+        style={[
+          styles.button,
+          isButtonDisabled()
+            ? { backgroundColor: Colors[colorScheme].tabIconDefault } 
+            : { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].text },
+          { borderWidth: 1 },
+        ]}
+      >
+        <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>{getButtonText()}</ThemedText>
+      </Pressable>
+      <Pressable
+        onPress={goBack}
+        style={[
+          styles.button,
+          { backgroundColor: Colors[colorScheme].adminButton },
+          { borderColor: Colors[colorScheme].adminButtonText },
+          { borderWidth: 1 },
+        ]}
+      >
+        <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>Back</ThemedText>
+      </Pressable>
       <ThemedText style={styles.invalid}>{err}</ThemedText>
     </ThemedView>
 
@@ -272,5 +317,15 @@ const styles = StyleSheet.create({
   },
   invalid: {
     color: "red",
+  },
+  button: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 });

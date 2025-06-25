@@ -6,6 +6,7 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { formatTimeRange } from "@/lib/dateTime";
 import { calculateHeight } from "./utils";
 import { Pressable, StyleSheet } from "react-native";
+import { convertToRGBA } from "react-native-reanimated";
 
 type AgendaItemProps = {
   title: string;
@@ -45,7 +46,12 @@ export default function AgendaItem({
           <ThemedText style={styles.title} type="defaultSemiBold">
             {title}
           </ThemedText>
-          {isDeleted && <ThemedText style={styles.deletedTitle} type="defaultSemiBold"> - Deleted</ThemedText>}
+          {isDeleted && <ThemedText 
+            style={[styles.deletedTitle, { color: colorScheme === "light" 
+              ? "#cc1f1f" : "#ff6f6f" }]} 
+            type="defaultSemiBold"
+          > - Deleted
+          </ThemedText>}
           <IconSymbol name="chevron.right" size={20} color={tintColor} />
         </ThemedView>
         <ThemedView style={styles.infoRow}>
