@@ -14,7 +14,6 @@ import { ThemedView } from './ThemedView'
  * @returns JSX.Element
  */
 export default function AnnouncementForm() {
-  const colorScheme = useColorScheme() || 'light'
   // State for the announcement title and body
   const [title, setTitle] = React.useState('')
   const [body, setBody] = React.useState('')
