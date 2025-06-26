@@ -62,7 +62,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       speaker_name: speakerName,
       speaker_title: speakerTitle,
       speaker_bio: speakerBio,
-      is_deleted: false,
+      is_deleted: event?.is_deleted ?? false,
     });
   };
 
