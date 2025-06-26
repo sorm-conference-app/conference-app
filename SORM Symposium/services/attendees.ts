@@ -9,7 +9,8 @@ export interface Attendee {
   title: string | null;
   additional_info: string | null;
   is_admin: boolean;
-  share_info: boolean;
+  share_info?: boolean;
+  seen_share_info_popup?: boolean;
 }
 
 /**
@@ -74,6 +75,45 @@ export async function verifyAttendeeEmail(email: string): Promise<Attendee> {
   }
 
   return data;
+}
+
+/**
+ * Check if the contact sharing popup should be shown for an attendee
+ * @param email - The email to check
+ * @returns True if the popup should be shown (user hasn't seen it before)
+ */
+export async function shouldShowContactSharingPopup(email: string): Promise<boolean> {
+  const attendee = await getAttendeeByEmail(email);
+  if (!attendee) return false;
+  
+  // Show popup if they haven't seen it before (seen_share_info_popup is null or false)
+  return !attendee.seen_share_info_popup;
+}
+
+export async function updateContactSharingPreferences(
+  email: string,
+  shareInfo: boolean,
+  additionalInfo: string = ''
+): Promise<Attendee> {
+  // Log values for debugging
+  console.log('Updating contact sharing preferences for:', email, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
+
+  // Call the stored function to perform the update
+  const { error } = await supabase.rpc('update_contact_sharing_preferences', {
+    user_email: email,
+    share_info_val: shareInfo,
+    additional_info_val: additionalInfo,
+    seen_popup_val: true
+  });
+
+  if (error) {
+    console.error('Error updating contact sharing preferences:', error);
+    throw error;
+  }
+
+  // Fetch and return the fresh row
+  const updatedAttendee = await getAttendeeByEmail(email);
+  return updatedAttendee as Attendee;
 }
 
 export async function getAttendeeContactList(): Promise<Attendee[]> {

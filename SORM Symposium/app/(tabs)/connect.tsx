@@ -1,8 +1,7 @@
-import { StyleSheet, Pressable } from "react-native";
+import { StyleSheet } from "react-native";
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
 import AttendeeContactList from "@/components/Networking/AttendeeContactList";
 import { useState } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -25,16 +24,6 @@ export default function Connect() {
           }}
       />
       <ThemedView style={styles.container}>
-        <ThemedView style={styles.header}>
-          {/* <Pressable 
-          onPress={handleReload}
-          style={[styles.refreshButton, { 
-            borderColor: Colors[colorScheme].tint,
-            backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
-          }]}>
-            <ThemedText style={{ color: Colors[colorScheme].tint }}>Refresh Contacts</ThemedText>
-          </Pressable> */}
-        </ThemedView>
         <AttendeeContactList reloadTrigger={reloadTrigger} />
       </ThemedView>
     </SafeAreaView>
