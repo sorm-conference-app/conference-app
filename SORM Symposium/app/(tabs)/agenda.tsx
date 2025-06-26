@@ -3,8 +3,10 @@ import type { Event } from "@/types/Events.types";
 import { Stack, router } from "expo-router";
 import { StyleSheet } from "react-native";
 import { EventList } from "@/components/AgendaViewer/EventList";
+import { useState } from "react";
 
 export default function AgendaScreen() {
+  const [showSaved, setShowSaved] = useState<'all' | 'saved'>('all');
 
   const navigateToEvent = (event: Event) => {
     router.push({
@@ -25,7 +27,8 @@ export default function AgendaScreen() {
         onSelectEvent={navigateToEvent} 
         onEventPosition={() => {}} // No use for event postions in this screen
         showHeader={true} 
-        showDeleted={'active'} // Default to showing only active events
+        showDeleted={showSaved}
+        setShowDeleted={setShowSaved}
         reloadTrigger={1} // Reload trigger not used on this screen
       />
     </ThemedView>
