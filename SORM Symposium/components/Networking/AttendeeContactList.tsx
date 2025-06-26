@@ -20,6 +20,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   const colorScheme = useColorScheme() ?? 'light';
   const { contacts, loading, error, refresh } = useAttendeeContacts();
   const [attendee, setAttendee] = React.useState<Attendee | null>(null);
+  const [expandedRowId, setExpandedRowId] = React.useState<number | null>(null);
   const session = useSupabaseAuth();
 
   const {
@@ -62,10 +63,10 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     }
   }
 
-  const handleContactSharingDontShare = async () => {
+  const handleContactSharingDontShare = async (additionalInfo: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, '');
+      await saveContactSharingPreferences(false, additionalInfo);
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
@@ -123,6 +124,16 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     )
   }
 
+  // Function to close all expanded rows
+  const closeAllExpandedRows = () => {
+    setExpandedRowId(null);
+  };
+
+  // Function to set a specific row as expanded
+  const setExpandedRow = (rowId: number | null) => {
+    setExpandedRowId(rowId);
+  };
+
   if (error) {
     return (
       <ThemedView style={styles.container}>
@@ -143,9 +154,18 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           borderColor: Colors[colorScheme].tint, 
         }]}
       >
-        <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
-        {disclosureArea()}
-        {contacts.map((contact) => <ContactRow attendee={contact} key={contact.id} />)}
+        <Pressable onPress={closeAllExpandedRows} style={{ flex: 1 }}>
+          <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
+          {disclosureArea()}
+          {contacts.map((contact) => (
+            <ContactRow 
+              attendee={contact} 
+              key={contact.id} 
+              expandedRowId={expandedRowId}
+              setExpandedRow={setExpandedRow}
+            />
+          ))}
+        </Pressable>
       </ScrollView>
     </ThemedView>
 

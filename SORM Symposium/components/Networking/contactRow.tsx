@@ -8,15 +8,19 @@ import { Colors } from "@/constants/Colors";
 
 interface ContactRowProps {
   attendee: Attendee;
+  expandedRowId: number | null;
+  setExpandedRow: (rowId: number | null) => void;
 }
 
 const BREAKPOINT = 750;
 
-export default function ContactRow({ attendee }: ContactRowProps) {
+export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: ContactRowProps) {
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
   const isWideScreen = screenWidth > BREAKPOINT;
-  const [isSelected, setIsSelected] = useState(false);
   const colorScheme = useColorScheme() ?? 'light';
+
+  // Check if this row is currently expanded
+  const isSelected = expandedRowId === attendee.id;
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -26,12 +30,20 @@ export default function ContactRow({ attendee }: ContactRowProps) {
     return () => subscription?.remove();
   }, []);
 
+  const handlePress = () => {
+    if (isSelected) {
+      setExpandedRow(null); // Close this row
+    } else {
+      setExpandedRow(attendee.id); // Expand this row
+    }
+  };
+
   return (
     <ThemedView style={[styles.container, { 
         backgroundColor: colorScheme === 'light' ? Colors[colorScheme].background : Colors[colorScheme].secondaryBackgroundColor,
       }]}>
       {isSelected ? (
-        <Pressable style={styles.contactCard} onPress={() => setIsSelected(false)}>
+        <Pressable style={styles.contactCard} onPress={handlePress}>
           <ThemedText style={styles.name}>{attendee.name}</ThemedText>
           <ThemedText style={styles.details}>
             {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
@@ -40,14 +52,14 @@ export default function ContactRow({ attendee }: ContactRowProps) {
           {attendee.additional_info && <ThemedText style={styles.additionalInfo}>{attendee.additional_info}</ThemedText>}
         </Pressable>
       ) : isWideScreen ? (
-        <Pressable style={styles.contactRowWide} onPress={() => setIsSelected(true)}>
+        <Pressable style={styles.contactRowWide} onPress={handlePress}>
           <ThemedText style={styles.name}>{attendee.name}</ThemedText>
           <ThemedText style={styles.rowDetails}>
             {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
           </ThemedText>
         </Pressable>
       ) : (
-        <Pressable style={styles.contactRowNarrow} onPress={() => setIsSelected(true)}>
+        <Pressable style={styles.contactRowNarrow} onPress={handlePress}>
           <ThemedText style={styles.name}>{attendee.name}</ThemedText>
           <ThemedText style={styles.rowDetails}>
             {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
