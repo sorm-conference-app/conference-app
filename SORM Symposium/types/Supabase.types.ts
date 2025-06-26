@@ -141,6 +141,8 @@ export type Database = {
           title: string | null;
           additional_info: string | null;
           is_admin: boolean;
+          share_info: boolean;
+          seen_share_info_popup: boolean;
         };
         Insert: {
           id?: number;
@@ -151,6 +153,8 @@ export type Database = {
           title?: string | null;
           additional_info?: string | null;
           is_admin?: boolean;
+          share_info?: boolean;
+          seen_share_info_popup?: boolean;
         };
         Update: {
           id?: number;
@@ -161,6 +165,8 @@ export type Database = {
           title?: string | null;
           additional_info?: string | null;
           is_admin?: boolean;
+          share_info?: boolean;
+          seen_share_info_popup?: boolean;
         };
         Relationships: [];
       };

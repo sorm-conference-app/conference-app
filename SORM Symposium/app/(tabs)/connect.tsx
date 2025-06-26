@@ -1,8 +1,8 @@
-import { StyleSheet } from "react-native";
-import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Stack } from "expo-router";
+import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Connect() {
   return (
