@@ -269,12 +269,20 @@ export default function InfoScreen() {
               >
                 Local Emergency Services
               </ThemedText>
-              <ThemedView style={styles.emergencyContact}>
+              <ThemedView
+                style={[
+                  styles.emergencyContact,
+                  {
+                    backgroundColor:
+                      Colors[colorScheme].secondaryBackgroundColor,
+                  },
+                ]}
+              >
                 <ThemedText type="defaultSemiBold" style={styles.contactLabel}>
                   College Station Police, Fire, and Animal Control
                   (Non-Emergency):
                 </ThemedText>
-                <TouchableOpacity onPress={() => handleCall("402-441-6000")}>
+                <TouchableOpacity onPress={() => handleCall("979-764-3500")}>
                   <ThemedText style={styles.emergencyPhone}>
                     979-764-3500
                   </ThemedText>
