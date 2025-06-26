@@ -165,6 +165,7 @@ export default function InfoScreen() {
                         : (defaultWidth() * 103) / 85,
                     },
                   ]}
+                  alt="Facility Map"
                 />
               </TouchableOpacity>
             </ThemedView>
@@ -197,6 +198,7 @@ export default function InfoScreen() {
                         : (defaultWidth() * 908) / 1586,
                     },
                   ]}
+                  alt="Les Bunte Complex Map"
                 />
               </TouchableOpacity>
             </ThemedView>

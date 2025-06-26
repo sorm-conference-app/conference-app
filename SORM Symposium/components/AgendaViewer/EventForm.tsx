@@ -92,7 +92,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(Boolean(text && (title !== "Break" ? location : true) && startTime && endTime && eventDate));
             }}
             placeholder="Event title"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Event title input field (required)"
+            accessibilityHint="Enter the title of the event"
+            accessibilityRole="text"
           />
         </View>
 
@@ -111,9 +114,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={description}
             onChangeText={setDescription}
             placeholder="Event description"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
             multiline
             numberOfLines={4}
+            accessibilityLabel="Event description input field"
+            accessibilityHint="Enter the description of the event"
+            accessibilityRole="text"
           />
         </View>
 
@@ -134,7 +140,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(Boolean(title && (title !== "Break" ? text : true) && startTime && endTime && eventDate));
             }}
             placeholder="Event location"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Event location input field (required unless title is Break)"
+            accessibilityHint="Enter the location of the event"
+            accessibilityRole="text"
           />
         </View>
 
@@ -155,7 +164,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && endTime && text));
             }}
             placeholder="MM-DD"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Event date input field (required)"
+            accessibilityHint="Enter the event date in MM-DD format"
+            accessibilityRole="text"
           />
         </View>
 
@@ -176,7 +188,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && text && endTime && eventDate));
             }}
             placeholder="e.g. 9:00 AM"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Start time input field (required)"
+            accessibilityHint="Enter the start time of the event in 24-hour format (seconds not required)"
+            accessibilityRole="text"
           />
         </View>
 
@@ -197,7 +212,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && text && eventDate));
             }}
             placeholder="e.g. 10:30 AM"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="End time input field (required)"
+            accessibilityHint="Enter the end time of the event in 24-hour format (seconds not required)"
+            accessibilityRole="text"
           />
         </View>
 
@@ -219,7 +237,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={speaker}
             onChangeText={setSpeaker}
             placeholder="Speaker name"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Speaker input field"
+            accessibilityHint="Enter the name of the speaker"
+            accessibilityRole="text"
           />
         </View>
 
@@ -237,7 +258,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={speakerName}
             onChangeText={setSpeakerName}
             placeholder="Full name of the speaker"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Speaker name input field"
+            accessibilityHint="Enter the full name of the speaker"
+            accessibilityRole="text"
           />
         </View>
 
@@ -255,7 +279,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={speakerTitle}
             onChangeText={setSpeakerTitle}
             placeholder="Speaker's title or position"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Speaker title input field"
+            accessibilityHint="Enter the title or position of the speaker"
+            accessibilityRole="text"
           />
         </View>
 
@@ -274,9 +301,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={speakerBio}
             onChangeText={setSpeakerBio}
             placeholder="Speaker's biography"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
             multiline
             numberOfLines={4}
+            accessibilityLabel="Speaker bio input field"
+            accessibilityHint="Enter the biography of the speaker"
+            accessibilityRole="text"
           />
         </View>
 
@@ -294,7 +324,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             value={slidesUrl}
             onChangeText={setSlidesUrl}
             placeholder="URL to presentation slides"
-            placeholderTextColor={Colors[colorScheme].text + '80'}
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Slides URL input field"
+            accessibilityHint="Enter the URL to the presentation slides"
+            accessibilityRole="text"
           />
         </View>
 
@@ -307,6 +340,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             ]}
             onPress={handleSubmit}
             disabled={!canSubmit}
+            accessibilityLabel="Submit event button"
+            accessibilityHint="Press to submit the event edit or creation"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canSubmit }}
           >
             <ThemedText style={[styles.buttonText,
               { color: canSubmit ? Colors[colorScheme].adminButtonText : Colors[colorScheme].adminButtonText }
@@ -324,6 +361,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               { borderColor: Colors[colorScheme].tint }
             ]}
             onPress={onCancel}
+            accessibilityLabel="Cancel event button"
+            accessibilityHint="Press to cancel the event edit or creation"
+            accessibilityRole="button"
           >
             <ThemedText style={[styles.buttonText,
               { color: Colors[colorScheme].adminButtonText }

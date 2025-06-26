@@ -16,6 +16,12 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor:
           Colors[useColorScheme() ?? "light"].tabIconSelected,
+        tabBarInactiveTintColor:
+          Colors[useColorScheme() ?? "light"].tabIconDefault,
+        tabBarLabelStyle: {
+          fontSize: 14,
+          fontWeight: "bold",
+        },
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,

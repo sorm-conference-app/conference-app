@@ -386,6 +386,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     fontWeight: 'bold',
+    fontSize: 18,
   },
   subtitleText: {
     fontWeight: 'bold',
