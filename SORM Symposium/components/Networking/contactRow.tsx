@@ -60,21 +60,23 @@ export default function ContactRow({ attendee }: ContactRowProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     borderWidth: 1,
     borderColor: "gray",
-    height: "auto",
+    minHeight: "auto",
+    overflow: "visible",
   },
   contactCard: {
     position: "relative",
     flexDirection: "column",
     padding: 15,
     flexShrink: 0,
+    minHeight: "auto",
   },
   contactRowNarrow: {
     position: "relative",
     flexDirection: "column",
     padding: 15,
+    minHeight: "auto",
   },
   contactRowWide: {
     position: "relative",
@@ -82,6 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     padding: 15,
+    minHeight: "auto",
   },
   name: {
     fontSize: 16,

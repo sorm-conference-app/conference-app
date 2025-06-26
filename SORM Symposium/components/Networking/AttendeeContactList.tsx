@@ -75,7 +75,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           <Pressable 
             onPress={() => { setUserShareInfo(!userShareInfo); /* TODO: Add a modal to change the user's contact sharing preference */ }}
             style={[styles.button, { 
-              backgroundColor: Colors[colorScheme].background, 
+              backgroundColor: Colors[colorScheme].secondaryBackgroundColor, 
               borderColor: Colors[colorScheme].tint, 
             }]}
           >
@@ -111,11 +111,14 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
         borderColor: Colors[colorScheme].tint,
         backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
       }]}>
-      <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
-      {disclosureArea()}
       <ScrollView 
-        style={[styles.contactList, { backgroundColor: Colors[colorScheme].background, borderColor: Colors[colorScheme].tint, borderWidth: 1 }]}
+        style={[styles.contactList, { 
+          backgroundColor: colorScheme === "light" ? Colors[colorScheme].background : Colors[colorScheme].secondaryBackgroundColor, 
+          borderColor: Colors[colorScheme].tint, 
+        }]}
       >
+        <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
+        {disclosureArea()}
         {contacts.map((contact) => <ContactRow attendee={contact} key={contact.id} />)}
       </ScrollView>
     </ThemedView>
