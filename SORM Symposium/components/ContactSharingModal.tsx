@@ -10,7 +10,7 @@ import { ThemedView } from './ThemedView';
 interface ContactSharingModalProps {
   visible: boolean;
   attendee: Attendee | null;
-  onDontShare: () => void;
+  onDontShare: (additionalInfo: string) => void;
   onShare: (additionalInfo: string) => void;
   onClose: () => void;
 }
@@ -39,7 +39,7 @@ export default function ContactSharingModal({
   }, [visible, attendee]);
 
   const handleDontShareClick = () => {
-    onDontShare();
+    onDontShare(additionalInfo);
   };
 
   const handleShareClick = () => {
@@ -72,11 +72,13 @@ export default function ContactSharingModal({
             // Step 1: Choice between sharing or not
             <>
               <ThemedText type="title" style={styles.title}>
-                Share Your Contact Information
+                {attendee.is_admin === true ? "We Share Your Contact Information" : "Share Your Contact Information?"}
               </ThemedText>
               
               <ThemedText style={styles.message}>
-                Would you like to share your contact information with other attendees in the Connect tab?
+                {attendee.is_admin === true 
+                ? "You are an organizer, so we share your contact information with other attendees in the Connect tab." 
+                : "Would you like to share your contact information with other attendees in the Connect tab?"}
               </ThemedText>
               
               {/* Display current attendee information */}
@@ -116,7 +118,8 @@ export default function ContactSharingModal({
               </ThemedView>
 
               <ThemedText style={styles.changeText}>
-                You can change this setting anytime later.
+                {attendee.is_admin === false 
+                && "You can change this setting anytime later."}
               </ThemedText>
 
               {/* Action buttons */}
@@ -133,10 +136,13 @@ export default function ContactSharingModal({
                     styles.buttonText,
                     { color: Colors[colorScheme].background }
                   ]}>
-                    Share My Information
+                    {attendee.is_admin === true 
+                    ? "OK" 
+                    : "Share My Information"}
                   </ThemedText>
                 </Pressable>
                 
+                {attendee.is_admin === false && 
                 <Pressable
                   style={[
                     styles.button,
@@ -152,6 +158,7 @@ export default function ContactSharingModal({
                     Don&apos;t Share My Information
                   </ThemedText>
                 </Pressable>
+                }
               </ThemedView>
             </>
           ) : (
@@ -166,7 +173,9 @@ export default function ContactSharingModal({
               </ThemedText>
               
               <ThemedText style={styles.message}>
-                Great! Your contact information will be shared. You can optionally add more details below.
+                {attendee.is_admin === true 
+                ? "Optionally, you can add more details below."
+                : "Great! Your contact information will be shared. Optionally, you can add more details below."}
               </ThemedText>
 
               <ThemedView style={[
