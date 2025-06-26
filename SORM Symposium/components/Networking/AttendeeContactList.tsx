@@ -11,6 +11,7 @@ import { Attendee, getAttendeeByEmail } from "@/services/attendees";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import ContactSharingModal from "../ContactSharingModal";
+import { supabase } from "@/constants/supabase";
 
 interface AttendeeContactListProps {
   reloadTrigger?: number;
@@ -36,10 +37,43 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     loadUserInfo();
   }, [session]);
 
+  // Set up real-time subscription for current user's attendee record
+  React.useEffect(() => {
+    if (!attendee?.email) return;
+
+    console.log('Setting up real-time subscription for user:', attendee.email);
+    
+    const channel = supabase
+      .channel(`user_attendee_${attendee.id}`)
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'attendee_info',
+          filter: `email=eq.${attendee.email}`
+        }, 
+        (payload: any) => {
+          console.log('User attendee record updated:', payload);
+          // Reload user's info when their record changes
+          loadUserInfo();
+        }
+      )
+      .subscribe((status: any) => {
+        console.log('User attendee subscription status:', status);
+      });
+    
+    // Cleanup function
+    return () => {
+      console.log('Cleaning up user attendee subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [attendee?.email, attendee?.id]);
+
   // Refresh contacts when reloadTrigger changes
   React.useEffect(() => {
     if (reloadTrigger) {
       refresh();
+      loadUserInfo(); // Also reload the current user's info
     }
   }, [reloadTrigger, refresh]);
 
@@ -67,6 +101,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     hideContactSharingModal();
     try {
       await saveContactSharingPreferences(false, additionalInfo);
+      await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
@@ -77,6 +112,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     hideContactSharingModal();
     try {
       await saveContactSharingPreferences(true, additionalInfo);
+      await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
