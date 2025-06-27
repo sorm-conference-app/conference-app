@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Dimensions } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { EventForm } from './EventForm';
-import { EventList } from './EventList';
-import { AlertModal } from './AlertModal';
-import type { Event } from '@/types/Events.types';
-import { createEvent, updateEvent, deleteEvent, getAllEvents } from '@/services/events';
-import { addCurrentYearToDate, isDateValid, isTimeValid } from './utils';
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { createEvent, updateEvent } from "@/services/events";
+import type { Event } from "@/types/Events.types";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
+import { AlertModal } from "./AlertModal";
+import { EventForm } from "./EventForm";
+import { EventList } from "./EventList";
+import { addCurrentYearToDate, isDateValid, isTimeValid } from "./utils";
 
 const BREAKPOINT = 1200; // Threshold for wide screen
 
@@ -19,7 +19,7 @@ interface AgendaEditorProps {
 }
 
 export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? "light";
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | undefined>();
   const [showAlert, setShowAlert] = useState(false);
@@ -27,7 +27,9 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const [eventPositions] = useState(new Map<number, number>());
   const [headerHeight, setHeaderHeight] = useState(0);
   const [reloadTrigger, setReloadTrigger] = useState(0);
-  const [showDeleted, setShowDeleted] = useState<'all' | 'active' | 'deleted'>('all');
+  const [showDeleted, setShowDeleted] = useState<"all" | "active" | "deleted">(
+    "all"
+  );
 
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -35,22 +37,22 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
     buttons: Array<{
       text: string;
       onPress: () => void;
-      style?: 'default' | 'cancel' | 'destructive';
+      style?: "default" | "cancel" | "destructive";
     }>;
   }>({
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     buttons: [],
   });
 
   useEffect(() => {
     const updateLayout = () => {
-      const width = Dimensions.get('window').width;
+      const width = Dimensions.get("window").width;
       setIsWideScreen(width >= BREAKPOINT);
     };
 
     updateLayout();
-    const subscription = Dimensions.addEventListener('change', updateLayout);
+    const subscription = Dimensions.addEventListener("change", updateLayout);
 
     return () => {
       subscription.remove();
@@ -63,35 +65,37 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
       message: "What would you like to do with this event?",
       buttons: [
         {
-          text: 'Edit',
+          text: "Edit",
           onPress: () => {
             setShowAlert(false);
             handleEditEvent(event);
           },
         },
-        event.is_deleted ? {
-          text: 'Reinstate',
-          onPress: () => {
-            setShowAlert(false);
-            setTimeout(() => {
-              handleReinstateEvent(event);
-            }, 100);
-          },
-          style: 'default',
-        } : {
-          text: 'Delete',
-          onPress: () => {
-            setShowAlert(false);
-            setTimeout(() => {
-              handleDeleteEvent(event);
-            }, 100);
-          },
-          style: 'destructive',
-        },
+        event.is_deleted
+          ? {
+              text: "Reinstate",
+              onPress: () => {
+                setShowAlert(false);
+                setTimeout(() => {
+                  handleReinstateEvent(event);
+                }, 100);
+              },
+              style: "default",
+            }
+          : {
+              text: "Delete",
+              onPress: () => {
+                setShowAlert(false);
+                setTimeout(() => {
+                  handleDeleteEvent(event);
+                }, 100);
+              },
+              style: "destructive",
+            },
         {
-          text: 'Cancel',
+          text: "Cancel",
           onPress: () => setShowAlert(false),
-          style: 'cancel',
+          style: "cancel",
         },
       ],
     });
@@ -100,15 +104,19 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
 
   const handleAddEvent = async (event: Event) => {
     try {
-      if (!isDateValid(event.event_date)) { // If date is invalid, try to make year valid
-        const validDate = addCurrentYearToDate(event.event_date); 
-        if (isDateValid(validDate)) { // If date is now valid, update it
+      if (!isDateValid(event.event_date)) {
+        // If date is invalid, try to make year valid
+        const validDate = addCurrentYearToDate(event.event_date);
+        if (isDateValid(validDate)) {
+          // If date is now valid, update it
           event.event_date = validDate;
-        } else { // If date is still invalid, show alert
+        } else {
+          // If date is still invalid, show alert
           setAlertConfig({
-            title: 'Invalid Date',
-            message: 'Please enter a valid date in the format MM-DD or YYYY-MM-DD.',
-            buttons: [{ text: 'OK', onPress: () => setShowAlert(false) }],
+            title: "Invalid Date",
+            message:
+              "Please enter a valid date in the format MM-DD or YYYY-MM-DD.",
+            buttons: [{ text: "OK", onPress: () => setShowAlert(false) }],
           });
           setShowAlert(true);
           return;
@@ -116,9 +124,10 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
       }
       if (!isTimeValid(event.start_time) || !isTimeValid(event.end_time)) {
         setAlertConfig({
-          title: 'Invalid Time',
-          message: 'Please enter a valid time in the format HH:MM using 12-hour or 24-hour format.',
-          buttons: [{ text: 'OK', onPress: () => setShowAlert(false) }],
+          title: "Invalid Time",
+          message:
+            "Please enter a valid time in the format HH:MM using 12-hour or 24-hour format.",
+          buttons: [{ text: "OK", onPress: () => setShowAlert(false) }],
         });
         setShowAlert(true);
         return;
@@ -138,6 +147,7 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           speaker_bio: event.speaker_bio,
           event_date: event.event_date,
           is_deleted: event.is_deleted,
+          topic: event.topic,
         };
         await updateEvent(editingEvent.id, updateData);
       } else {
@@ -155,12 +165,13 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           speaker_bio: event.speaker_bio,
           event_date: event.event_date,
           is_deleted: false,
+          topic: event.topic,
         };
         await createEvent(createData);
       }
-      
+
       // Trigger a reload of the EventList
-      setReloadTrigger(prev => prev + 1);
+      setReloadTrigger((prev) => prev + 1);
       setShowForm(false);
       setEditingEvent(undefined);
       setTimeout(() => {
@@ -168,17 +179,17 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
         onCloseForm(y + headerHeight);
       }, 100);
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error("Error saving event:", error);
       setAlertConfig({
-        title: 'Error',
-        message: 'Failed to save event. Please try again.',
+        title: "Error",
+        message: "Failed to save event. Please try again.",
         buttons: [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
               onCloseForm(0);
             },
-            style: 'cancel',
+            style: "cancel",
           },
         ],
       });
@@ -202,36 +213,36 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
 
   const handleDeleteEvent = async (event: Event) => {
     setAlertConfig({
-      title: 'Delete Event',
+      title: "Delete Event",
       message: `Are you sure you want to delete "${event.title}"?`,
       buttons: [
         {
-          text: 'Cancel',
+          text: "Cancel",
           onPress: () => setShowAlert(false),
-          style: 'cancel',
+          style: "cancel",
         },
         {
-          text: 'Delete',
+          text: "Delete",
           onPress: async () => {
             try {
               await updateEvent(event.id, { is_deleted: true });
-              setReloadTrigger(prev => prev + 1);
+              setReloadTrigger((prev) => prev + 1);
               setShowAlert(false);
             } catch (error) {
-              console.error('Error deleting event:', error);
+              console.error("Error deleting event:", error);
               setAlertConfig({
-                title: 'Error',
-                message: 'Failed to delete event. Please try again.',
+                title: "Error",
+                message: "Failed to delete event. Please try again.",
                 buttons: [
                   {
-                    text: 'OK',
+                    text: "OK",
                     onPress: () => setShowAlert(false),
                   },
                 ],
               });
             }
           },
-          style: 'destructive',
+          style: "destructive",
         },
       ],
     });
@@ -240,22 +251,22 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
 
   const handleReinstateEvent = async (event: Event) => {
     setAlertConfig({
-      title: 'Reinstate Event',
+      title: "Reinstate Event",
       message: `Are you sure you want to reinstate "${event.title}"?`,
       buttons: [
         {
-          text: 'Cancel',
+          text: "Cancel",
           onPress: () => setShowAlert(false),
-          style: 'cancel',
+          style: "cancel",
         },
         {
-          text: 'Reinstate',
+          text: "Reinstate",
           onPress: async () => {
             await updateEvent(event.id, { is_deleted: false });
-            setReloadTrigger(prev => prev + 1);
+            setReloadTrigger((prev) => prev + 1);
             setShowAlert(false);
           },
-          style: 'default',
+          style: "default",
         },
       ],
     });
@@ -268,66 +279,106 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
 
   const toggleShowDeletedButton = () => {
     return (
-      <ThemedView style={[
-        styles.toggleButtonContainer,
-        !isWideScreen && { borderColor: Colors[colorScheme].tint, borderWidth: 1, borderRadius: 8, 
-          padding: 8, backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-      ]}
+      <ThemedView
+        style={[
+          styles.toggleButtonContainer,
+          !isWideScreen && {
+            borderColor: Colors[colorScheme].tint,
+            borderWidth: 1,
+            borderRadius: 8,
+            padding: 8,
+            backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+          },
+        ]}
       >
-        <ThemedText style={[
-          styles.subtitleText, 
-          { color: Colors[colorScheme].text },
-          !isWideScreen && { flex: 1, textAlign: 'center' }
-        ]} type="subtitle">Showing: {showDeleted === 'all' ? "All" : 
-              showDeleted === 'active' ? "Active" : "Deleted"} Events</ThemedText>
+        <ThemedText
+          style={[
+            styles.subtitleText,
+            { color: Colors[colorScheme].text },
+            !isWideScreen && { flex: 1, textAlign: "center" },
+          ]}
+          type="subtitle"
+        >
+          Showing:{" "}
+          {showDeleted === "all"
+            ? "All"
+            : showDeleted === "active"
+            ? "Active"
+            : "Deleted"}{" "}
+          Events
+        </ThemedText>
         <Pressable
           style={[
             styles.addButton,
             { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].tint }
+            { borderColor: Colors[colorScheme].tint },
           ]}
-          onPress={() => {setShowDeleted(showDeleted === 'all' ? 'active' : 
-            showDeleted === 'active' ? 'deleted' : 'all'); 
-            setReloadTrigger(prev => prev + 1);
+          onPress={() => {
+            setShowDeleted(
+              showDeleted === "all"
+                ? "active"
+                : showDeleted === "active"
+                ? "deleted"
+                : "all"
+            );
+            setReloadTrigger((prev) => prev + 1);
           }}
         >
-          <ThemedText style={[styles.addButtonText,
-            { color: Colors[colorScheme].adminButtonText }
-          ]}>Cycle View</ThemedText>
+          <ThemedText
+            style={[
+              styles.addButtonText,
+              { color: Colors[colorScheme].adminButtonText },
+            ]}
+          >
+            Cycle View
+          </ThemedText>
         </Pressable>
       </ThemedView>
     );
   };
-  
+
   return (
     <ThemedView style={styles.container}>
-      <View 
+      <View
         style={styles.header}
         onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
       >
         <View style={styles.headerTop}>
           <ThemedText type="title">Agenda Editor</ThemedText>
           {isWideScreen && (
-            <ThemedText style={[styles.subtitleText, { color: Colors[colorScheme].text }
-            ]} type="subtitle">Select an event to edit or delete it</ThemedText>
+            <ThemedText
+              style={[styles.subtitleText, { color: Colors[colorScheme].text }]}
+              type="subtitle"
+            >
+              Select an event to edit or delete it
+            </ThemedText>
           )}
           {isWideScreen && toggleShowDeletedButton()}
           <Pressable
             style={[
               styles.addButton,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].tint }
+              { borderColor: Colors[colorScheme].tint },
             ]}
             onPress={handleShowForm}
           >
-            <ThemedText style={[styles.addButtonText,
-              { color: Colors[colorScheme].adminButtonText }
-            ]}>Add Event</ThemedText>
+            <ThemedText
+              style={[
+                styles.addButtonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Add Event
+            </ThemedText>
           </Pressable>
         </View>
         {!isWideScreen && (
-          <ThemedText style={[styles.subtitleText, { color: Colors[colorScheme].text }
-          ]} type="subtitle">Select an event to edit or delete it</ThemedText>
+          <ThemedText
+            style={[styles.subtitleText, { color: Colors[colorScheme].text }]}
+            type="subtitle"
+          >
+            Select an event to edit or delete it
+          </ThemedText>
         )}
         {!isWideScreen && toggleShowDeletedButton()}
       </View>
@@ -343,9 +394,9 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           }}
         />
       )}
-      <EventList 
-        onSelectEvent={handleEventSelect} 
-        showHeader={false} 
+      <EventList
+        onSelectEvent={handleEventSelect}
+        showHeader={false}
         showDeleted={showDeleted}
         reloadTrigger={reloadTrigger}
         onEventPosition={handleEventPosition}
@@ -369,13 +420,13 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
     gap: 8,
   },
   headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   addButton: {
     paddingHorizontal: 16,
@@ -385,15 +436,15 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   addButtonText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 18,
   },
   subtitleText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   toggleButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
 });

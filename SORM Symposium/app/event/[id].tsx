@@ -1,3 +1,7 @@
+import {
+  formatTopicName,
+  getTopicColor,
+} from "@/components/AgendaViewer/utils";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -55,6 +59,9 @@ export default function EventDetailScreen() {
     }
   };
 
+  const topicColor = getTopicColor(event.topic);
+  const topicName = formatTopicName(event.topic);
+
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: event.title }} />
@@ -62,6 +69,13 @@ export default function EventDetailScreen() {
         <ThemedText type="title" style={styles.title}>
           {event.title}
         </ThemedText>
+
+        {/* Topic Badge */}
+        <ThemedView
+          style={[styles.topicBadge, { backgroundColor: topicColor }]}
+        >
+          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+        </ThemedView>
 
         <ThemedView style={styles.infoSection}>
           <ThemedView style={styles.infoRow}>
@@ -86,22 +100,26 @@ export default function EventDetailScreen() {
             </ThemedText>
           </ThemedView>
 
-          {event.title !== "Break" && <ThemedView style={styles.infoRow}>
-            <IconSymbol
-              name="mappin.circle.fill"
-              size={20}
-              color={Colors[colorScheme].tabIconDefault}
-            />
-            <ThemedText style={styles.infoText}>{event.location}</ThemedText>
-          </ThemedView>}
+          {event.title !== "Break" && (
+            <ThemedView style={styles.infoRow}>
+              <IconSymbol
+                name="mappin.circle.fill"
+                size={20}
+                color={Colors[colorScheme].tabIconDefault}
+              />
+              <ThemedText style={styles.infoText}>{event.location}</ThemedText>
+            </ThemedView>
+          )}
         </ThemedView>
 
-        {event.title !== "Break" && <ThemedView style={styles.section}>
-          <ThemedText type="subtitle">About</ThemedText>
-          <ThemedText style={styles.description}>
-            {event.description || "No description available."}
-          </ThemedText>
-        </ThemedView>}
+        {event.title !== "Break" && (
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle">About</ThemedText>
+            <ThemedText style={styles.description}>
+              {event.description || "No description available."}
+            </ThemedText>
+          </ThemedView>
+        )}
 
         {event.speaker_name && (
           <>
@@ -142,6 +160,20 @@ const styles = StyleSheet.create({
   title: {
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  topicBadge: {
+    alignSelf: "flex-start",
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  topicText: {
+    color: "black",
+    fontSize: 14,
+    fontWeight: "600",
   },
   infoSection: {
     padding: 16,
