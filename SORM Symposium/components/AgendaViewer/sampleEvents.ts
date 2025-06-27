@@ -1,0 +1,76 @@
+import { Event } from './types';
+
+export const sampleEvents: Event[] = [
+  {
+    id: '1',
+    title: 'Opening Ceremony',
+    description: 'Welcome speech and introduction to the conference',
+    location: 'Main Hall',
+    startTime: '09:00',
+    endTime: '10:00',
+    topic: 'General',
+  },
+  {
+    id: '2',
+    title: 'Keynote Speech',
+    description: 'Keynote presentation by industry expert',
+    location: 'Main Hall',
+    startTime: '10:00',
+    endTime: '11:30',
+    topic: 'Keynote',
+  },
+  {
+    id: '3',
+    title: 'Workshop A',
+    description: 'Hands-on workshop on advanced techniques',
+    location: 'Room 101',
+    startTime: '11:00', // Conflicts with Keynote Speech
+    endTime: '12:30',
+    topic: 'Workshop',
+  },
+  {
+    id: '4',
+    title: 'Lunch Break',
+    description: 'Networking lunch with fellow attendees',
+    location: 'Dining Hall',
+    startTime: '12:30',
+    endTime: '13:30',
+    topic: 'Lunch',
+  },
+  {
+    id: '5',
+    title: 'Panel Discussion',
+    description: 'Industry leaders discuss current trends',
+    location: 'Main Hall',
+    startTime: '13:30',
+    endTime: '15:00',
+    topic: 'Panel',
+  },
+  {
+    id: '6',
+    title: 'Workshop B',
+    description: 'Interactive session on new technologies',
+    location: 'Room 102',
+    startTime: '14:00', // Conflicts with Panel Discussion
+    endTime: '15:30',
+    topic: 'Workshop',
+  },
+  {
+    id: '7',
+    title: 'Networking Session',
+    description: 'Casual networking with refreshments',
+    location: 'Lobby',
+    startTime: '15:30',
+    endTime: '16:30',
+    topic: 'Networking',
+  },
+  {
+    id: '8',
+    title: 'Closing Remarks',
+    description: 'Summary of the day and announcements',
+    location: 'Main Hall',
+    startTime: '16:30',
+    endTime: '17:00',
+    topic: 'General',
+  },
+]; 

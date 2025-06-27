@@ -1,72 +1,29 @@
+import { MapViewer } from "@/components/MapViewer";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import type { IconSymbolName } from "@/components/ui/IconSymbol";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
+import { ContactInfo, useContacts } from "@/hooks/useContacts";
 import { Image } from "expo-image";
+import React, { useState } from "react";
 import {
+  Alert,
   Dimensions,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
+  TouchableOpacity,
   useColorScheme,
   useWindowDimensions,
-  ScrollView,
-  TouchableOpacity,
-  Linking,
-  Alert,
-  Platform,
-  Modal,
-  Pressable,
 } from "react-native";
-import { MapViewer } from "@/components/MapViewer";
-import React, { useState } from "react";
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { IconSymbolName } from "@/components/ui/IconSymbol";
 
 const defaultWidth = () => Math.min(Dimensions.get("window").width, 400);
 const wideHeight = () => Dimensions.get("window").width / 3;
-
-type ContactInfo = {
-  name: string;
-  phone: string;
-  email: string;
-};
-
-const CONTACTS: ContactInfo[] = [
-  {
-    name: "Robert Turner",
-    phone: "512.751.3511",
-    email: "rturner@nbcesd1.com",
-  },
-  {
-    name: "Chris Bygum",
-    phone: "805.889.1807",
-    email: "cbygum@gmail.com",
-  },
-  {
-    name: "Shelby Hyman",
-    phone: "512.653.5827",
-    email: "shelby.hyman@sorm.texas.gov",
-  },
-  {
-    name: "Monica Jackson",
-    phone: "936.662.2946",
-    email: "monica.jackson@txdmv.gov",
-  },
-  {
-    name: "Brandon Murphy",
-    phone: "512.936.2927",
-    email: "brandon.murphy@sorm.texas.gov",
-  },
-  {
-    name: "Mark Chadwick",
-    phone: "512.936.1555",
-    email: "mark.chadwick@sorm.texas.gov",
-  },
-  {
-    name: "Stephen Vollbrecht",
-    phone: "512.470.1989",
-    email: "stephen.vollbrecht@gmail.com",
-  },
-];
 
 type ContactAction = {
   icon: IconSymbolName;
@@ -84,6 +41,13 @@ export default function InfoScreen() {
   const [selectedContact, setSelectedContact] = useState<ContactInfo | null>(
     null
   );
+
+  // Fetch contacts from Supabase
+  const {
+    contacts,
+    loading: contactsLoading,
+    error: contactsError,
+  } = useContacts();
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone.replace(/\./g, "")}`);
@@ -201,6 +165,7 @@ export default function InfoScreen() {
                         : (defaultWidth() * 103) / 85,
                     },
                   ]}
+                  alt="Facility Map"
                 />
               </TouchableOpacity>
             </ThemedView>
@@ -233,8 +198,96 @@ export default function InfoScreen() {
                         : (defaultWidth() * 908) / 1586,
                     },
                   ]}
+                  alt="Les Bunte Complex Map"
                 />
               </TouchableOpacity>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedText style={styles.sectionTitle}>
+            Emergency Information
+          </ThemedText>
+          <ThemedText style={styles.emergencyNote}>
+            Call 911 immediately for any emergency
+          </ThemedText>
+
+          <ThemedView style={styles.emergencyContainer}>
+            <ThemedView
+              style={[
+                styles.emergencyCard,
+                {
+                  backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+                  borderColor: Colors[colorScheme].tint,
+                },
+              ]}
+            >
+              <ThemedText
+                type="defaultSemiBold"
+                style={styles.emergencyCardTitle}
+              >
+                Symposium Venue
+              </ThemedText>
+              <ThemedText style={styles.venueAddress}>
+                Les Bunte Complex{"\n"}
+                1595 Nuclear Science Road{"\n"}
+                College Station, TX 77843
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedView
+              style={[
+                styles.emergencyCard,
+                {
+                  backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+                  borderColor: Colors[colorScheme].tint,
+                },
+              ]}
+            >
+              <ThemedText
+                type="defaultSemiBold"
+                style={styles.emergencyCardTitle}
+              >
+                Event Rooms
+              </ThemedText>
+              <ThemedText style={styles.roomInfo}>
+                • B101A {"\n"}• B102C&D{"\n"}• B102A&B
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedView
+              style={[
+                styles.emergencyCard,
+                {
+                  backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+                  borderColor: Colors[colorScheme].tint,
+                },
+              ]}
+            >
+              <ThemedText
+                type="defaultSemiBold"
+                style={styles.emergencyCardTitle}
+              >
+                Local Emergency Services
+              </ThemedText>
+              <ThemedView
+                style={[
+                  styles.emergencyContact,
+                  {
+                    backgroundColor:
+                      Colors[colorScheme].secondaryBackgroundColor,
+                  },
+                ]}
+              >
+                <ThemedText type="defaultSemiBold" style={styles.contactLabel}>
+                  College Station Police, Fire, and Animal Control
+                  (Non-Emergency):
+                </ThemedText>
+                <TouchableOpacity onPress={() => handleCall("979-764-3500")}>
+                  <ThemedText style={styles.emergencyPhone}>
+                    979-764-3500
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
             </ThemedView>
           </ThemedView>
 
@@ -246,40 +299,60 @@ export default function InfoScreen() {
           </ThemedText>
 
           <ThemedView style={styles.contactsContainer}>
-            {CONTACTS.map((contact, index) => (
-              <TouchableOpacity
-                key={contact.email}
-                onPress={() => showContactOptions(contact)}
-                style={[
-                  styles.contactCard,
-                  {
-                    backgroundColor:
-                      Colors[colorScheme].secondaryBackgroundColor,
-                    borderColor: Colors[colorScheme].tint,
-                  },
-                  index !== CONTACTS.length - 1 && styles.contactCardMargin,
-                ]}
-              >
-                <ThemedView style={styles.contactInfo}>
-                  <ThemedText type="defaultSemiBold" style={styles.contactName}>
-                    {contact.name}
-                  </ThemedText>
-                  <ThemedView style={styles.contactDetail}>
-                    <IconSymbol name="phone.fill" color="#666" size={16} />
-                    <ThemedText style={styles.contactText}>
-                      {contact.phone}
+            {contactsLoading && (
+              <ThemedText style={styles.contactText}>
+                Loading contacts…
+              </ThemedText>
+            )}
+            {contactsError && (
+              <ThemedText style={[styles.contactText, { color: "red" }]}>
+                Failed to load contacts.
+              </ThemedText>
+            )}
+            {!contactsLoading && !contactsError && contacts.length === 0 && (
+              <ThemedText style={styles.contactText}>
+                No contacts available.
+              </ThemedText>
+            )}
+            {!contactsLoading &&
+              !contactsError &&
+              contacts.map((contact, index) => (
+                <TouchableOpacity
+                  key={contact.email}
+                  onPress={() => showContactOptions(contact)}
+                  style={[
+                    styles.contactCard,
+                    {
+                      backgroundColor:
+                        Colors[colorScheme].secondaryBackgroundColor,
+                      borderColor: Colors[colorScheme].tint,
+                    },
+                    index !== contacts.length - 1 && styles.contactCardMargin,
+                  ]}
+                >
+                  <ThemedView style={styles.contactInfo}>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={styles.contactName}
+                    >
+                      {contact.name}
                     </ThemedText>
+                    <ThemedView style={styles.contactDetail}>
+                      <IconSymbol name="phone.fill" color="#666" size={16} />
+                      <ThemedText style={styles.contactText}>
+                        {contact.phone}
+                      </ThemedText>
+                    </ThemedView>
+                    <ThemedView style={styles.contactDetail}>
+                      <IconSymbol name="envelope.fill" color="#666" size={16} />
+                      <ThemedText style={styles.contactText}>
+                        {contact.email}
+                      </ThemedText>
+                    </ThemedView>
                   </ThemedView>
-                  <ThemedView style={styles.contactDetail}>
-                    <IconSymbol name="envelope.fill" color="#666" size={16} />
-                    <ThemedText style={styles.contactText}>
-                      {contact.email}
-                    </ThemedText>
-                  </ThemedView>
-                </ThemedView>
-                <IconSymbol name="chevron.right" color="#666" size={24} />
-              </TouchableOpacity>
-            ))}
+                  <IconSymbol name="chevron.right" color="#666" size={24} />
+                </TouchableOpacity>
+              ))}
           </ThemedView>
         </ThemedView>
       </ScrollView>
@@ -377,6 +450,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontStyle: "italic",
   },
+  emergencyNote: {
+    fontSize: 16,
+    opacity: 0.7,
+    marginBottom: 20,
+    fontStyle: "italic",
+    color: "#FF3B30",
+    fontWeight: "600",
+  },
   mapsContainer: {
     alignItems: "center",
     width: "100%",
@@ -471,5 +552,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#FF3B30",
     fontWeight: "600",
+  },
+  emergencyContainer: {
+    width: "100%",
+    padding: 16,
+    maxWidth: 600,
+  },
+  emergencyCard: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  emergencyCardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  venueAddress: {
+    fontSize: 16,
+  },
+  roomInfo: {
+    fontSize: 16,
+  },
+  emergencyContact: {
+    marginTop: 8,
+  },
+  contactLabel: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  emergencyPhone: {
+    fontSize: 16,
   },
 });

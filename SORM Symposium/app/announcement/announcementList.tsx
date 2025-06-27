@@ -1,4 +1,11 @@
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 
 import { Announcement } from "@/components/Announcement";
 import { ThemedText } from "@/components/ThemedText";
@@ -8,9 +15,10 @@ import { Stack } from "expo-router";
 
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useCallback } from "react";
+import { Platform } from "react-native";
 
 export default function AnnouncementsScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? "light";
   const { announcements, loading, error, refresh } = useAnnouncements();
 
   const renderContent = useCallback(() => {
@@ -28,11 +36,11 @@ export default function AnnouncementsScreen() {
           <ThemedText style={styles.errorText}>
             Could not load announcements. Please try again.
           </ThemedText>
-          <ThemedText 
+          <ThemedText
             style={[styles.retryText, { color: Colors[colorScheme].tint }]}
             onPress={refresh}
           >
-            Tap to retry
+            {Platform.OS === "web" ? "Click to retry" : "Tap to retry"}
           </ThemedText>
         </View>
       );
@@ -59,14 +67,22 @@ export default function AnnouncementsScreen() {
   }, [announcements, loading, error, refresh, colorScheme]);
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: Colors[useColorScheme() ?? 'light'].secondaryBackgroundColor }]}>
+    <ThemedView
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            Colors[useColorScheme() ?? "light"].secondaryBackgroundColor,
+        },
+      ]}
+    >
       <Stack.Screen
         options={{
           title: "Announcements",
           headerShown: true,
         }}
       />
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         refreshControl={
           <RefreshControl
@@ -77,9 +93,7 @@ export default function AnnouncementsScreen() {
           />
         }
       >
-        <View style={styles.content}>
-          {renderContent()}
-        </View>
+        <View style={styles.content}>{renderContent()}</View>
       </ScrollView>
     </ThemedView>
   );
@@ -97,26 +111,26 @@ const styles = StyleSheet.create({
   },
   loaderContainer: {
     paddingVertical: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   errorContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
   },
   errorText: {
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   retryText: {
-    textAlign: 'center',
-    fontWeight: '600',
+    textAlign: "center",
+    fontWeight: "600",
   },
   emptyContainer: {
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
-}); 
+});

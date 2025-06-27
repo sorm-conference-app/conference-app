@@ -4,21 +4,50 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { supabase } from "@/constants/supabase";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { clearVerifiedEmails } from "@/lib/attendeeStorage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native";
 
 const width = () => Math.min(Dimensions.get("window").width, 500);
 const height = () => (width() * 182) / 500;
 
-export default function Index() {
+export default function Home() {
   const navigateToAllAnnouncements = () => {
     router.push("/announcement/announcementList");
   };
-  const colorScheme = useColorScheme() ?? 'light';
+
+  /**
+   * Handle logout functionality
+   * - Log out any users from Supabase
+   * - Clear verified emails from local storage
+   * - Redirect to login page for all users
+   */
+  const handleLogout = async () => {
+    try {
+      // Clear verified emails from local storage
+      await clearVerifiedEmails();
+      // Log out any admin users from Supabase
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+    
+    // Redirect to login page (index.tsx) for all users
+    router.replace("/");
+  };
+
+  const colorScheme = useColorScheme() ?? "light";
   const { announcements, loading, error, refresh } = useAnnouncements(3);
 
   const renderAnnouncementContent = useCallback(() => {
@@ -36,11 +65,7 @@ export default function Index() {
           <ThemedText style={styles.errorText}>
             Could not load announcements. Please try again.
           </ThemedText>
-          <ThemedText 
-            type="link" 
-            onPress={refresh}
-            style={styles.retryLink}
-          >
+          <ThemedText type="link" onPress={refresh} style={styles.retryLink}>
             Retry
           </ThemedText>
         </View>
@@ -49,7 +74,7 @@ export default function Index() {
 
     if (announcements.length === 0) {
       return (
-        <ThemedText style={{ textAlign: 'center' }}>
+        <ThemedText style={{ textAlign: "center" }}>
           No announcements available.
         </ThemedText>
       );
@@ -71,11 +96,15 @@ export default function Index() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ dark: Colors.dark.tint, light: Colors.light.secondaryBackgroundColor }}
+      headerBackgroundColor={{
+        dark: Colors.dark.tint,
+        light: Colors.light.secondaryBackgroundColor,
+      }}
       headerImage={
         <Image
           source={require("@/assets/images/sorm-logo.png")}
           style={[styles.logoImage, { width: width(), height: height() }]}
+          alt="SORM Symposium Logo"
         />
       }
     >
@@ -98,34 +127,62 @@ export default function Index() {
           .
         </ThemedText>
       </ThemedView>
-      <ThemedView style={[
-        styles.announcementContainer,
-        { 
-          backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
-          borderColor: Colors[colorScheme].text 
-        }
-      ]}>
-        <ThemedText type="subtitle" style={[{ textAlign: 'center' }]}>Latest Announcements</ThemedText>
-        <ThemedText style={[{ textAlign: 'center' }]}>Tap to expand/collapse</ThemedText>
-        
-        {renderAnnouncementContent()}
-        
-        <View style={[
-          styles.linkContainer,
+      <ThemedView
+        style={[
+          styles.announcementContainer,
           {
-            borderColor: Colors[colorScheme].tint,
-            backgroundColor: Colors[colorScheme].background
-          }
-        ]}>
-          <ThemedText 
-            type="link" 
+            backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+            borderColor: Colors[colorScheme].text,
+          },
+        ]}
+      >
+        <ThemedText type="subtitle" style={[{ textAlign: "center" }]}>
+          Latest Announcements
+        </ThemedText>
+        <ThemedText style={[{ textAlign: "center" }]}>
+          {Platform.OS === "web"
+            ? "Click to expand/collapse"
+            : "Tap to expand/collapse"}
+        </ThemedText>
+
+        {renderAnnouncementContent()}
+
+        <View
+          style={[
+            styles.linkContainer,
+            {
+              borderColor: Colors[colorScheme].tint,
+              backgroundColor: Colors[colorScheme].background,
+            },
+          ]}
+        >
+          <ThemedText
+            type="link"
             onPress={navigateToAllAnnouncements}
-            style={[
-              styles.viewAllLink,
-              { color: Colors[colorScheme].text }
-            ]}
+            style={[styles.viewAllLink, { color: Colors[colorScheme].text }]}
           >
             View all announcements
+          </ThemedText>
+        </View>
+      </ThemedView>
+      
+      {/* Footer with auth buttons */}
+      <ThemedView style={styles.footerContainer}>
+        <View
+          style={[
+            styles.linkContainer,
+            {
+              borderColor: Colors[colorScheme].tint,
+              backgroundColor: Colors[colorScheme].background,
+            },
+          ]}
+        >
+          <ThemedText
+            type="link"
+            onPress={handleLogout}
+            style={[styles.viewAllLink, { color: Colors[colorScheme].text }]}
+          >
+            Logout
           </ThemedText>
         </View>
       </ThemedView>
@@ -157,7 +214,7 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   linkContainer: {
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingHorizontal: 12,
     paddingBottom: 4,
     borderWidth: 1,
@@ -165,21 +222,26 @@ const styles = StyleSheet.create({
   },
   viewAllLink: {
     marginTop: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   loaderContainer: {
     paddingVertical: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   errorContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 12,
   },
   errorText: {
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   retryLink: {
-    textAlign: 'center',
+    textAlign: "center",
+  },
+  footerContainer: {
+    padding: 12,
+    marginTop: 16,
+    alignItems: "center",
   },
 });

@@ -1,77 +1,48 @@
-import { StyleSheet, Linking } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { ScrollView } from "react-native";
+import {
+  formatTopicName,
+  getTopicColor,
+} from "@/components/AgendaViewer/utils";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import React from "react";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
-
-type Speaker = {
-  name: string;
-  title: string;
-  bio: string;
-};
-
-type BaseEvent = {
-  title: string;
-  time: string;
-  location: string;
-  description: string;
-  type: "registration" | "presentation" | "break";
-};
-
-type PresentationEvent = BaseEvent & {
-  type: "presentation";
-  speaker: Speaker;
-  slides: string;
-};
-
-type Event = BaseEvent | PresentationEvent;
-
-type EventDatabase = {
-  [key: string]: Event;
-};
-
-// This would typically come from an API or database
-const eventDetails: EventDatabase = {
-  "1": {
-    title: "Welcome and Registration",
-    time: "8:00 AM - 9:00 AM",
-    location: "Main Hall",
-    description:
-      "Start your day by checking in at the registration desk. Pick up your conference materials and enjoy some morning refreshments while networking with fellow attendees.",
-    type: "registration",
-  },
-  "2": {
-    title: "Opening Keynote",
-    time: "9:00 AM - 10:30 AM",
-    location: "Auditorium A",
-    description:
-      "Join us for an inspiring keynote address that will set the tone for our symposium.",
-    speaker: {
-      name: "Dr. Jane Smith",
-      title: "Director of Risk Management, State Office",
-      bio: "Dr. Smith has over 20 years of experience in risk management and policy development.",
-    },
-    slides: "https://example.com/slides/keynote",
-    type: "presentation",
-  },
-  "3": {
-    title: "Break",
-    time: "10:30 AM - 11:00 AM",
-    location: "Networking Area",
-    description:
-      "Refresh yourself with coffee, tea, and light snacks while networking with other attendees.",
-    type: "break",
-  },
-};
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { formatDate, formatTimeRange } from "@/lib/dateTime";
+import { getEventById } from "@/services/events";
+import type { Event } from "@/types/Events.types";
+import { Stack, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Linking, ScrollView, StyleSheet } from "react-native";
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
-  const event = eventDetails[id as keyof typeof eventDetails];
-  const colorScheme = useColorScheme() ?? 'light';
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+  const colorScheme = useColorScheme() ?? "light";
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const eventData = await getEventById(Number(id));
+        setEvent(eventData);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen options={{ title: "Loading..." }} />
+        <ThemedText>Loading event details...</ThemedText>
+      </ThemedView>
+    );
+  }
 
   if (!event) {
     return (
@@ -82,15 +53,14 @@ export default function EventDetailScreen() {
     );
   }
 
-  const isPresentationEvent = (event: Event): event is PresentationEvent => {
-    return event.type === "presentation";
-  };
-
   const openSlides = async () => {
-    if (isPresentationEvent(event)) {
-      await Linking.openURL(event.slides);
+    if (event.slides_url) {
+      await Linking.openURL(event.slides_url);
     }
   };
+
+  const topicColor = getTopicColor(event.topic);
+  const topicName = formatTopicName(event.topic);
 
   return (
     <ThemedView style={styles.container}>
@@ -100,41 +70,79 @@ export default function EventDetailScreen() {
           {event.title}
         </ThemedText>
 
+        {/* Topic Badge */}
+        <ThemedView
+          style={[styles.topicBadge, { backgroundColor: topicColor }]}
+        >
+          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+        </ThemedView>
+
         <ThemedView style={styles.infoSection}>
           <ThemedView style={styles.infoRow}>
-            <IconSymbol name="clock.fill" size={20} color={Colors[colorScheme].tabIconDefault} />
-            <ThemedText style={styles.infoText}>{event.time}</ThemedText>
+            <IconSymbol
+              name="calendar"
+              size={20}
+              color={Colors[colorScheme].tabIconDefault}
+            />
+            <ThemedText style={styles.infoText}>
+              {formatDate(event.event_date)}
+            </ThemedText>
           </ThemedView>
 
           <ThemedView style={styles.infoRow}>
-            <IconSymbol name="mappin.circle.fill" size={20} color={Colors[colorScheme].tabIconDefault} />
-            <ThemedText style={styles.infoText}>{event.location}</ThemedText>
+            <IconSymbol
+              name="clock.fill"
+              size={20}
+              color={Colors[colorScheme].tabIconDefault}
+            />
+            <ThemedText style={styles.infoText}>
+              {formatTimeRange(event.start_time, event.end_time)}
+            </ThemedText>
           </ThemedView>
+
+          {event.title !== "Break" && (
+            <ThemedView style={styles.infoRow}>
+              <IconSymbol
+                name="mappin.circle.fill"
+                size={20}
+                color={Colors[colorScheme].tabIconDefault}
+              />
+              <ThemedText style={styles.infoText}>{event.location}</ThemedText>
+            </ThemedView>
+          )}
         </ThemedView>
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle">About</ThemedText>
-          <ThemedText style={styles.description}>
-            {event.description}
-          </ThemedText>
-        </ThemedView>
+        {event.title !== "Break" && (
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle">About</ThemedText>
+            <ThemedText style={styles.description}>
+              {event.description || "No description available."}
+            </ThemedText>
+          </ThemedView>
+        )}
 
-        {isPresentationEvent(event) && (
+        {event.speaker_name && (
           <>
             <ThemedView style={styles.section}>
               <ThemedText type="subtitle">Speaker</ThemedText>
               <ThemedText type="defaultSemiBold">
-                {event.speaker.name}
+                {event.speaker_name}
               </ThemedText>
-              <ThemedText>{event.speaker.title}</ThemedText>
-              <ThemedText style={styles.bio}>{event.speaker.bio}</ThemedText>
+              {event.speaker_title && (
+                <ThemedText>{event.speaker_title}</ThemedText>
+              )}
+              {event.speaker_bio && (
+                <ThemedText style={styles.bio}>{event.speaker_bio}</ThemedText>
+              )}
             </ThemedView>
 
-            <ThemedView style={styles.section}>
-              <ThemedText type="link" onPress={openSlides}>
-                View Presentation Slides
-              </ThemedText>
-            </ThemedView>
+            {event.slides_url && (
+              <ThemedView style={styles.section}>
+                <ThemedText type="link" onPress={openSlides}>
+                  View Presentation Slides
+                </ThemedText>
+              </ThemedView>
+            )}
           </>
         )}
       </ScrollView>
@@ -152,6 +160,20 @@ const styles = StyleSheet.create({
   title: {
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  topicBadge: {
+    alignSelf: "flex-start",
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  topicText: {
+    color: "black",
+    fontSize: 14,
+    fontWeight: "600",
   },
   infoSection: {
     padding: 16,
