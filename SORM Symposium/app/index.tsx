@@ -1,17 +1,17 @@
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import ContactSharingModal from "@/components/ContactSharingModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
+import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import { clearVerifiedEmails, getVerifiedEmails, storeVerifiedEmail } from "@/lib/attendeeStorage";
 import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
-
 import React, { useEffect, useState } from "react";
-
-import { Colors } from "@/constants/Colors";
 
 type UserType = "attendee" | "organizer";
 
@@ -23,6 +23,15 @@ export default function Login() {
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+  
+  // Contact sharing modal hook
+  const {
+    isVisible: isContactSharingVisible,
+    attendee: contactSharingAttendee,
+    showModal: showContactSharingModal,
+    hideModal: hideContactSharingModal,
+    savePreferences: saveContactSharingPreferences,
+  } = useContactSharingModal();
   
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
@@ -93,7 +102,13 @@ export default function Login() {
           setShowConfirmationModal(true);
         });
         if (result.verified) {
-          router.push("/(tabs)/home");
+          // Check if we should show the contact sharing modal
+          const modalShown = await showContactSharingModal(email);
+          // Only navigate to home if the modal isn't shown
+          // If modal is shown, navigation will happen after it closes
+          if (!modalShown) {
+            router.push("/(tabs)/home");
+          }
         }
       } else if (userType === "organizer") {
         await signinAdmin(email, password);
@@ -115,13 +130,44 @@ export default function Login() {
     try {
       const result = await signinAttendee(email);
       if (result.verified) {
-        router.push("/(tabs)/home");
+        // Check if we should show the contact sharing modal
+        const modalShown = await showContactSharingModal(email);
+        // Only navigate to home if the modal isn't shown
+        // If modal is shown, navigation will happen after it closes
+        if (!modalShown) {
+          router.push("/(tabs)/home");
+        }
       }
     } catch (e) {
       setErr("Failed to sign in: " + (e as Error).message);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleContactSharingDontShare = async () => {
+    hideContactSharingModal();
+    try {
+      await saveContactSharingPreferences(false, '');
+    } catch (error) {
+      console.error('Error saving contact sharing preferences:', error);
+    }
+    router.push("/(tabs)/home");
+  };
+
+  const handleContactSharingShare = async (additionalInfo: string) => {
+    hideContactSharingModal();
+    try {
+      await saveContactSharingPreferences(true, additionalInfo);
+    } catch (error) {
+      console.error('Error saving contact sharing preferences:', error);
+    }
+    router.push("/(tabs)/home");
+  };
+
+  const handleContactSharingClose = () => {
+    hideContactSharingModal();
+    router.push("/(tabs)/home");
   };
 
   const handleGoToAdminLogin = () => {
@@ -233,74 +279,82 @@ export default function Login() {
   // Login screen for selected user type
   return (
     <>
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
-      <ThemedText>{getDescription()}</ThemedText>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
+        <ThemedText>{getDescription()}</ThemedText>
 
-      <ThemedView style={styles.inputContainer}>
-        <ThemedText>Email</ThemedText>
-        <ThemedTextInput
-          value={email}
-          textContentType="emailAddress"
-          onChangeText={setEmail}
-          placeholder="Enter your email"
-          accessibilityLabel="Email input field"
-          accessibilityHint="Enter your email"
-          accessibilityRole="text"
-        />
-        {email.length > 0 && !validEmail && (
-          <ThemedText style={styles.invalid}>Not a valid email.</ThemedText>
-        )}
-      </ThemedView>
-
-      {userType === "organizer" && (
         <ThemedView style={styles.inputContainer}>
-          <ThemedText>Password</ThemedText>
+          <ThemedText>Email</ThemedText>
           <ThemedTextInput
-            value={password}
-            textContentType="password"
-            secureTextEntry
-            onChangeText={setPassword}
-            placeholder="Enter your password"
-          accessibilityLabel="Password input field"
-          accessibilityHint="Enter your password"
-          accessibilityRole="text"
+            value={email}
+            textContentType="emailAddress"
+            onChangeText={setEmail}
+            placeholder="Enter your email"
+            accessibilityLabel="Email input field"
+            accessibilityHint="Enter your email"
+            accessibilityRole="text"
           />
+          {email.length > 0 && !validEmail && (
+            <ThemedText style={styles.invalid}>Not a valid email.</ThemedText>
+          )}
         </ThemedView>
-      )}
 
-      <Pressable
-        onPress={handleSignIn}
-        disabled={isButtonDisabled()}
-        style={[
-          styles.button,
-          isButtonDisabled()
-            ? { backgroundColor: Colors[colorScheme].tabIconDefault } 
-            : { backgroundColor: Colors[colorScheme].adminButton },
-          { borderColor: Colors[colorScheme].text },
-          { borderWidth: 1 },
-        ]}
-      >
-        <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>{getButtonText()}</ThemedText>
-      </Pressable>
-      <Pressable
-        onPress={goBack}
-        style={[
-          styles.button,
-          { backgroundColor: Colors[colorScheme].adminButton },
-          { borderColor: Colors[colorScheme].adminButtonText },
-          { borderWidth: 1 },
-        ]}
-      >
-        <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>Back</ThemedText>
-      </Pressable>
-      <ThemedText style={styles.invalid}>{err}</ThemedText>
-    </ThemedView>
+        {userType === "organizer" && (
+          <ThemedView style={styles.inputContainer}>
+            <ThemedText>Password</ThemedText>
+            <ThemedTextInput
+              value={password}
+              textContentType="password"
+              secureTextEntry
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              accessibilityLabel="Password input field"
+              accessibilityHint="Enter your password"
+              accessibilityRole="text"
+            />
+          </ThemedView>
+        )}
+
+        <Pressable
+          onPress={handleSignIn}
+          disabled={isButtonDisabled()}
+          style={[
+            styles.button,
+            isButtonDisabled()
+              ? { backgroundColor: Colors[colorScheme].tabIconDefault } 
+              : { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].text },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>{getButtonText()}</ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={goBack}
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].adminButtonText },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>Back</ThemedText>
+        </Pressable>
+        <ThemedText style={styles.invalid}>{err}</ThemedText>
+      </ThemedView>
 
       <ConfirmationModal
         visible={showConfirmationModal}
         onProceedAsAttendee={handleProceedAsAttendee}
         onGoToAdminLogin={handleGoToAdminLogin}
+      />
+
+      <ContactSharingModal
+        visible={isContactSharingVisible}
+        attendee={contactSharingAttendee}
+        onDontShare={handleContactSharingDontShare}
+        onShare={handleContactSharingShare}
+        onClose={handleContactSharingClose}
       />
     </>
   );

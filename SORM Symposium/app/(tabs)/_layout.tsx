@@ -34,15 +34,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="info"
-        options={{
-          title: "Info",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol name="info.circle.fill" color={color} size={28} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="home"
         options={{
           title: "Home",
@@ -57,6 +48,24 @@ export default function TabLayout() {
           title: "Agenda",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="calendar" color={color} size={28} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="info"
+        options={{
+          title: "Info",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="info.circle.fill" color={color} size={28} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="connect"
+        options={{
+          title: "Connect",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="person.2.fill" color={color} size={28} />
           ),
         }}
       />
