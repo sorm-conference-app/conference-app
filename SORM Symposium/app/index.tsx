@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { Alert, Button, Pressable, StyleSheet, useColorScheme } from "react-native";
-import { router } from "expo-router";
-import ThemedTextInput from "@/components/ThemedTextInput";
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
-import { supabase } from "@/constants/supabase";
-import { getVerifiedEmails, clearVerifiedEmails } from "@/lib/attendeeStorage";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { ThemedText } from "@/components/ThemedText";
+import ThemedTextInput from "@/components/ThemedTextInput";
+import { ThemedView } from "@/components/ThemedView";
+import { supabase } from "@/constants/supabase";
+import { clearVerifiedEmails, getVerifiedEmails, storeVerifiedEmail } from "@/lib/attendeeStorage";
+import { isAttendeeEmail } from "@/services/attendees";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
+
+import React, { useEffect, useState } from "react";
+
 import { Colors } from "@/constants/Colors";
 
 type UserType = "attendee" | "organizer";
@@ -26,6 +29,48 @@ export default function Login() {
 
   useEffect(() => {
     supabase.auth.signOut();
+  }, []);
+
+  // Check for verified attendees on component mount and redirect automatically
+  useEffect(() => {
+    const checkVerifiedAttendees = async () => {
+      try {
+        const verifiedEmails = await getVerifiedEmails();
+        if (verifiedEmails.length > 0) {
+          // Validate each stored email against the database
+          const validEmails: string[] = [];
+          
+          for (const email of verifiedEmails) {
+            try {
+              const isValid = await isAttendeeEmail(email);
+              if (isValid) {
+                validEmails.push(email);
+              }
+            } catch (error) {
+              console.error(`Error validating email ${email}:`, error);
+              // Remove invalid email from consideration but don't throw
+            }
+          }
+
+          // Update local storage to only contain valid emails
+          if (validEmails.length !== verifiedEmails.length) {
+            await clearVerifiedEmails();
+            for (const validEmail of validEmails) {
+              await storeVerifiedEmail(validEmail);
+            }
+          }
+
+          // Redirect only if we have at least one valid attendee email
+          if (validEmails.length > 0) {
+            router.push("/(tabs)/home");
+          }
+        }
+      } catch (error) {
+        console.error('Error checking verified emails:', error);
+      }
+    };
+
+    checkVerifiedAttendees();
   }, []);
 
   const handleSignIn = async () => {
