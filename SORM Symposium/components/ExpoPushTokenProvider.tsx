@@ -7,6 +7,7 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import saveExpoPushToken from "@/api/saveExpoPushToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDeviceId } from "@/lib/user";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -59,20 +60,7 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
         throw new Error("Project ID not found.");
       }
 
-      let deviceId: string;
-      if (Platform.OS === "android") {
-        deviceId = Application.getAndroidId();
-      } else if (Platform.OS === "ios") {
-        const id = await Application.getIosIdForVendorAsync();
-        if (!id) {
-          // Properly handle this better in the future...
-          // Perhaps show a modal or something
-          throw new Error("iOS ID for vendor not found.");
-        }
-        deviceId = id;
-      } else {
-        throw new Error("Cannot retrieve device ID: Unsupported platform.");
-      }
+      const deviceId = await getDeviceId();
 
       const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
         .data;

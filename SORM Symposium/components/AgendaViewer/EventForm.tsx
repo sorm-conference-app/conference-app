@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput, ScrollView, Pressable } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import type { Event } from '@/types/Events.types';
-import { removeSecondsFromTime } from './utils';
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Colors, TopicColors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import type { Event } from "@/types/Events.types";
+import React, { useEffect, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import { removeSecondsFromTime } from "./utils";
 
 type EventFormProps = {
   event?: Event;
@@ -13,33 +19,38 @@ type EventFormProps = {
   onCancel: () => void;
 };
 
+// Available topics for selection
+const AVAILABLE_TOPICS = Object.keys(TopicColors);
+
 export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
-  const colorScheme = useColorScheme() ?? 'light';
-  const [title, setTitle] = useState(event?.title ?? '');
-  const [description, setDescription] = useState(event?.description ?? '');
-  const [location, setLocation] = useState(event?.location ?? '');
-  const [startTime, setStartTime] = useState(event?.start_time ?? '');
-  const [endTime, setEndTime] = useState(event?.end_time ?? '');
-  const [eventDate, setEventDate] = useState(event?.event_date ?? '');
-  const [speaker, setSpeaker] = useState(event?.speaker ?? '');
-  const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? '');
-  const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? '');
-  const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? '');
-  const [speakerBio, setSpeakerBio] = useState(event?.speaker_bio ?? '');
+  const colorScheme = useColorScheme() ?? "light";
+  const [title, setTitle] = useState(event?.title ?? "");
+  const [description, setDescription] = useState(event?.description ?? "");
+  const [location, setLocation] = useState(event?.location ?? "");
+  const [startTime, setStartTime] = useState(event?.start_time ?? "");
+  const [endTime, setEndTime] = useState(event?.end_time ?? "");
+  const [eventDate, setEventDate] = useState(event?.event_date ?? "");
+  const [speaker, setSpeaker] = useState(event?.speaker ?? "");
+  const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? "");
+  const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? "");
+  const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? "");
+  const [speakerBio, setSpeakerBio] = useState(event?.speaker_bio ?? "");
+  const [topic, setTopic] = useState(event?.topic ?? "General");
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
   useEffect(() => {
-    setTitle(event?.title ?? '');
-    setDescription(event?.description ?? '');
-    setLocation(event?.location ?? '');
-    setStartTime(event?.start_time ?? '');
-    setEndTime(event?.end_time ?? '');
-    setEventDate(event?.event_date ?? '');
-    setSpeaker(event?.speaker ?? '');
-    setSlidesUrl(event?.slides_url ?? '');
-    setSpeakerName(event?.speaker_name ?? '');
-    setSpeakerTitle(event?.speaker_title ?? '');
-    setSpeakerBio(event?.speaker_bio ?? '');
+    setTitle(event?.title ?? "");
+    setDescription(event?.description ?? "");
+    setLocation(event?.location ?? "");
+    setStartTime(event?.start_time ?? "");
+    setEndTime(event?.end_time ?? "");
+    setEventDate(event?.event_date ?? "");
+    setSpeaker(event?.speaker ?? "");
+    setSlidesUrl(event?.slides_url ?? "");
+    setSpeakerName(event?.speaker_name ?? "");
+    setSpeakerTitle(event?.speaker_title ?? "");
+    setSpeakerBio(event?.speaker_bio ?? "");
+    setTopic(event?.topic ?? "General");
     setCanSubmit(event ? true : false);
   }, [event]);
 
@@ -62,17 +73,21 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       speaker_name: speakerName,
       speaker_title: speakerTitle,
       speaker_bio: speakerBio,
-      is_deleted: false,
+      is_deleted: event?.is_deleted ?? false,
+      topic: topic === "General" ? null : topic,
     });
   };
 
   return (
-    <ThemedView style={[styles.container,
-      { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-    ]}>
+    <ThemedView
+      style={[
+        styles.container,
+        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
+      ]}
+    >
       <ScrollView style={styles.scrollView}>
         <ThemedText type="subtitle" style={styles.title}>
-          {event ? 'Editing "' + event.title + '"' : 'Add New Event'}
+          {event ? 'Editing "' + event.title + '"' : "Add New Event"}
         </ThemedText>
 
         <View style={styles.formGroup}>
@@ -80,16 +95,24 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              setCanSubmit(Boolean(text && (title !== "Break" ? location : true) && startTime && endTime && eventDate));
+              setCanSubmit(
+                Boolean(
+                  text &&
+                    (title !== "Break" ? location : true) &&
+                    startTime &&
+                    endTime &&
+                    eventDate
+                )
+              );
             }}
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
@@ -100,16 +123,55 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
+          <ThemedText>Topic</ThemedText>
+          <View style={styles.topicContainer}>
+            {AVAILABLE_TOPICS.map((topicOption) => (
+              <Pressable
+                key={topicOption}
+                style={[
+                  styles.topicOption,
+                  {
+                    backgroundColor:
+                      topic === topicOption
+                        ? TopicColors[topicOption as keyof typeof TopicColors]
+                        : Colors[colorScheme].background,
+                  },
+                  {
+                    borderColor:
+                      TopicColors[topicOption as keyof typeof TopicColors],
+                  },
+                ]}
+                onPress={() => setTopic(topicOption)}
+              >
+                <ThemedText
+                  style={[
+                    styles.topicOptionText,
+                    {
+                      color:
+                        topic === topicOption
+                          ? "black"
+                          : Colors[colorScheme].text,
+                    },
+                  ]}
+                >
+                  {topicOption}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
           <ThemedText>Description</ThemedText>
           <TextInput
             style={[
               styles.input,
               styles.textArea,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={description}
             onChangeText={setDescription}
@@ -128,16 +190,24 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={location}
             onChangeText={(text) => {
               setLocation(text);
-              setCanSubmit(Boolean(title && (title !== "Break" ? text : true) && startTime && endTime && eventDate));
+              setCanSubmit(
+                Boolean(
+                  title &&
+                    (title !== "Break" ? text : true) &&
+                    startTime &&
+                    endTime &&
+                    eventDate
+                )
+              );
             }}
             placeholder="Event location"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
@@ -152,16 +222,24 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={eventDate}
             onChangeText={(text) => {
               setEventDate(text);
-              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && endTime && text));
+              setCanSubmit(
+                Boolean(
+                  title &&
+                    (title !== "Break" ? location : true) &&
+                    startTime &&
+                    endTime &&
+                    text
+                )
+              );
             }}
             placeholder="MM-DD"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
@@ -176,16 +254,24 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={removeSecondsFromTime(startTime)}
             onChangeText={(text) => {
               setStartTime(text);
-              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && text && endTime && eventDate));
+              setCanSubmit(
+                Boolean(
+                  title &&
+                    (title !== "Break" ? location : true) &&
+                    text &&
+                    endTime &&
+                    eventDate
+                )
+              );
             }}
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
@@ -200,16 +286,24 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={removeSecondsFromTime(endTime)}
             onChangeText={(text) => {
               setEndTime(text);
-              setCanSubmit(Boolean(title && (title !== "Break" ? location : true) && startTime && text && eventDate));
+              setCanSubmit(
+                Boolean(
+                  title &&
+                    (title !== "Break" ? location : true) &&
+                    startTime &&
+                    text &&
+                    eventDate
+                )
+              );
             }}
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
@@ -220,7 +314,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText style={styles.subtitleText}>Leave Speaker-related fields blank if not applicable</ThemedText>
+          <ThemedText style={styles.subtitleText}>
+            Leave Speaker-related fields blank if not applicable
+          </ThemedText>
         </View>
 
         <View style={styles.formGroup}>
@@ -228,11 +324,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={speaker}
             onChangeText={setSpeaker}
@@ -249,11 +345,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={speakerName}
             onChangeText={setSpeakerName}
@@ -270,11 +366,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={speakerTitle}
             onChangeText={setSpeakerTitle}
@@ -292,11 +388,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             style={[
               styles.input,
               styles.textArea,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={speakerBio}
             onChangeText={setSpeakerBio}
@@ -315,11 +411,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + '40',
-              }
+                borderColor: Colors[colorScheme].text + "40",
+              },
             ]}
             value={slidesUrl}
             onChangeText={setSlidesUrl}
@@ -335,8 +431,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
           <Pressable
             style={[
               styles.button,
-              { backgroundColor: canSubmit ? Colors[colorScheme].adminButton : Colors.light.tabIconDefault },
-              { borderColor: Colors[colorScheme].tint }
+              {
+                backgroundColor: canSubmit
+                  ? Colors[colorScheme].adminButton
+                  : Colors.light.tabIconDefault,
+              },
+              { borderColor: Colors[colorScheme].tint },
             ]}
             onPress={handleSubmit}
             disabled={!canSubmit}
@@ -345,12 +445,23 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             accessibilityRole="button"
             accessibilityState={{ disabled: !canSubmit }}
           >
-            <ThemedText style={[styles.buttonText,
-              { color: canSubmit ? Colors[colorScheme].adminButtonText : Colors[colorScheme].adminButtonText }
-            ]}>
-              {event ? 
-                canSubmit ? 'Update Event' : 'Fill required fields *'
-              : canSubmit ? 'Add Event' : 'Fill required fields *'}
+            <ThemedText
+              style={[
+                styles.buttonText,
+                {
+                  color: canSubmit
+                    ? Colors[colorScheme].adminButtonText
+                    : Colors[colorScheme].adminButtonText,
+                },
+              ]}
+            >
+              {event
+                ? canSubmit
+                  ? "Update Event"
+                  : "Fill required fields *"
+                : canSubmit
+                ? "Add Event"
+                : "Fill required fields *"}
             </ThemedText>
           </Pressable>
 
@@ -358,16 +469,21 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].tint }
+              { borderColor: Colors[colorScheme].tint },
             ]}
             onPress={onCancel}
             accessibilityLabel="Cancel event button"
             accessibilityHint="Press to cancel the event edit or creation"
             accessibilityRole="button"
           >
-            <ThemedText style={[styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText }
-            ]}>Cancel</ThemedText>
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Cancel
+            </ThemedText>
           </Pressable>
         </View>
       </ScrollView>
@@ -384,7 +500,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   formGroup: {
     marginBottom: 16,
@@ -398,12 +514,12 @@ const styles = StyleSheet.create({
   },
   textArea: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     paddingTop: 8,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
     marginBottom: 40,
   },
@@ -413,14 +529,32 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   subtitleText: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
     marginTop: 8,
   },
-}); 
+  topicContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  topicOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+    alignItems: "center",
+    minWidth: 80,
+  },
+  topicOptionText: {
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+});

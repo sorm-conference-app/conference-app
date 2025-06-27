@@ -1,7 +1,7 @@
-import { Platform } from "react-native";
-import { getAndroidId, getIosIdForVendorAsync } from "expo-application";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAndroidId, getIosIdForVendorAsync } from "expo-application";
 import { randomUUID } from "expo-crypto";
+import { Platform } from "react-native";
 
 /**
  * Get the current device ID. For web, this returns a UUID, since web does not necessarily

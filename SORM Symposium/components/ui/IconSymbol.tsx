@@ -28,6 +28,8 @@ const MAPPING = {
   "phone.fill": "phone",
   "envelope.fill": "email",
   "message.fill": "message",
+  "star.fill": "star",
+  "star": "star-outline",
 } as IconMapping;
 
 /**
