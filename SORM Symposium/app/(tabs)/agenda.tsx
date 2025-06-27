@@ -6,7 +6,7 @@ import { EventList } from "@/components/AgendaViewer/EventList";
 import { useState } from "react";
 
 export default function AgendaScreen() {
-  const [showSaved, setShowSaved] = useState<'all' | 'saved'>('all');
+  const [showSaved, setShowSaved] = useState<'active' | 'saved' | "all" | "deleted">('active');
 
   const navigateToEvent = (event: Event) => {
     router.push({

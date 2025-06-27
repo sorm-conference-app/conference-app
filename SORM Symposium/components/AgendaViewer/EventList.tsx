@@ -146,7 +146,9 @@ export function EventList({
                 { borderColor: Colors[colorScheme].tint },
               ]}
               onPress={() =>
-                setShowDeleted((prev) => (prev === "saved" ? "all" : "saved"))
+                setShowDeleted((prev) =>
+                  prev === "saved" ? "active" : "saved",
+                )
               }
             >
               <ThemedText>
