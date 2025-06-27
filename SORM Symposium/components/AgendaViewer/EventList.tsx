@@ -126,6 +126,7 @@ export function EventList({
         {showHeader && (
           <ThemedView
             style={{
+              flexWrap: "wrap",
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
@@ -141,9 +142,11 @@ export function EventList({
                 {
                   padding: 8,
                   borderRadius: 5,
+                  borderWidth: 1,
+                  marginLeft: 16,
                 },
                 { backgroundColor: Colors[colorScheme].adminButton },
-                { borderColor: Colors[colorScheme].tint },
+                { borderColor: Colors[colorScheme].text },
               ]}
               onPress={() =>
                 setShowDeleted((prev) =>
@@ -151,7 +154,12 @@ export function EventList({
                 )
               }
             >
-              <ThemedText>
+              <ThemedText
+                style={[
+                  { color: Colors[colorScheme].adminButtonText },
+                  { fontWeight: "bold" },
+                ]}
+              >
                 Viewing: {showDeleted === "saved" ? "Saved" : "All"} Events
               </ThemedText>
             </Pressable>
