@@ -1,3 +1,4 @@
+import { TopicColors } from '@/constants/Colors';
 import type { Event } from '@/types/Events.types';
 
 export type TimeConflict = {
@@ -139,6 +140,28 @@ export function groupEventsByDate(events: Event[]): EventsByDate {
   }, {});
 }
 
+export function sortEventsByLocation(events: Event[], col1Location: string, col2Location: string): Event[] {
+  events.sort((a, b) => {
+    // Events with COL_1_LOCATION go to left column (first)
+    const aIsCol1 = a.location === col1Location;
+    const bIsCol1 = b.location === col1Location;
+    
+    if (aIsCol1 && !bIsCol1) return -1;
+    if (!aIsCol1 && bIsCol1) return 1;
+    
+    // Events with COL_2_LOCATION go to right column (last)
+    const aIsCol2 = a.location === col2Location;
+    const bIsCol2 = b.location === col2Location;
+    
+    if (aIsCol2 && !bIsCol2) return 1;
+    if (!aIsCol2 && bIsCol2) return -1;
+    
+    // For events with same location priority, maintain original order
+    return 0;
+  });
+  return events;
+}
+
 export const findConflicts = (events: Event[]) => {
   const conflictIds = new Set<number>();
   const items = [];
@@ -208,4 +231,24 @@ export function calculateHeight(startTime: string, endTime: string): number {
   const duration = convert24HrTimeToSeconds(endTime) - convert24HrTimeToSeconds(startTime);
   const BASE_HEIGHT = 130;
   return Math.max(BASE_HEIGHT, BASE_HEIGHT / 3600 * duration);
+}
+
+/**
+ * Get the color for a given topic
+ * @param topic - The topic name
+ * @returns The color hex code for the topic, or a default gray if not found
+ */
+export function getTopicColor(topic: string | null): string {
+  if (!topic) return TopicColors.General;
+  return TopicColors[topic as keyof typeof TopicColors] || TopicColors.General;
+}
+
+/**
+ * Get a readable topic name, preserving the original case
+ * @param topic - The topic name
+ * @returns The topic name as-is, or 'General' if null
+ */
+export function formatTopicName(topic: string | null): string {
+  if (!topic) return 'General';
+  return topic;
 }

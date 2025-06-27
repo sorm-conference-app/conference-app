@@ -1,14 +1,19 @@
-import AnnouncementForm from "@/components/AnnouncementForm";
 import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
+import AnnouncementForm from "@/components/AnnouncementForm";
 import ContactEditForm from "@/components/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import useActiveUserCount from "@/hooks/useActiveUserCount";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Redirect } from "expo-router";
-import { useState, useRef } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, ViewStyle, View } from "react-native";
-import useActiveUserCount from "@/hooks/useActiveUserCount";
-import React from "react";
+import React, { useRef } from "react";
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from "react-native";
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -37,33 +42,37 @@ export default function Admin() {
   const scrollToEvent = (eventY: number) => {
     if (eventY === 0) return;
     if (agendaEditorRef.current) {
-        agendaEditorRef.current.measure((x, y, width, height, pageX, pageY) => {
-          if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({ y: y + eventY, animated: true });
-          }
-        });
-      }
+      agendaEditorRef.current.measure((x, y, width, height, pageX, pageY) => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y: y + eventY, animated: true });
+        }
+      });
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView} 
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
         <ThemedView>
-          <ThemedText>Welcome to the admin panel! | Active Users:{" "}
-          {Object.entries(activeUsers).map(([platform, count]) => (
-            <>
-              {capitalize(platform)}: {count}{" "}
-            </>
-          ))}
+          <ThemedText>
+            Welcome to the admin panel! | Active Users:{" "}
+            {Object.entries(activeUsers).map(([platform, count]) => (
+              <React.Fragment key={platform}>
+                {capitalize(platform)}: {count}{" "}
+              </React.Fragment>
+            ))}
           </ThemedText>
-        <AnnouncementForm />
-        <ContactEditForm />
+          <AnnouncementForm />
+          <ContactEditForm />
           <View ref={agendaEditorRef}>
-            <AgendaEditor onShowForm={scrollToAgendaEditor} onCloseForm={scrollToEvent} />
+            <AgendaEditor
+              onShowForm={scrollToAgendaEditor}
+              onCloseForm={scrollToEvent}
+            />
           </View>
         </ThemedView>
       </ScrollView>
@@ -74,7 +83,7 @@ export default function Admin() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: '100%',
+    height: "100%",
   } as ViewStyle,
   scrollView: {
     flex: 1,

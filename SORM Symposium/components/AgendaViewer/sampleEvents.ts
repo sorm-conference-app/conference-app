@@ -8,6 +8,7 @@ export const sampleEvents: Event[] = [
     location: 'Main Hall',
     startTime: '09:00',
     endTime: '10:00',
+    topic: 'General',
   },
   {
     id: '2',
@@ -16,6 +17,7 @@ export const sampleEvents: Event[] = [
     location: 'Main Hall',
     startTime: '10:00',
     endTime: '11:30',
+    topic: 'Keynote',
   },
   {
     id: '3',
@@ -24,6 +26,7 @@ export const sampleEvents: Event[] = [
     location: 'Room 101',
     startTime: '11:00', // Conflicts with Keynote Speech
     endTime: '12:30',
+    topic: 'Workshop',
   },
   {
     id: '4',
@@ -32,6 +35,7 @@ export const sampleEvents: Event[] = [
     location: 'Dining Hall',
     startTime: '12:30',
     endTime: '13:30',
+    topic: 'Lunch',
   },
   {
     id: '5',
@@ -40,6 +44,7 @@ export const sampleEvents: Event[] = [
     location: 'Main Hall',
     startTime: '13:30',
     endTime: '15:00',
+    topic: 'Panel',
   },
   {
     id: '6',
@@ -48,6 +53,7 @@ export const sampleEvents: Event[] = [
     location: 'Room 102',
     startTime: '14:00', // Conflicts with Panel Discussion
     endTime: '15:30',
+    topic: 'Workshop',
   },
   {
     id: '7',
@@ -56,6 +62,7 @@ export const sampleEvents: Event[] = [
     location: 'Lobby',
     startTime: '15:30',
     endTime: '16:30',
+    topic: 'Networking',
   },
   {
     id: '8',
@@ -64,5 +71,6 @@ export const sampleEvents: Event[] = [
     location: 'Main Hall',
     startTime: '16:30',
     endTime: '17:00',
+    topic: 'General',
   },
 ]; 
