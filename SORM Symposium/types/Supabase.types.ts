@@ -162,13 +162,46 @@ export type Database = {
           id: string
         }
         Update: {
-          created_at?: string
-          expo_push_token?: string
-          id?: string
-        }
-        Relationships: []
-      }
-    }
+          created_at?: string;
+          expo_push_token?: string;
+          id?: string;
+        };
+        Relationships: [];
+      };
+      attendee_info: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          name: string | null;
+          organization: string | null;
+          title: string | null;
+          additional_info: string | null;
+          is_admin: boolean;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          email: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          is_admin?: boolean;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          email?: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          is_admin?: boolean;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
       [_ in never]: never
     }
