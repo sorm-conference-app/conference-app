@@ -9,7 +9,13 @@ import {
   subscribeToEvents,
 } from "@/services/events";
 import type { Event } from "@/types/Events.types";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
@@ -19,12 +25,16 @@ import {
   groupEventsByDate,
   sortEventsByLocation,
 } from "./utils";
+import { Pressable } from "react-native-gesture-handler";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
   onEventPosition: (event: Event, y: number) => void;
   showHeader?: boolean;
-  showDeleted?: "all" | "active" | "deleted";
+  showDeleted?: "all" | "active" | "deleted" | "saved";
+  setShowDeleted?: Dispatch<
+    SetStateAction<"all" | "active" | "deleted" | "saved">
+  >;
   reloadTrigger?: number;
 };
 
@@ -33,6 +43,7 @@ export function EventList({
   onEventPosition,
   showHeader = true,
   showDeleted = "active",
+  setShowDeleted = () => {}, // Default to a no-op function if not provided
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
@@ -45,6 +56,15 @@ export function EventList({
   const [error, setError] = useState<string | null>(null);
   const dateRefs = useRef<{ [key: string]: View | null }>({});
   const dateHeights = useRef<{ [key: string]: number }>({});
+  const displayedEvents = events.filter(
+    (event) =>
+      showDeleted === "all" ||
+      (showDeleted === "active" && !event.is_deleted) ||
+      (showDeleted === "deleted" && event.is_deleted) ||
+      (showDeleted === "saved" &&
+        !event.is_deleted &&
+        rsvpEventIds.has(event.id)),
+  );
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -52,14 +72,7 @@ export function EventList({
         const deviceId = await getDeviceId();
         const rsvpedEventIds = await getRSVPedEvents(deviceId);
         const allEvents = await getAllEvents();
-        setEvents(
-          allEvents.filter(
-            (event) =>
-              showDeleted === "all" ||
-              (showDeleted === "active" && !event.is_deleted) ||
-              (showDeleted === "deleted" && event.is_deleted)
-          )
-        );
+        setEvents(allEvents);
         setRsvpEventIds(new Set(rsvpedEventIds));
       } catch (err) {
         console.error("Error fetching events:", err);
@@ -70,7 +83,7 @@ export function EventList({
     };
 
     fetchEvents();
-  }, [reloadTrigger, showDeleted]);
+  }, [reloadTrigger]);
 
   useEffect(() => {
     setLoading(true);
@@ -78,14 +91,7 @@ export function EventList({
 
     // Subscribe to real-time updates
     const subscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(
-        updatedEvents.filter(
-          (event) =>
-            showDeleted === "all" ||
-            (showDeleted === "active" && !event.is_deleted) ||
-            (showDeleted === "deleted" && event.is_deleted)
-        )
-      );
+      setEvents(updatedEvents);
       setLoading(false);
     });
 
@@ -93,7 +99,7 @@ export function EventList({
     return () => {
       subscribe();
     };
-  }, [showDeleted]);
+  }, []);
 
   if (loading) {
     return (
@@ -111,16 +117,53 @@ export function EventList({
     );
   }
 
-  const eventsByDate = groupEventsByDate(events);
+  const eventsByDate = groupEventsByDate(displayedEvents);
   const sortedDates = Object.keys(eventsByDate).sort();
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         {showHeader && (
-          <ThemedText style={styles.header} type="title">
-            Conference Schedule
-          </ThemedText>
+          <ThemedView
+            style={{
+              flexWrap: "wrap",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: 16,
+            }}
+          >
+            <ThemedText style={styles.header} type="title">
+              Conference Schedule
+            </ThemedText>
+
+            <Pressable
+              style={[
+                {
+                  padding: 8,
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  marginLeft: 16,
+                },
+                { backgroundColor: Colors[colorScheme].adminButton },
+                { borderColor: Colors[colorScheme].text },
+              ]}
+              onPress={() =>
+                setShowDeleted((prev) =>
+                  prev === "saved" ? "active" : "saved",
+                )
+              }
+            >
+              <ThemedText
+                style={[
+                  { color: Colors[colorScheme].adminButtonText },
+                  { fontWeight: "bold" },
+                ]}
+              >
+                Viewing: {showDeleted === "saved" ? "Saved" : "All"} Events
+              </ThemedText>
+            </Pressable>
+          </ThemedView>
         )}
         <View style={styles.content}>
           {sortedDates.length === 0 ? (
@@ -162,7 +205,7 @@ export function EventList({
                     const sortedEvents = sortEventsByLocation(
                       [item, ...item.conflictingItems],
                       COL_1_LOCATION,
-                      COL_2_LOCATION
+                      COL_2_LOCATION,
                     );
                     const col1Event = sortedEvents[0];
                     const col2Events = sortedEvents.slice(1);
@@ -178,18 +221,18 @@ export function EventList({
                               .filter((d) => d < date)
                               .reduce(
                                 (sum, d) => sum + (dateHeights.current[d] || 0),
-                                0
+                                0,
                               );
 
                             // call the onEventPosition callback with the y position of the events in this row
                             onEventPosition(
                               item,
-                              y + e.nativeEvent.layout.y + previousHeights
+                              y + e.nativeEvent.layout.y + previousHeights,
                             );
                             for (const conflictItem of item.conflictingItems) {
                               onEventPosition(
                                 conflictItem,
-                                y + e.nativeEvent.layout.y + previousHeights
+                                y + e.nativeEvent.layout.y + previousHeights,
                               );
                             }
                           });
@@ -202,7 +245,7 @@ export function EventList({
                             {
                               marginTop: calculateEventOffset(
                                 col2Events[0].start_time,
-                                col1Event.start_time
+                                col1Event.start_time,
                               ),
                             },
                           ]}
@@ -227,7 +270,7 @@ export function EventList({
                               style={{
                                 marginTop: calculateEventOffset(
                                   col1Event.start_time,
-                                  col2Event.start_time
+                                  col2Event.start_time,
                                 ),
                               }}
                             >
@@ -261,13 +304,13 @@ export function EventList({
                             .filter((d) => d < date)
                             .reduce(
                               (sum, d) => sum + (dateHeights.current[d] || 0),
-                              0
+                              0,
                             );
 
                           // call the onEventPosition callback with the y position of the event
                           onEventPosition(
                             item,
-                            y + e.nativeEvent.layout.y + previousHeights
+                            y + e.nativeEvent.layout.y + previousHeights,
                           );
                         });
                       }}
