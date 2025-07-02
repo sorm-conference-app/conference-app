@@ -240,6 +240,26 @@ export type Database = {
         };
         Relationships: [];
       };
+      verification_codes: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Insert: {
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Update: {
+          email?: string;
+          code?: string;
+          has_been_used?: boolean;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never
