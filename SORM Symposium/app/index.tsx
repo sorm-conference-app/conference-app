@@ -1,6 +1,7 @@
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ContactSharingModal from "@/components/ContactSharingModal";
+import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,6 +13,8 @@ import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
 import React, { useEffect, useState } from "react";
+import { sendVerificationEmail } from "@/hooks/use6DigitVerification";
+import { use6DigitVerificationModal } from '@/hooks/use6DigitVerificationModal';
 
 type UserType = "attendee" | "organizer";
 
@@ -32,6 +35,9 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
+  
+  const sixDigitVerificationModal = use6DigitVerificationModal();
+  const [emailVerified, setEmailVerified] = useState<boolean>(false);
   
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
@@ -82,6 +88,19 @@ export default function Login() {
     checkVerifiedAttendees();
   }, []);
 
+  useEffect(() => {
+    const checkEmailVerified = async () => {
+      if (emailVerified) {
+        const modalShown = await showContactSharingModal(email);
+        if (!modalShown) {
+          router.push("/(tabs)/home");
+        }
+        setEmailVerified(false);
+      }
+    };
+    checkEmailVerified();
+  }, [emailVerified]);
+
   const handleSignIn = async () => {
     if (!validEmail) {
       setErr("Please enter a valid email address");
@@ -101,14 +120,9 @@ export default function Login() {
         const result = await signinAttendee(email, () => {
           setShowConfirmationModal(true);
         });
+        // Show the verification modal and wait for completion
         if (result.verified) {
-          // Check if we should show the contact sharing modal
-          const modalShown = await showContactSharingModal(email);
-          // Only navigate to home if the modal isn't shown
-          // If modal is shown, navigation will happen after it closes
-          if (!modalShown) {
-            router.push("/(tabs)/home");
-          }
+          await sixDigitVerificationModal.showModal(email);
         }
       } else if (userType === "organizer") {
         await signinAdmin(email, password);
@@ -124,6 +138,7 @@ export default function Login() {
 
   const handleProceedAsAttendee = async () => {
     setShowConfirmationModal(false);
+    await sixDigitVerificationModal.showModal(email);
     setIsProcessing(true);
     setErr("");
     
@@ -175,6 +190,16 @@ export default function Login() {
     setUserType("organizer");
     setPassword("");
     setErr("");
+  };
+
+  const handleVerificationComplete = () => {
+    setEmailVerified(true);
+    sixDigitVerificationModal.hideModal();
+  };
+
+  const handleCancel = () => {
+    setEmailVerified(false);
+    sixDigitVerificationModal.hideModal();
   };
 
   const selectUserType = async (type: UserType) => {
@@ -355,6 +380,14 @@ export default function Login() {
         onDontShare={handleContactSharingDontShare}
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
+      />
+
+      <SixDigitVerificationModal
+        visible={sixDigitVerificationModal.visible}
+        email={email}
+        onVerificationComplete={handleVerificationComplete}
+        onCancel={handleCancel}
+        onResendCode={() => sixDigitVerificationModal.resendVerificationEmail(email)}
       />
     </>
   );

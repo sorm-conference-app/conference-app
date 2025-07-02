@@ -1,17 +1,7 @@
 import { supabase } from '@/constants/supabase';
-import nodemailer from 'nodemailer';
-
-// Create a transporter using your Gmail and app password
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'sorm.symposium@gmail.com',
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
 
 // Send an email
-export async function sendVerificationEmail(to: string, resend: boolean = false) {
+export async function sendVerificationEmail(to: string, resend: boolean = false): Promise<boolean> {
   const code = await generate6DigitVerificationCode();
   if (resend) {
     await supabase
@@ -31,20 +21,26 @@ export async function sendVerificationEmail(to: string, resend: boolean = false)
       });
   }
 
-  await transporter.sendMail({
-    from: '"SORM Symposium" <sorm.symposium@gmail.com>',
-    to,
-    subject: 'SORM Symposium Email Verification Code',
-    text: `Your one-time verification code is: ${code}`,
-    html: `<p>Your one-time verification code is: <b>${code}</b></p>`,
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('send-verification-code', {
+      body: { email: to, code }
+    });
+
+    if (error) {
+      throw new Error('Failed to send verification email');
+    }
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+  }
+
+  return true;
 }
 
 export async function generate6DigitVerificationCode() {
     let code; 
     do {
         code = Math.floor(100000 + Math.random() * 900000).toString();
-    } while (await isValidCode(code));
+    } while (!await isValidCode(code));
 
     return code;
 }
@@ -55,7 +51,7 @@ export async function isValidCode(code: string) {
         .from('verification_codes')
         .select('*')
         .eq('code', code)
-        .single();
+        .maybeSingle();
 
     if (error) {
         throw error;
@@ -72,7 +68,7 @@ export async function checkCode(email: string, code: string) {
         .eq('code', code)
         .eq('email', email)
         .eq('has_been_used', false)
-        .single();
+        .maybeSingle();
 
     if (error) {
         throw error;
@@ -84,7 +80,7 @@ export async function checkCode(email: string, code: string) {
         .update({ has_been_used: true })
         .eq('code', code)
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         throw updateError;

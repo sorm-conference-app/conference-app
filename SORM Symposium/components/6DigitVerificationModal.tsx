@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
 import { ThemedView } from './ThemedView';
@@ -43,37 +43,34 @@ export default function SixDigitVerificationModal({
 
   // Check for valid 6-digit code on input change
   useEffect(() => {
-    if (verificationCode.length === 6 && /^\d{6}$/.test(verificationCode)) {
-      handleVerifyCode();
-    }
-  }, [verificationCode]);
-
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 6 || !/^\d{6}$/.test(verificationCode)) {
-      return;
-    }
-
-    setIsVerifying(true);
-    setError('');
-
-    try {
-      const isValid = await checkCode(email, verificationCode);
-      
-      if (isValid) {
-        // Code is valid, complete verification
-        onVerificationComplete();
+    const verifyCode = async () => {
+      if (verificationCode.length !== 6 || !/^\d{6}$/.test(verificationCode)) {
+        return;
       } else {
-        setError('Invalid or expired verification code. Please try again or resend a new code.');
-        setVerificationCode('');
+        setIsVerifying(true);
+        setError('');
+
+        try {
+          const isValid = await checkCode(email, verificationCode);
+        
+          if (isValid) {
+            // Code is valid, complete verification
+            onVerificationComplete();
+          } else {
+            setError('Invalid or expired verification code. Please try again or resend a new code.');
+            setVerificationCode('');
+          }
+        } catch (error) {
+          console.error('Verification error:', error);
+          setError('Failed to verify code. Please try again.');
+          setVerificationCode('');
+        } finally {
+          setIsVerifying(false);
+        }
       }
-    } catch (error) {
-      console.error('Verification error:', error);
-      setError('Failed to verify code. Please try again.');
-      setVerificationCode('');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+    };
+    verifyCode();
+  }, [verificationCode]);
 
   const handleResendCode = async () => {
     setIsResending(true);
@@ -129,6 +126,10 @@ export default function SixDigitVerificationModal({
             </ThemedText>
           </ThemedView>
 
+          <ThemedText style={styles.message}>
+            Check your spam folder if you don't see it in your inbox.
+          </ThemedText>
+
           <ThemedView style={[
             styles.codeContainer,
             { backgroundColor: Colors[colorScheme].background }
@@ -140,8 +141,7 @@ export default function SixDigitVerificationModal({
               value={verificationCode}
               onChangeText={(text) => {
                 // Only allow digits and limit to 6 characters
-                const digitsOnly = text.replace(/[^0-9]/g, '');
-                setVerificationCode(digitsOnly.slice(0, 6));
+                setVerificationCode((text.replace(/[^0-9]/g, '')).slice(0, 6));
               }}
               placeholder="000000"
               keyboardType="numeric"
@@ -163,9 +163,7 @@ export default function SixDigitVerificationModal({
               styles.errorContainer,
               { backgroundColor: Colors[colorScheme].background }
             ]}>
-              <ThemedText style={styles.errorText}>
-                {error}
-              </ThemedText>
+              <ThemedText style={styles.errorText}>{error}</ThemedText>
             </ThemedView>
           )}
 
@@ -173,7 +171,6 @@ export default function SixDigitVerificationModal({
             The code will automatically verify when you enter all 6 digits.
           </ThemedText>
 
-          {/* Action buttons */}
           <ThemedView style={styles.buttonContainer}>
             <Pressable
               style={[
