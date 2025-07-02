@@ -34,5 +34,7 @@ export default function SormImageWrapper({
 const styles = StyleSheet.create({
   logo: {
     bottom: 0,
+    position: "absolute",
+    left: 0,
   },
 });
