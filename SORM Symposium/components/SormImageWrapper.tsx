@@ -2,16 +2,16 @@ import { ReactNode } from "react";
 import logo from "@/assets/images/sorm-logo.png";
 import ParallaxScrollView from "./ParallaxScrollView";
 import { Colors } from "@/constants/Colors";
-import { Image, Dimensions } from "react-native";
+import { Image, Dimensions, StyleSheet } from "react-native";
 
 export default function SormImageWrapper({
   children,
 }: {
   children: ReactNode;
 }) {
-  const width = Math.min(Dimensions.get('window').width, 500);
+  const width = Math.min(Dimensions.get("window").width, 500);
   const height = (width * 182) / 500;
-  
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{
@@ -21,7 +21,7 @@ export default function SormImageWrapper({
       headerImage={
         <Image
           source={logo}
-          style={{ width, height }}
+          style={[styles.logo, { width, height }]}
           alt="SORM Logo"
         />
       }
@@ -30,3 +30,9 @@ export default function SormImageWrapper({
     </ParallaxScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  logo: {
+    bottom: 0,
+  },
+});
