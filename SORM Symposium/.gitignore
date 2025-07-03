@@ -41,6 +41,9 @@ yarn-error.*
 supabase/.branches
 supabase/.temp
 
+# Drizzle
+/drizzle
+
 # typescript
 *.tsbuildinfo
 
