@@ -1,29 +1,43 @@
 import { Announcement } from "@/components/Announcement";
 import { ExternalLink } from "@/components/ExternalLink";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { supabase } from "@/constants/supabase";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Image } from "expo-image";
+import { clearVerifiedEmails } from "@/lib/attendeeStorage";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  Platform,
-  StyleSheet,
-  View,
-} from "react-native";
-
-const width = () => Math.min(Dimensions.get("window").width, 500);
-const height = () => (width() * 182) / 500;
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 
 export default function Home() {
   const navigateToAllAnnouncements = () => {
     router.push("/announcement/announcementList");
   };
+
+  /**
+   * Handle logout functionality
+   * - Log out any users from Supabase
+   * - Clear verified emails from local storage
+   * - Redirect to login page for all users
+   */
+  const handleLogout = async () => {
+    try {
+      // Clear verified emails from local storage
+      await clearVerifiedEmails();
+      // Log out any admin users from Supabase
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+
+    // Redirect to login page (index.tsx) for all users
+    router.replace("/");
+  };
+
   const colorScheme = useColorScheme() ?? "light";
   const { announcements, loading, error, refresh } = useAnnouncements(3);
 
@@ -72,19 +86,7 @@ export default function Home() {
   }, [announcements, loading, error, refresh, colorScheme]);
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{
-        dark: Colors.dark.tint,
-        light: Colors.light.secondaryBackgroundColor,
-      }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/sorm-logo.png")}
-          style={[styles.logoImage, { width: width(), height: height() }]}
-          alt="SORM Symposium Logo"
-        />
-      }
-    >
+    <SormImageWrapper>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome to the SORM Symposium!</ThemedText>
       </ThemedView>
@@ -142,7 +144,28 @@ export default function Home() {
           </ThemedText>
         </View>
       </ThemedView>
-    </ParallaxScrollView>
+
+      {/* Footer with auth buttons */}
+      <ThemedView style={styles.footerContainer}>
+        <View
+          style={[
+            styles.linkContainer,
+            {
+              borderColor: Colors[colorScheme].tint,
+              backgroundColor: Colors[colorScheme].background,
+            },
+          ]}
+        >
+          <ThemedText
+            type="link"
+            onPress={handleLogout}
+            style={[styles.viewAllLink, { color: Colors[colorScheme].text }]}
+          >
+            Logout
+          </ThemedText>
+        </View>
+      </ThemedView>
+    </SormImageWrapper>
   );
 }
 
@@ -194,5 +217,10 @@ const styles = StyleSheet.create({
   },
   retryLink: {
     textAlign: "center",
+  },
+  footerContainer: {
+    padding: 12,
+    marginTop: 16,
+    alignItems: "center",
   },
 });

@@ -5,8 +5,9 @@ import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from "react-native";
-import ThemedTextInput from "./ThemedTextInput";
 import { ThemedText } from "./ThemedText";
+import ThemedTextInput from "./ThemedTextInput";
+import { ThemedView } from "./ThemedView";
 
 /**
  * Form for editing existing contact information in Supabase.
@@ -103,7 +104,16 @@ export default function ContactEditForm() {
   }
 
   if (fetching) {
-    return <ActivityIndicator size="large" />;
+    return (
+      <ThemedView style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="title">Contact Editor</ThemedText>
+        </View>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" />
+        </View>
+      </ThemedView>
+    );
   }
 
   // Picker style for the actual picker component
@@ -111,87 +121,106 @@ export default function ContactEditForm() {
     color: Colors[colorScheme].text,
     backgroundColor: Colors[colorScheme].background,
     flex: 1,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: Colors[colorScheme].tint,
-    paddingHorizontal: 10,
     minHeight: 48,
   };
 
+  // Container style for the picker to show border properly
+  const pickerContainerStyle = {
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: Colors[colorScheme].tint,
+    backgroundColor: Colors[colorScheme].background,
+    overflow: 'hidden' as 'hidden',
+  };
+
   return (
-    <View style={{ gap: 16 }}>
-      {/* Picker for selecting a contact */}
-      <Picker
-        selectedValue={selectedId}
-        onValueChange={value => {
-          // Handle the "Select a contact" option and convert string to number if needed
-          if (value === null || value === undefined || value === "" || value === "select") {
-            setSelectedId("");
-          } else {
-            const numericValue = Number(value);
-            // Only set if it's a valid number to avoid NaN
-            if (!isNaN(numericValue)) {
-              setSelectedId(numericValue);
-            }
-          }
-        }}
-        style={pickerStyle}
-        dropdownIconColor={Colors[colorScheme].tint}
-        itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
-        accessibilityLabel="Contact selection dropdown"
-        accessibilityHint="Select a contact to edit their information"
-        accessibilityRole="combobox"
-      >
-        <Picker.Item 
-          label="Select a contact" 
-          value="select" 
-          color={Colors[colorScheme].text}
+    <ThemedView style={styles.container}>
+      <View style={[styles.header, { borderBottomColor: Colors[colorScheme].tint }]}>
+        <ThemedText type="title">Contact Editor</ThemedText>
+        <ThemedText 
+          style={[styles.subtitleText, { color: Colors[colorScheme].text }]} 
+          type="subtitle"
+        >
+          Select a contact from the list to edit their information
+        </ThemedText>
+      </View>
+      
+      <View style={styles.content}>
+        {/* Picker for selecting a contact */}
+        <View style={pickerContainerStyle}>
+          <Picker
+            selectedValue={selectedId}
+            onValueChange={value => {
+              // Handle the "Select a contact" option and convert string to number if needed
+              if (value === null || value === undefined || value === "" || value === "select") {
+                setSelectedId("");
+              } else {
+                const numericValue = Number(value);
+                // Only set if it's a valid number to avoid NaN
+                if (!isNaN(numericValue)) {
+                  setSelectedId(numericValue);
+                }
+              }
+            }}
+            style={pickerStyle}
+            dropdownIconColor={Colors[colorScheme].tint}
+            itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
+            accessibilityLabel="Contact selection dropdown"
+            accessibilityHint="Select a contact to edit their information"
+            accessibilityRole="combobox"
+          >
+            <Picker.Item 
+              label="Select a contact" 
+              value="select" 
+              color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+            />
+            {contacts.map(contact => (
+              <Picker.Item
+                key={contact.id}
+                label={`${contact.first_name} ${contact.last_name}`}
+                value={contact.id}
+                color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+              />
+            ))}
+          </Picker>
+        </View>
+        
+        {/* Form fields for editing */}
+        <ThemedTextInput
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="First Name"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="First name input field"
+          accessibilityHint="Enter the contact's first name"
         />
-        {contacts.map(contact => (
-          <Picker.Item
-            key={contact.id}
-            label={`${contact.first_name} ${contact.last_name}`}
-            value={contact.id}
-            color={Colors[colorScheme].text}
-          />
-        ))}
-      </Picker>
-      {/* Form fields for editing */}
-      <ThemedTextInput
-        value={firstName}
-        onChangeText={setFirstName}
-        placeholder="First Name"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-        accessibilityLabel="First name input field"
-        accessibilityHint="Enter the contact's first name"
-      />
-      <ThemedTextInput
-        value={lastName}
-        onChangeText={setLastName}
-        placeholder="Last Name"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-        accessibilityLabel="Last name input field"
-        accessibilityHint="Enter the contact's last name"
-      />
-      <ThemedTextInput
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        placeholder="Phone Number"
-        keyboardType="phone-pad"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-        accessibilityLabel="Phone number input field"
-        accessibilityHint="Enter the contact's phone number"
-      />
-      <ThemedTextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        keyboardType="email-address"
-        editable={selectedId !== "" && typeof selectedId === "number"}
-        accessibilityLabel="Email address input field"
-        accessibilityHint="Enter the contact's email address"
-      />
-      <Pressable
+        <ThemedTextInput
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Last Name"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Last name input field"
+          accessibilityHint="Enter the contact's last name"
+        />
+        <ThemedTextInput
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          placeholder="Phone Number"
+          keyboardType="phone-pad"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Phone number input field"
+          accessibilityHint="Enter the contact's phone number"
+        />
+        <ThemedTextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          keyboardType="email-address"
+          editable={selectedId !== "" && typeof selectedId === "number"}
+          accessibilityLabel="Email input field"
+          accessibilityHint="Enter the contact's email address"
+        />
+        <Pressable
         onPress={handleUpdate}
         disabled={loading || selectedId === "" || typeof selectedId !== "number"}
         style={[
@@ -212,11 +241,28 @@ export default function ContactEditForm() {
           {loading ? "Updating..." : "Update Contact"}
         </ThemedText>
       </Pressable>
-    </View>
+      </View>
+    </ThemedView>
   );
-} 
+}
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    gap: 8,
+  },
+  subtitleText: {
+    fontWeight: 'bold',
+  },
+  content: {
+    padding: 16,
+    gap: 16,
+  },
   updateButton: {
     padding: 10,
     borderRadius: 5,

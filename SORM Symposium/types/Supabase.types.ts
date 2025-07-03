@@ -85,8 +85,7 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker: string | null
-          speaker_bio: string | null
+          speaker_email: string | null
           speaker_name: string | null
           speaker_title: string | null
           start_time: string
@@ -102,8 +101,7 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
+          speaker_email?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
           start_time: string
@@ -119,8 +117,7 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
+          speaker_email?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
           start_time?: string

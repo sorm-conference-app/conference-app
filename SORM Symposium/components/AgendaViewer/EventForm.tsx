@@ -30,11 +30,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [startTime, setStartTime] = useState(event?.start_time ?? "");
   const [endTime, setEndTime] = useState(event?.end_time ?? "");
   const [eventDate, setEventDate] = useState(event?.event_date ?? "");
-  const [speaker, setSpeaker] = useState(event?.speaker ?? "");
   const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? "");
   const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? "");
   const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? "");
-  const [speakerBio, setSpeakerBio] = useState(event?.speaker_bio ?? "");
+  const [speakerEmail, setSpeakerEmail] = useState(event?.speaker_email ?? "");
   const [topic, setTopic] = useState(event?.topic ?? "General");
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
@@ -45,11 +44,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     setStartTime(event?.start_time ?? "");
     setEndTime(event?.end_time ?? "");
     setEventDate(event?.event_date ?? "");
-    setSpeaker(event?.speaker ?? "");
     setSlidesUrl(event?.slides_url ?? "");
     setSpeakerName(event?.speaker_name ?? "");
     setSpeakerTitle(event?.speaker_title ?? "");
-    setSpeakerBio(event?.speaker_bio ?? "");
+    setSpeakerEmail(event?.speaker_email ?? "");
     setTopic(event?.topic ?? "General");
     setCanSubmit(event ? true : false);
   }, [event]);
@@ -67,12 +65,11 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       start_time: startTime,
       end_time: endTime,
       created_at: event?.created_at ?? new Date().toISOString(),
-      speaker,
       slides_url: slidesUrl,
       event_date: eventDate,
       speaker_name: speakerName,
       speaker_title: speakerTitle,
-      speaker_bio: speakerBio,
+      speaker_email: speakerEmail,
       is_deleted: event?.is_deleted ?? false,
       topic: topic === "General" ? null : topic,
     });
@@ -320,27 +317,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker</ThemedText>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: Colors[colorScheme].background,
-                color: Colors[colorScheme].text,
-                borderColor: Colors[colorScheme].text + "40",
-              },
-            ]}
-            value={speaker}
-            onChangeText={setSpeaker}
-            placeholder="Speaker name"
-            placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker input field"
-            accessibilityHint="Enter the name of the speaker"
-            accessibilityRole="text"
-          />
-        </View>
-
-        <View style={styles.formGroup}>
           <ThemedText>Speaker Name</ThemedText>
           <TextInput
             style={[
@@ -383,25 +359,22 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Bio</ThemedText>
+          <ThemedText>Speaker Email</ThemedText>
           <TextInput
             style={[
               styles.input,
-              styles.textArea,
               {
                 backgroundColor: Colors[colorScheme].background,
                 color: Colors[colorScheme].text,
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerBio}
-            onChangeText={setSpeakerBio}
-            placeholder="Speaker's biography"
+            value={speakerEmail}
+            onChangeText={setSpeakerEmail}
+            placeholder="Speaker's email address"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            multiline
-            numberOfLines={4}
-            accessibilityLabel="Speaker bio input field"
-            accessibilityHint="Enter the biography of the speaker"
+            accessibilityLabel="Speaker email input field"
+            accessibilityHint="Enter the email of the speaker"
             accessibilityRole="text"
           />
         </View>

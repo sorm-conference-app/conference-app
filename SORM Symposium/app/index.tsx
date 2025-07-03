@@ -7,10 +7,16 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
-import { clearVerifiedEmails, getVerifiedEmails } from "@/lib/attendeeStorage";
+import {
+  clearVerifiedEmails,
+  getVerifiedEmails,
+  storeVerifiedEmail,
+} from "@/lib/attendeeStorage";
+import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import React, { useEffect, useState } from "react";
+import SormImageWrapper from "@/components/SormImageWrapper";
 
 type UserType = "attendee" | "organizer";
 
@@ -21,8 +27,9 @@ export default function Login() {
   const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
-  
+  const [showConfirmationModal, setShowConfirmationModal] =
+    useState<boolean>(false);
+
   // Contact sharing modal hook
   const {
     isVisible: isContactSharingVisible,
@@ -31,12 +38,56 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
-  
-  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
+
+  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(
+    email,
+  );
   const validPassword = password.length > 0;
 
   useEffect(() => {
     supabase.auth.signOut();
+  }, []);
+
+  // Check for verified attendees on component mount and redirect automatically
+  useEffect(() => {
+    const checkVerifiedAttendees = async () => {
+      try {
+        const verifiedEmails = await getVerifiedEmails();
+        if (verifiedEmails.length > 0) {
+          // Validate each stored email against the database
+          const validEmails: string[] = [];
+
+          for (const email of verifiedEmails) {
+            try {
+              const isValid = await isAttendeeEmail(email);
+              if (isValid) {
+                validEmails.push(email);
+              }
+            } catch (error) {
+              console.error(`Error validating email ${email}:`, error);
+              // Remove invalid email from consideration but don't throw
+            }
+          }
+
+          // Update local storage to only contain valid emails
+          if (validEmails.length !== verifiedEmails.length) {
+            await clearVerifiedEmails();
+            for (const validEmail of validEmails) {
+              await storeVerifiedEmail(validEmail);
+            }
+          }
+
+          // Redirect only if we have at least one valid attendee email
+          if (validEmails.length > 0) {
+            router.push("/(tabs)/home");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking verified emails:", error);
+      }
+    };
+
+    checkVerifiedAttendees();
   }, []);
 
   const handleSignIn = async () => {
@@ -52,7 +103,7 @@ export default function Login() {
 
     setIsProcessing(true);
     setErr("");
-    
+
     try {
       if (userType === "attendee") {
         const result = await signinAttendee(email, () => {
@@ -83,7 +134,7 @@ export default function Login() {
     setShowConfirmationModal(false);
     setIsProcessing(true);
     setErr("");
-    
+
     try {
       const result = await signinAttendee(email);
       if (result.verified) {
@@ -105,9 +156,9 @@ export default function Login() {
   const handleContactSharingDontShare = async () => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, '');
+      await saveContactSharingPreferences(false, "");
     } catch (error) {
-      console.error('Error saving contact sharing preferences:', error);
+      console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
@@ -117,7 +168,7 @@ export default function Login() {
     try {
       await saveContactSharingPreferences(true, additionalInfo);
     } catch (error) {
-      console.error('Error saving contact sharing preferences:', error);
+      console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
@@ -200,44 +251,62 @@ export default function Login() {
   // Initial screen - user type selection
   if (!userType) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
-        <ThemedText>{getDescription()}</ThemedText>
+      <SormImageWrapper>
+        <ThemedView style={styles.container}>
+          <ThemedText type="title" style={{ marginBottom: 10 }}>
+            {getTitle()}
+          </ThemedText>
+          <ThemedText>{getDescription()}</ThemedText>
 
-        <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
-        <Pressable
-          onPress={() => selectUserType("attendee")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
-          >Symposium Attendee</ThemedText>
-        </Pressable>
-        <Pressable
-          onPress={() => selectUserType("organizer")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
-          >Symposium Organizer</ThemedText>
-        </Pressable>
-      </ThemedView>
+          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+          <Pressable
+            onPress={() => selectUserType("attendee")}
+            style={[
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Attendee
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={() => selectUserType("organizer")}
+            style={[
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Organizer
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </SormImageWrapper>
     );
   }
 
   // Login screen for selected user type
   return (
-    <>
+    <SormImageWrapper>
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
+        <ThemedText type="title" style={{ marginBottom: 10 }}>
+          {getTitle()}
+        </ThemedText>
         <ThemedText>{getDescription()}</ThemedText>
 
         <ThemedView style={styles.inputContainer}>
@@ -278,13 +347,20 @@ export default function Login() {
           style={[
             styles.button,
             isButtonDisabled()
-              ? { backgroundColor: Colors[colorScheme].tabIconDefault } 
+              ? { backgroundColor: Colors[colorScheme].tabIconDefault }
               : { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].text },
             { borderWidth: 1 },
           ]}
         >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>{getButtonText()}</ThemedText>
+          <ThemedText
+            style={[
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
+            ]}
+          >
+            {getButtonText()}
+          </ThemedText>
         </Pressable>
         <Pressable
           onPress={goBack}
@@ -295,7 +371,14 @@ export default function Login() {
             { borderWidth: 1 },
           ]}
         >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>Back</ThemedText>
+          <ThemedText
+            style={[
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
+            ]}
+          >
+            Back
+          </ThemedText>
         </Pressable>
         <ThemedText style={styles.invalid}>{err}</ThemedText>
       </ThemedView>
@@ -313,7 +396,7 @@ export default function Login() {
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
       />
-    </>
+    </SormImageWrapper>
   );
 }
 
@@ -332,11 +415,11 @@ const styles = StyleSheet.create({
   button: {
     padding: 10,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 18,
   },
 });
