@@ -1,5 +1,7 @@
 import { supabase } from "@/constants/supabase";
+import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useEffect, useState } from "react";
+import useCacheDatabase from "./useCacheDatabase";
 
 /**
  * Hook to fetch contact info from Supabase
@@ -15,7 +17,8 @@ export function useContacts() {
   const [contacts, setContacts] = useState<ContactInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-
+  const cache = useCacheDatabase();
+  
   const fetchContacts = useCallback(async () => {
     setLoading(true);
     setError(null);

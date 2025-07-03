@@ -13,15 +13,24 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { enableScreens } from "react-native-screens";
-import { Platform } from "react-native";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { sendLogMessage } from "@/services/logging";
-import { getDeviceId } from "@/lib/user";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
+import { openDatabaseSync, SQLiteProvider } from "expo-sqlite";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import migrations from "@/drizzle/migrations";
+import * as schema from "@/db/schema";
 
 // Enable screens for better performance
 enableScreens();
+
+const DATABASE_NAME = "cache.db";
+
+// Open the SQLite database synchronously
+const expo = openDatabaseSync(DATABASE_NAME);
+const db = drizzle<typeof schema>(expo);
 
 export default function RootLayout() {
   const initialLoad = useRef<boolean>(false);
@@ -30,6 +39,7 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const { top: topInset } = useSafeAreaInsets();
+  const { success, error } = useMigrations(db, migrations);
 
   // Send a log message on initial load to signal that a user has opened the app.
   useEffect(() => {
@@ -49,6 +59,14 @@ export default function RootLayout() {
     logInitialLoad();
   }, []);
 
+  useEffect(() => {
+    if (success) {
+      console.log("Database migrations completed successfully.");
+    } else if (error) {
+      console.error("Database migrations failed:", error);
+    }
+  }, [success, error]);
+
   if (!loaded) {
     // Async font loading only occurs in development.
     return null;
@@ -60,18 +78,26 @@ export default function RootLayout() {
         <ExpoPushTokenProvider>
           <AuthSessionProvider>
             <ActiveUsersProvider>
-              <Stack
-                screenOptions={{
-                  contentStyle: {
-                    paddingTop: topInset,
-                  },
-                }}
-              >
-                <Stack.Screen name="index" options={{ headerShown: false, title: "Login" }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "SORM Symposium" }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style="auto" />
+              <SQLiteProvider databaseName={DATABASE_NAME} useSuspense>
+                <Stack
+                  screenOptions={{
+                    contentStyle: {
+                      paddingTop: topInset,
+                    },
+                  }}
+                >
+                  <Stack.Screen
+                    name="index"
+                    options={{ headerShown: false, title: "Login" }}
+                  />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false, title: "SORM Symposium" }}
+                  />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+                <StatusBar style="auto" />
+              </SQLiteProvider>
             </ActiveUsersProvider>
           </AuthSessionProvider>
         </ExpoPushTokenProvider>
