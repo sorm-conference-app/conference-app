@@ -254,6 +254,7 @@ export type Database = {
           has_been_used: boolean;
         };
         Update: {
+          created_at?: string;
           email?: string;
           code?: string;
           has_been_used?: boolean;

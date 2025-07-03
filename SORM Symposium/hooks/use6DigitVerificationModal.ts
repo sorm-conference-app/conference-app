@@ -1,29 +1,24 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { sendVerificationEmail } from './use6DigitVerification';
 
 export function use6DigitVerificationModal() {
   const [visible, setVisible] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
 
   const showModal = useCallback(async (emailToVerify: string) => {
-    setEmail(emailToVerify);
     setVisible(true);
-    await sendVerificationEmail(emailToVerify);
+    await sendVerificationEmail(emailToVerify.toLowerCase());
   }, []);
 
   const hideModal = useCallback(() => {
     setVisible(false);
-    setEmail(null);
   }, []);
 
   const resendVerificationEmail = useCallback(async (emailToVerify: string) => {
-    setEmail(emailToVerify);
-    await sendVerificationEmail(emailToVerify, true);
+    await sendVerificationEmail(emailToVerify.toLowerCase(), true);
   }, []);
 
   return {
     visible,
-    email,
     showModal,
     hideModal,
     resendVerificationEmail,

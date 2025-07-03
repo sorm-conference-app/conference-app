@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
@@ -30,6 +30,8 @@ export default function SixDigitVerificationModal({
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const [isResending, setIsResending] = useState(false);
+  const [cooldown, setCooldown] = useState(30);
+  const cooldownRef = useRef<number | null>(null);
 
   // Reset state when modal becomes visible
   useEffect(() => {
@@ -38,8 +40,30 @@ export default function SixDigitVerificationModal({
       setError('');
       setIsVerifying(false);
       setIsResending(false);
+      setCooldown(0);
     }
+    // Clean up timer on unmount
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
   }, [visible]);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      cooldownRef.current = setInterval(() => {
+        setCooldown((prev) => {
+          if (prev <= 1) {
+            if (cooldownRef.current) clearInterval(cooldownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => {
+        if (cooldownRef.current) clearInterval(cooldownRef.current);
+      };
+    }
+  }, [cooldown]);
 
   // Check for valid 6-digit code on input change
   useEffect(() => {
@@ -79,6 +103,7 @@ export default function SixDigitVerificationModal({
     try {
       await onResendCode();
       setError(''); // Clear any previous errors
+      setCooldown(30); // Start 30s cooldown for resend
     } catch (error) {
       console.error('Resend error:', error);
       setError('Failed to resend code. Please try again.');
@@ -158,7 +183,7 @@ export default function SixDigitVerificationModal({
             )}
           </ThemedView>
 
-          {error && (
+          {(error !== '') && (
             <ThemedView style={[
               styles.errorContainer,
               { backgroundColor: Colors[colorScheme].background }
@@ -176,19 +201,23 @@ export default function SixDigitVerificationModal({
               style={[
                 styles.button,
                 styles.secondaryButton,
-                { backgroundColor: Colors[colorScheme].tabIconDefault }
+                { backgroundColor: cooldown > 0 ? Colors[colorScheme].tabIconDefault : Colors[colorScheme].adminButton }
               ]}
               onPress={handleResendCode}
-              disabled={isResending}
+              disabled={isResending || cooldown > 0}
             >
               <ThemedText style={[
                 styles.buttonText,
-                { color: Colors[colorScheme].background }
+                { color: Colors[colorScheme].adminButtonText }
               ]}>
-                {isResending ? 'Resending...' : 'Resend Code'}
+                {isResending 
+                ? 'Resending...' 
+                : cooldown > 0 
+                  ? `Resend Code (${cooldown}s)` 
+                  : 'Resend Code'}
               </ThemedText>
             </Pressable>
-            
+
             <Pressable
               style={[
                 styles.button,

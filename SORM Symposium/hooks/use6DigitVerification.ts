@@ -3,30 +3,55 @@ import { supabase } from '@/constants/supabase';
 // Send an email
 export async function sendVerificationEmail(to: string, resend: boolean = false): Promise<boolean> {
   const code = await generate6DigitVerificationCode();
+
+  if (!resend) {
+    const { data: existingCode, error: existingCodeError } = await supabase
+      .from('verification_codes')
+      .select('*')
+      .eq('email', to)
+      .maybeSingle();
+
+    if (existingCode) {
+      resend = true;
+    }
+  }
+
   if (resend) {
-    await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('verification_codes')
       .update({
+        created_at: new Date().toISOString(),
         code,
         has_been_used: false,
       })
-      .eq('email', to);
+      .eq('email', to)
+      .select();
+
+    if (updateError) {
+      throw updateError;
+    }
   } else {
-    await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from('verification_codes')
       .insert({
+        created_at: new Date().toISOString(),
         email: to,
         code,
         has_been_used: false,
-      });
+      })
+      .select();
+
+    if (insertError) {
+      throw insertError;
+    }
   }
 
   try {
-    const { data, error } = await supabase.functions.invoke('send-verification-code', {
+    const { data: emailData, error: emailError } = await supabase.functions.invoke('send-verification-email', {
       body: { email: to, code }
     });
 
-    if (error) {
+    if (emailError) {
       throw new Error('Failed to send verification email');
     }
   } catch (error) {
@@ -74,12 +99,13 @@ export async function checkCode(email: string, code: string) {
         throw error;
     }
 
-    if (data) {
+    if (data && data.created_at > new Date(Date.now() - 10 * 60 * 1000).toISOString()) {
       const { data: updatedData, error: updateError } = await supabase
         .from('verification_codes')
         .update({ has_been_used: true })
         .eq('code', code)
         .eq('email', email)
+        .select()
         .maybeSingle();
 
       if (updateError) {
