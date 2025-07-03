@@ -44,8 +44,8 @@ export default function InfoScreen() {
 
   // Fetch contacts from Supabase
   const {
-    contacts,
-    loading: contactsLoading,
+    data: contacts = [],
+    isFetching: contactsLoading,
     error: contactsError,
   } = useContacts();
 
@@ -306,7 +306,7 @@ export default function InfoScreen() {
             )}
             {contactsError && (
               <ThemedText style={[styles.contactText, { color: "red" }]}>
-                Failed to load contacts.
+                Failed to load contacts: {contactsError.message}
               </ThemedText>
             )}
             {!contactsLoading && !contactsError && contacts.length === 0 && (

@@ -1,7 +1,9 @@
 import { supabase } from "@/constants/supabase";
-import { useSQLiteContext } from "expo-sqlite";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import useCacheDatabase from "./useCacheDatabase";
+import { contact_info } from "@/db/schema";
+import { sql } from "drizzle-orm";
 
 /**
  * Hook to fetch contact info from Supabase
@@ -14,37 +16,47 @@ export type ContactInfo = {
 };
 
 export function useContacts() {
-  const [contacts, setContacts] = useState<ContactInfo[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
   const cache = useCacheDatabase();
-  
-  const fetchContacts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
+
+  return useQuery<ContactInfo[]>({
+    queryKey: ["contacts"],
+    queryFn: async function () {
+      const { data = [], error } = await supabase
         .from("contact_info")
         .select("*")
         .order("last_name", { ascending: true });
-      if (error) throw new Error(error.message);
-      const mapped = (data || []).map(row => ({
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const insertData = data!.map((row) => ({
+        ...row,
+        created_at: new Date(row.created_at), // Supabase returns created_at as a string; to store in SQLite, convert it to a Date object
+      }));
+
+      // Pretend an error occurred if no data is returned
+      throw new Error("Something went wrong!");
+
+      // Populate the cache with the fetched data
+      await cache
+        .insert(contact_info)
+        .values(insertData)
+        .onConflictDoUpdate({
+          target: contact_info.id,
+          set: {
+            first_name: sql.raw(`excluded.${contact_info.first_name.name}`),
+            last_name: sql.raw(`excluded.${contact_info.last_name.name}`),
+            phone_number: sql.raw(`excluded.${contact_info.phone_number.name}`),
+          },
+        });
+
+      return data!.map<ContactInfo>((row) => ({
         name: `${row.first_name} ${row.last_name}`,
         phone: row.phone_number,
         email: row.email,
       }));
-      setContacts(mapped);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-      setContacts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchContacts();
-  }, [fetchContacts]);
-
-  return { contacts, loading, error, refresh: fetchContacts };
+    },
+    enabled: true,
+  });
 }

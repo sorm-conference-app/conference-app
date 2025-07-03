@@ -17,7 +17,9 @@ import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { sendLogMessage } from "@/services/logging";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { openDatabaseSync, SQLiteProvider } from "expo-sqlite";
+import { asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "@/drizzle/migrations";
@@ -32,6 +34,27 @@ const DATABASE_NAME = "cache.db";
 const expo = openDatabaseSync(DATABASE_NAME);
 const db = drizzle<typeof schema>(expo);
 
+const queryClient = new QueryClient();
+
+const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
+  [
+    {
+      queryKey: ["contacts"],
+      queryFn: async function () {
+        const data = await db
+          .select()
+          .from(schema.contact_info)
+          .orderBy(asc(schema.contact_info.last_name));
+
+        return data.map((row) => ({
+          name: `${row.first_name} ${row.last_name}`,
+          phone: row.phone_number,
+          email: row.email,
+        }));
+      },
+    },
+  ];
+
 export default function RootLayout() {
   const initialLoad = useRef<boolean>(false);
   const colorScheme = useColorScheme() ?? "light";
@@ -41,8 +64,8 @@ export default function RootLayout() {
   const { top: topInset } = useSafeAreaInsets();
   const { success, error } = useMigrations(db, migrations);
 
-  // Send a log message on initial load to signal that a user has opened the app.
   useEffect(() => {
+    // Send a log message on initial load to signal that a user has opened the app.
     async function logInitialLoad() {
       if (initialLoad.current) {
         // If the app has already been opened, do not log again.
@@ -56,6 +79,19 @@ export default function RootLayout() {
       }
     }
 
+    // Prefetch cache from SQLite,
+    // so that it's shown immediately before useQuery is called.
+    async function prefetchCache() {
+      try {
+        await Promise.all(
+          PREFETCH_QUERIES.map((query) => queryClient.prefetchQuery(query)),
+        );
+      } catch (error) {
+        console.error("Failed to prefetch cache:", error);
+      }
+    }
+
+    prefetchCache();
     logInitialLoad();
   }, []);
 
@@ -73,35 +109,39 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <ExpoPushTokenProvider>
-          <AuthSessionProvider>
-            <ActiveUsersProvider>
-              <SQLiteProvider databaseName={DATABASE_NAME} useSuspense>
-                <Stack
-                  screenOptions={{
-                    contentStyle: {
-                      paddingTop: topInset,
-                    },
-                  }}
-                >
-                  <Stack.Screen
-                    name="index"
-                    options={{ headerShown: false, title: "Login" }}
-                  />
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{ headerShown: false, title: "SORM Symposium" }}
-                  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-                <StatusBar style="auto" />
-              </SQLiteProvider>
-            </ActiveUsersProvider>
-          </AuthSessionProvider>
-        </ExpoPushTokenProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <ExpoPushTokenProvider>
+            <AuthSessionProvider>
+              <ActiveUsersProvider>
+                <SQLiteProvider databaseName={DATABASE_NAME} useSuspense>
+                  <Stack
+                    screenOptions={{
+                      contentStyle: {
+                        paddingTop: topInset,
+                      },
+                    }}
+                  >
+                    <Stack.Screen
+                      name="index"
+                      options={{ headerShown: false, title: "Login" }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false, title: "SORM Symposium" }}
+                    />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </SQLiteProvider>
+              </ActiveUsersProvider>
+            </AuthSessionProvider>
+          </ExpoPushTokenProvider>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }
