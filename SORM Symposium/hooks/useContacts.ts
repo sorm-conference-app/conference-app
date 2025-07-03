@@ -35,9 +35,6 @@ export function useContacts() {
         created_at: new Date(row.created_at), // Supabase returns created_at as a string; to store in SQLite, convert it to a Date object
       }));
 
-      // Pretend an error occurred if no data is returned
-      throw new Error("Something went wrong!");
-
       // Populate the cache with the fetched data
       await cache
         .insert(contact_info)
