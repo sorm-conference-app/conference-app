@@ -4,7 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import type { IconSymbolName } from "@/components/ui/IconSymbol";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
-import { ContactInfo, useContacts } from "@/hooks/useContacts";
+import useContacts, { ContactInfo } from "@/hooks/useContacts";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
