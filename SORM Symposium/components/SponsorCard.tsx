@@ -1,12 +1,16 @@
-import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
-import { Sponsor } from "@/types/Sponsors.types";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Sponsor } from "@/types/Sponsors.types";
+import React from "react";
+import { Image, Linking, StyleSheet, Text, View } from "react-native";
 
 interface SponsorCardProps {
   sponsor: Sponsor;
 }
+
+const handleEmail = (email: string) => {
+  Linking.openURL(`mailto:${email}`);
+};
 
 export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
   const colorScheme = useColorScheme() ?? "light";
@@ -71,7 +75,10 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         <Text style={[styles.contactLabel, { color: colors.text }]}>
           Contact:
         </Text>
-        <Text style={[styles.contactInfo, { color: colors.link }]}>
+        <Text
+          style={[styles.contactInfo, { color: colors.link }]}
+          onPress={() => handleEmail(sponsor.contactInfo)}
+        >
           {sponsor.contactInfo}
         </Text>
       </View>
