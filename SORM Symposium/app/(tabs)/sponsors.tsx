@@ -1,17 +1,18 @@
 import { SponsorCard } from "@/components/SponsorCard";
 import { ThemedView } from "@/components/ThemedView";
+import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { getSponsorsByLevel } from "@/lib/sponsors";
 import { Stack } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Sponsors() {
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
   const sponsorGroups = getSponsorsByLevel();
+  const bottomTabHeight = useBottomTabOverflow();
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -39,7 +40,10 @@ export default function Sponsors() {
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 20 + bottomTabHeight },
+          ]}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
