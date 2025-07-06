@@ -49,7 +49,7 @@ export default function AgendaItem({
         { borderColor: Colors[colorScheme].tint },
         {
           minHeight:
-            title === "Break" ? 65 : calculateHeight(startTime, endTime),
+            topicName === "Break" ? 65 : calculateHeight(startTime, endTime),
         },
         pressed && styles.agendaItemPressed,
       ]}
@@ -88,18 +88,20 @@ export default function AgendaItem({
           )}
         </ThemedView>
         {/* Topic Badge */}
-        <ThemedView
-          style={[styles.topicBadge, { backgroundColor: topicColor }]}
-        >
-          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
-        </ThemedView>
+        {topicName !== "Break" && (
+          <ThemedView
+            style={[styles.topicBadge, { backgroundColor: topicColor }]}
+          >
+            <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+          </ThemedView>
+        )}
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
           <ThemedText style={styles.time}>
             {formatTimeRange(startTime, endTime)}
           </ThemedText>
         </ThemedView>
-        {title !== "Break" && (
+        {topicName !== "Break" && (
           <ThemedView style={styles.infoRow}>
             <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
             <ThemedText style={styles.location}>{location}</ThemedText>

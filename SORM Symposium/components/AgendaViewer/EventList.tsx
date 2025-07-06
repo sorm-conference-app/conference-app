@@ -47,8 +47,9 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
-  const COL_1_LOCATION = "Room 1";
-  const COL_2_LOCATION = "Room 2";
+
+  const COL_1_LOCATION = "102 A&B";
+  const COL_2_LOCATION = "102 C&D";
 
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
