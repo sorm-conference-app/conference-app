@@ -1,12 +1,12 @@
-import React from "react";
-import { StyleSheet, ScrollView, View, Text } from "react-native";
-import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedView } from "@/components/ThemedView";
 import { SponsorCard } from "@/components/SponsorCard";
-import { getSponsorsByLevel } from "@/lib/sponsors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { getSponsorsByLevel } from "@/lib/sponsors";
+import { Stack } from "expo-router";
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Sponsors() {
   const colorScheme = useColorScheme() ?? "light";
