@@ -22,6 +22,7 @@ import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import {
   calculateEventOffset,
+  calculateHeight,
   findConflicts,
   groupEventsByDate,
   sortEventsByLocation,
@@ -137,6 +138,9 @@ export function EventList({
           >
             <ThemedText style={styles.header} type="title">
               Conference Schedule
+            </ThemedText>
+            <ThemedText style={styles.subheader} type="subtitle">
+              Select an event to view more details
             </ThemedText>
 
             <Pressable
@@ -274,6 +278,7 @@ export function EventList({
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={setRsvpEventIds}
                               topic={item.topic}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -301,6 +306,7 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={setRsvpEventIds}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -318,6 +324,7 @@ export function EventList({
                             hasRSVP={rsvpEventIds.has(item.id)}
                             setRsvpEventIds={setRsvpEventIds}
                             topic={item.topic}
+                            height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -360,6 +367,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
+    paddingBottom: 0,
   },
   content: {
     padding: 16,
@@ -384,5 +392,12 @@ const styles = StyleSheet.create({
   conflictContent: {
     flexDirection: "row",
     gap: 16,
+  },
+  subheader: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    marginTop: 8,
+    fontSize: 16,
+    textAlign: "center",
   },
 });

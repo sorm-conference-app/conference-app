@@ -253,7 +253,7 @@ export function formatConflictMessage(conflict: TimeConflict): string {
 export function calculateEventOffset(startTimeA: string, startTimeB: string): number {
   const startA = convert24HrTimeToSeconds(startTimeA);
   const startB = convert24HrTimeToSeconds(startTimeB);
-  return Math.max(0, (startB - startA) * (65 / 1800)); // 130px per hour
+  return Math.max(0, (startB - startA) * (175 / 3600)); // 175px per hour
 }
 
 export function calculateHeight(startTime: string, endTime: string): number {

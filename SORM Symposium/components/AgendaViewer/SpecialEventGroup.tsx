@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { Event } from '@/types/Events.types';
 import AgendaItem from './AgendaItem';
-import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset } from './utils';
+import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset, calculateHeight } from './utils';
 
 type SpecialEventGroupProps = {
   mainEvent: Event;
@@ -26,14 +26,27 @@ export function SpecialEventGroup({
     const longestDuration = convert24HrTimeToSeconds(longest.end_time) - convert24HrTimeToSeconds(longest.start_time);
     return currDuration > longestDuration ? curr : longest;
   }, mainEvent);
+  const [longestEventHeight, setLongestEventHeight] = useState(longestEvent.topic === "Break" ? 50 : 
+    calculateHeight(longestEvent.start_time, longestEvent.end_time));
 
-  const COL_1_LOCATION = "Room 1";
-  const COL_2_LOCATION = "Room 2";
+  const COL_1_LOCATION = "102 A&B";
+  const COL_2_LOCATION = "102 C&D";
 
   // All other events that overlap with the longest event, sorted by start time
   const otherEvents = allEvents
     .filter(e => e.id !== longestEvent.id && areTimesConflicting(longestEvent.start_time, longestEvent.end_time, e.start_time, e.end_time))
     .sort((a, b) => convert24HrTimeToSeconds(a.start_time) - convert24HrTimeToSeconds(b.start_time));
+
+  useEffect(() => {
+    setLongestEventHeight(longestEvent.topic === "Break" ? 50 : 
+      calculateHeight(longestEvent.start_time, longestEvent.end_time));
+      for (const event of otherEvents) {
+        if (event.id !== otherEvents[0].id) {
+          const offset = calculateEventOffset(otherEvents[otherEvents.length - 1].end_time, event.start_time) + 16;
+          setLongestEventHeight(longestEventHeight + offset);
+        }
+      }
+  }, []);
 
   const longEventColumn = (
     <View style={[
@@ -55,6 +68,7 @@ export function SpecialEventGroup({
           hasRSVP={rsvpEventIds.has(longestEvent.id)}
           setRsvpEventIds={setRsvpEventIds}
           topic={longestEvent.topic}
+          height={longestEventHeight}
           onPress={() => onSelectEvent(longestEvent)}
         />
       </View>
@@ -81,6 +95,7 @@ export function SpecialEventGroup({
               hasRSVP={rsvpEventIds.has(event.id)}
               setRsvpEventIds={setRsvpEventIds}
               topic={event.topic}
+              height={event.topic === "Break" ? 50 : calculateHeight(event.start_time, event.end_time)}
               onPress={() => onSelectEvent(event)}
             />
           </View>
@@ -91,14 +106,14 @@ export function SpecialEventGroup({
   return (
     <View style={styles.container}>
       {/* Determine column order based on room locations */}
-      {longestEvent.location === COL_1_LOCATION || 
+      {longestEvent.location === COL_1_LOCATION ||
        otherEvents.some(e => e.location === COL_1_LOCATION) ? (
         // Room 1 events exist - put other events column on left, long event column on right
         <>
           {otherEventsColumn}
           {longEventColumn}
         </>
-      ) : longestEvent.location === COL_2_LOCATION || 
+      ) : longestEvent.location === COL_2_LOCATION ||
            otherEvents.some(e => e.location === COL_2_LOCATION) ? (
         // Room 2 events exist - put long event column on left, other events column on right
         <>
