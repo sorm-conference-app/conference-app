@@ -13,15 +13,54 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { enableScreens } from "react-native-screens";
-import { Platform } from "react-native";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { sendLogMessage } from "@/services/logging";
-import { getDeviceId } from "@/lib/user";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { asc } from "drizzle-orm";
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+import migrations from "@/drizzle/migrations";
+import * as schema from "@/db/schema";
+import getCacheDatabase from "@/db";
+import { Platform } from "react-native";
 
 // Enable screens for better performance
 enableScreens();
+
+// Open the SQLite database synchronously
+const { db, databaseName, SQLiteProvider } = getCacheDatabase();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
+  [
+    {
+      queryKey: ["contacts"],
+      queryFn: async function () {
+        if (!db) {
+          return [];
+        }
+
+        const data = await db
+          .select()
+          .from(schema.contact_info)
+          .orderBy(asc(schema.contact_info.last_name));
+
+        return data.map((row) => ({
+          name: `${row.first_name} ${row.last_name}`,
+          phone: row.phone_number,
+          email: row.email,
+        }));
+      },
+    },
+  ];
 
 export default function RootLayout() {
   const initialLoad = useRef<boolean>(false);
@@ -30,9 +69,11 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const { top: topInset } = useSafeAreaInsets();
+  // @ts-ignore
+  const { success, error } = useMigrations(db, migrations);
 
-  // Send a log message on initial load to signal that a user has opened the app.
   useEffect(() => {
+    // Send a log message on initial load to signal that a user has opened the app.
     async function logInitialLoad() {
       if (initialLoad.current) {
         // If the app has already been opened, do not log again.
@@ -46,36 +87,84 @@ export default function RootLayout() {
       }
     }
 
+    // Prefetch cache from SQLite (if on native platforms)
+    // so that it's shown immediately before useQuery is called.
+    // If on web, the prefetch queries will be ignored.
+    async function prefetchCache() {
+      if (Platform.OS === "web") {
+        console.warn("Skipping prefetching cache on web platform.");
+        return;
+      }
+      try {
+        await Promise.all(
+          PREFETCH_QUERIES.map((query) => queryClient.prefetchQuery(query)),
+        );
+      } catch (error) {
+        console.error("Failed to prefetch cache:", error);
+      }
+    }
+
+    prefetchCache();
     logInitialLoad();
   }, []);
+
+  useEffect(() => {
+    if (success) {
+      console.log("Database migrations completed successfully.");
+    } else if (error) {
+      console.error("Database migrations failed:", error);
+    }
+  }, [success, error]);
 
   if (!loaded) {
     // Async font loading only occurs in development.
     return null;
   }
 
+  const Screens = (
+    <>
+      <Stack
+        screenOptions={{
+          contentStyle: {
+            paddingTop: topInset,
+          },
+        }}
+      >
+        <Stack.Screen
+          name="index"
+          options={{ headerShown: false, title: "Login" }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, title: "SORM Symposium" }}
+        />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </>
+  );
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <ExpoPushTokenProvider>
-          <AuthSessionProvider>
-            <ActiveUsersProvider>
-              <Stack
-                screenOptions={{
-                  contentStyle: {
-                    paddingTop: topInset,
-                  },
-                }}
-              >
-                <Stack.Screen name="index" options={{ headerShown: false, title: "Login" }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "SORM Symposium" }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style="auto" />
-            </ActiveUsersProvider>
-          </AuthSessionProvider>
-        </ExpoPushTokenProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <ExpoPushTokenProvider>
+            <AuthSessionProvider>
+              <ActiveUsersProvider>
+                {SQLiteProvider ? (
+                  <SQLiteProvider databaseName={databaseName} useSuspense>
+                    {Screens}
+                  </SQLiteProvider>
+                ) : (
+                  Screens
+                )}
+              </ActiveUsersProvider>
+            </AuthSessionProvider>
+          </ExpoPushTokenProvider>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

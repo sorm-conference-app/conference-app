@@ -7,4 +7,7 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver.unstable_enablePackageExports = false;
 
+/* for drizzle. */
+config.resolver.sourceExts.push("sql");
+
 module.exports = config;
