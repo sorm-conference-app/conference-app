@@ -9,6 +9,13 @@ import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
 import { ThemedView } from "./ThemedView";
 
+function handleString(str: string | null): string {
+  if (str === null) {
+    return "";
+  }
+  return str;
+}
+
 /**
  * Form for editing existing contact information in Supabase.
  * Allows selection of a contact, editing their info, and updating in the database.
@@ -17,17 +24,21 @@ import { ThemedView } from "./ThemedView";
 export default function ContactEditForm() {
   // State for all contacts
   const [contacts, setContacts] = useState<Tables<'contact_info'>[]>([]);
+  const [attendees, setAttendees] = useState<Tables<'attendee_info'>[]>([]);
   // State for selected contact id (use empty string for web compatibility)
   const [selectedId, setSelectedId] = useState<number | string>("");
   // State for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [attendeeName, setAttendeeName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [disabled, setDisabled] = useState(true);
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  const [editingAttendee, setEditingAttendee] = useState(false);
 
   // Get current color scheme for theming
   const colorScheme = useColorScheme() ?? 'light';
@@ -51,24 +62,57 @@ export default function ContactEditForm() {
     fetchContacts();
   }, []);
 
+  useEffect(() => {
+    async function fetchAttendees() {
+      const { data, error } = await supabase
+        .from("attendee_info")
+        .select("*")
+        .order("name", { ascending: true });
+      if (error) {
+        Alert.alert("Error", error.message);
+        setAttendees([]);
+      } else {
+        setAttendees(data || []);
+      }
+    }
+    fetchAttendees();
+  }, []);
+
   // When a contact is selected, always prefill the form fields
   useEffect(() => {
-    if (selectedId !== "" && typeof selectedId === "number") {
-      const contact = contacts.find(c => c.id === selectedId);
-      if (contact) {
-        setFirstName(contact.first_name);
-        setLastName(contact.last_name);
-        setPhoneNumber(contact.phone_number);
-        setEmail(contact.email);
+    if (editingAttendee) {
+      if (selectedId !== "" && typeof selectedId === "number") {
+        const attendee = attendees.find(a => a.id === selectedId);
+        if (attendee) {
+          setAttendeeName(handleString(attendee.name));
+          setEmail(handleString(attendee.email));
+        }
+      } else {
+        setAttendeeName("");
+        setEmail("");
       }
     } else {
-      // Clear fields if no contact is selected
-      setFirstName("");
-      setLastName("");
-      setPhoneNumber("");
-      setEmail("");
+      if (selectedId !== "" && typeof selectedId === "number") {
+        const contact = contacts.find(c => c.id === selectedId);
+        if (contact) {
+          setFirstName(handleString(contact.first_name));
+          setLastName(handleString(contact.last_name));
+          setPhoneNumber(handleString(contact.phone_number));
+          setEmail(handleString(contact.email));
+        }
+      } else {
+        // Clear fields if no contact is selected
+        setFirstName("");
+        setLastName("");
+        setPhoneNumber("");
+        setEmail("");
+      }
     }
-  }, [selectedId, contacts]);
+  }, [selectedId, contacts, attendees]);
+
+  useEffect(() => {
+    setSelectedId("");
+  }, [editingAttendee]);
 
   /**
    * Handle updating the selected contact in Supabase
@@ -100,6 +144,36 @@ export default function ContactEditForm() {
         .select("*")
         .order("last_name", { ascending: true });
       setContacts(data || []);
+    }
+  }
+
+  async function handleUpdateAttendee() {
+    console.log("handleUpdateAttendee: selectedId = ", selectedId);
+    console.log("handleUpdateAttendee: email = ", email);
+    if (selectedId === "" || typeof selectedId !== "number") return;
+    if (!email.trim()) {
+      Alert.alert("Error", "Email is required");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase
+      .from("attendee_info")
+      .update({
+        email: email,
+      })
+      .eq("id", selectedId);
+    setLoading(false);
+    if (error) {
+      console.log("handleUpdateAttendee: error = ", error);
+      Alert.alert("Error", error.message);
+    } else {
+      console.log("handleUpdateAttendee: success");
+      Alert.alert("Success", "Attendee email updated");
+      const { data } = await supabase
+        .from("attendee_info")
+        .select("*")
+        .order("name", { ascending: true });
+      setAttendees(data || []);
     }
   }
 
@@ -141,10 +215,30 @@ export default function ContactEditForm() {
           style={[styles.subtitleText, { color: Colors[colorScheme].text }]} 
           type="subtitle"
         >
-          Select a contact from the list to edit their information
+          {editingAttendee 
+          ? "Select an attendee from the list to edit their email" 
+          : "Select a planning team member from the list to edit their contact information"}
         </ThemedText>
+        <View style={styles.toggleButtonContainer}>
+          <Pressable 
+            style={[
+              styles.toggleButton,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].tint },
+            ]}
+            onPress={() => setEditingAttendee(!editingAttendee)}
+          >
+            <ThemedText
+              style={[
+                styles.toggleButtonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              {editingAttendee ? "Edit Planning Team Member Info" : "Edit Attendee Emails"}
+            </ThemedText>
+          </Pressable>
+        </View>
       </View>
-      
       <View style={styles.content}>
         {/* Picker for selecting a contact */}
         <View style={pickerContainerStyle}>
@@ -172,45 +266,56 @@ export default function ContactEditForm() {
             <Picker.Item 
               label="Select a contact" 
               value="select" 
-              color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+              color={Colors[colorScheme].text}
             />
-            {contacts.map(contact => (
+            {editingAttendee ? attendees.map(attendee => (
+              <Picker.Item
+                key={attendee.id}
+                label={handleString(attendee.name)}
+                value={attendee.id}
+                color={Colors[colorScheme].text}
+              />
+            )) : contacts.map(contact => (
               <Picker.Item
                 key={contact.id}
                 label={`${contact.first_name} ${contact.last_name}`}
                 value={contact.id}
-                color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+                color={Colors[colorScheme].text}
               />
             ))}
           </Picker>
         </View>
         
         {/* Form fields for editing */}
-        <ThemedTextInput
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholder="First Name"
-          editable={selectedId !== "" && typeof selectedId === "number"}
-          accessibilityLabel="First name input field"
-          accessibilityHint="Enter the contact's first name"
-        />
-        <ThemedTextInput
-          value={lastName}
-          onChangeText={setLastName}
-          placeholder="Last Name"
-          editable={selectedId !== "" && typeof selectedId === "number"}
-          accessibilityLabel="Last name input field"
-          accessibilityHint="Enter the contact's last name"
-        />
-        <ThemedTextInput
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          placeholder="Phone Number"
-          keyboardType="phone-pad"
-          editable={selectedId !== "" && typeof selectedId === "number"}
-          accessibilityLabel="Phone number input field"
-          accessibilityHint="Enter the contact's phone number"
-        />
+        {!editingAttendee && (
+          <>
+          <ThemedTextInput
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="First Name"
+            editable={selectedId !== "" && typeof selectedId === "number"}
+            accessibilityLabel="First name input field"
+            accessibilityHint="Enter the contact's first name"
+          />
+          <ThemedTextInput
+            value={lastName}
+            onChangeText={setLastName}
+            placeholder="Last Name"
+            editable={selectedId !== "" && typeof selectedId === "number"}
+            accessibilityLabel="Last name input field"
+            accessibilityHint="Enter the contact's last name"
+          />
+          <ThemedTextInput
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="Phone Number"
+            keyboardType="phone-pad"
+            editable={selectedId !== "" && typeof selectedId === "number"}
+            accessibilityLabel="Phone number input field"
+            accessibilityHint="Enter the contact's phone number"
+          />
+        </>
+        )}
         <ThemedTextInput
           value={email}
           onChangeText={setEmail}
@@ -221,7 +326,7 @@ export default function ContactEditForm() {
           accessibilityHint="Enter the contact's email address"
         />
         <Pressable
-        onPress={handleUpdate}
+        onPress={editingAttendee ? handleUpdateAttendee : handleUpdate}
         disabled={loading || selectedId === "" || typeof selectedId !== "number"}
         style={[
           styles.updateButton,
@@ -230,15 +335,15 @@ export default function ContactEditForm() {
           { borderColor: Colors[colorScheme].adminButtonText },
           { borderWidth: 1 },
         ]}
-        accessibilityLabel="Update contact button"
-        accessibilityHint="Press to save changes to the selected contact"
+        accessibilityLabel="Update button"
+        accessibilityHint="Press to save changes to the selected information"
         accessibilityRole="button"
         accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
       >
         <ThemedText style={[styles.updateButtonText,
           { color: Colors[colorScheme].adminButtonText }
         ]}>
-          {loading ? "Updating..." : "Update Contact"}
+          {loading ? "Updating..." : editingAttendee ? "Update Attendee Email" : "Update Contact"}
         </ThemedText>
       </Pressable>
       </View>
@@ -271,5 +376,19 @@ const styles = StyleSheet.create({
   updateButtonText: {
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  toggleButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  toggleButtonText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  toggleButtonContainer: {
+    alignItems: 'flex-start',
+    paddingVertical: 8,
   },
 });
