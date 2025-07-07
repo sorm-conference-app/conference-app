@@ -4,11 +4,12 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
 import { ThemedView } from "./ThemedView";
 import ConfirmEditEmailModal from "./ConfirmEditEmailModal";
+import { showSuccessMessage, showErrorMessage } from "@/lib/alerts";
 
 function handleString(str: string | null): string {
   if (str === null) {
@@ -56,7 +57,7 @@ export default function ContactEditForm() {
         .select("*")
         .order("last_name", { ascending: true });
       if (error) {
-        Alert.alert("Error", error.message);
+        showErrorMessage("Error fetching contacts: " + error.message);
         setContacts([]);
       } else {
         setContacts(data || []);
@@ -73,7 +74,7 @@ export default function ContactEditForm() {
         .select("*")
         .order("name", { ascending: true });
       if (error) {
-        Alert.alert("Error", error.message);
+        showErrorMessage("Error fetching attendees: " + error.message);
         setAttendees([]);
       } else {
         setAttendees(data || []);
@@ -124,7 +125,7 @@ export default function ContactEditForm() {
   async function handleUpdate() {
     if (selectedId === "" || typeof selectedId !== "number") return;
     if (!firstName.trim() || !lastName.trim() || !phoneNumber.trim() || !email.trim()) {
-      Alert.alert("Error", "All fields are required");
+      showErrorMessage("All fields are required");
       return;
     }
     setLoading(true);
@@ -139,9 +140,9 @@ export default function ContactEditForm() {
       .eq("id", selectedId);
     setLoading(false);
     if (error) {
-      Alert.alert("Error", error.message);
+      showErrorMessage("Error updating contact information: " + error.message);
     } else {
-      Alert.alert("Success", "Contact updated");
+      showSuccessMessage("Contact information successfully updated");
       // Refresh contacts
       const { data } = await supabase
         .from("contact_info")
@@ -155,7 +156,7 @@ export default function ContactEditForm() {
     setShowConfirmEditEmailModal(false);
     if (selectedId === "" || typeof selectedId !== "number") return;
     if (!email.trim()) {
-      Alert.alert("Error", "Email is required");
+      showErrorMessage("Email is required");
       return;
     }
     setLoading(true);
@@ -167,9 +168,9 @@ export default function ContactEditForm() {
       .eq("id", selectedId);
     setLoading(false);
     if (error) {
-      Alert.alert("Error", error.message);
+      showErrorMessage("Error updating attendee email: " + error.message);
     } else {
-      Alert.alert("Success", "Attendee email updated");
+      showSuccessMessage("Attendee email successfully updated");
       // Refresh attendees
       const { data } = await supabase
         .from("attendee_info")
