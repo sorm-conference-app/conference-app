@@ -8,6 +8,7 @@ import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 
 import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
 import { ThemedView } from "./ThemedView";
+import ConfirmEditEmailModal from "./ConfirmEditEmailModal";
 
 function handleString(str: string | null): string {
   if (str === null) {
@@ -37,8 +38,11 @@ export default function ContactEditForm() {
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-
+  // State for editing attendee info
   const [editingAttendee, setEditingAttendee] = useState(false);
+
+  // State for showing confirm edit email modal
+  const [showConfirmEditEmailModal, setShowConfirmEditEmailModal] = useState(false);
 
   // Get current color scheme for theming
   const colorScheme = useColorScheme() ?? 'light';
@@ -138,7 +142,7 @@ export default function ContactEditForm() {
       Alert.alert("Error", error.message);
     } else {
       Alert.alert("Success", "Contact updated");
-      // Optionally refresh contacts
+      // Refresh contacts
       const { data } = await supabase
         .from("contact_info")
         .select("*")
@@ -148,8 +152,7 @@ export default function ContactEditForm() {
   }
 
   async function handleUpdateAttendee() {
-    console.log("handleUpdateAttendee: selectedId = ", selectedId);
-    console.log("handleUpdateAttendee: email = ", email);
+    setShowConfirmEditEmailModal(false);
     if (selectedId === "" || typeof selectedId !== "number") return;
     if (!email.trim()) {
       Alert.alert("Error", "Email is required");
@@ -164,11 +167,10 @@ export default function ContactEditForm() {
       .eq("id", selectedId);
     setLoading(false);
     if (error) {
-      console.log("handleUpdateAttendee: error = ", error);
       Alert.alert("Error", error.message);
     } else {
-      console.log("handleUpdateAttendee: success");
       Alert.alert("Success", "Attendee email updated");
+      // Refresh attendees
       const { data } = await supabase
         .from("attendee_info")
         .select("*")
@@ -179,7 +181,7 @@ export default function ContactEditForm() {
 
   if (fetching) {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView>
         <View style={styles.header}>
           <ThemedText type="title">Contact Editor</ThemedText>
         </View>
@@ -208,7 +210,7 @@ export default function ContactEditForm() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView>
       <View style={[styles.header, { borderBottomColor: Colors[colorScheme].tint }]}>
         <ThemedText type="title">Contact Editor</ThemedText>
         <ThemedText 
@@ -326,35 +328,39 @@ export default function ContactEditForm() {
           accessibilityHint="Enter the contact's email address"
         />
         <Pressable
-        onPress={editingAttendee ? handleUpdateAttendee : handleUpdate}
-        disabled={loading || selectedId === "" || typeof selectedId !== "number"}
-        style={[
-          styles.updateButton,
-          loading || selectedId === "" || typeof selectedId !== "number" ? 
-          { backgroundColor: Colors[colorScheme].tabIconDefault } : { backgroundColor: Colors[colorScheme].adminButton },
-          { borderColor: Colors[colorScheme].adminButtonText },
-          { borderWidth: 1 },
-        ]}
-        accessibilityLabel="Update button"
-        accessibilityHint="Press to save changes to the selected information"
-        accessibilityRole="button"
-        accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
-      >
-        <ThemedText style={[styles.updateButtonText,
-          { color: Colors[colorScheme].adminButtonText }
-        ]}>
-          {loading ? "Updating..." : editingAttendee ? "Update Attendee Email" : "Update Contact"}
-        </ThemedText>
-      </Pressable>
+          onPress={editingAttendee ? () => setShowConfirmEditEmailModal(true) : handleUpdate}
+          disabled={loading || selectedId === "" || typeof selectedId !== "number"}
+          style={[
+            styles.updateButton,
+            loading || selectedId === "" || typeof selectedId !== "number" ? 
+            { backgroundColor: Colors[colorScheme].tabIconDefault } : { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].adminButtonText },
+          ]}
+          accessibilityLabel="Update button"
+          accessibilityHint="Press to save changes to the selected information"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
+        >
+          <ThemedText style={[styles.updateButtonText,
+            { color: Colors[colorScheme].adminButtonText }
+          ]}>
+            {loading ? "Updating..." : editingAttendee ? "Update Attendee Email" : "Update Contact"}
+          </ThemedText>
+        </Pressable>
       </View>
+
+      <ConfirmEditEmailModal
+        visible={showConfirmEditEmailModal}
+        attendeeName={attendeeName}
+        attendeeEmail={email}
+        onCancel={() => setShowConfirmEditEmailModal(false)}
+        onConfirm={handleUpdateAttendee}
+      />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
     padding: 16,
     borderBottomWidth: 1,
@@ -371,6 +377,7 @@ const styles = StyleSheet.create({
   updateButton: {
     padding: 10,
     borderRadius: 5,
+    borderWidth: 1,
     alignItems: 'center',
   },
   updateButtonText: {
