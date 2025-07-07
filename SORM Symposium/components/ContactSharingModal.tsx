@@ -10,8 +10,8 @@ import { ThemedView } from './ThemedView';
 interface ContactSharingModalProps {
   visible: boolean;
   attendee: Attendee | null;
-  onDontShare: (additionalInfo: string) => void;
-  onShare: (additionalInfo: string) => void;
+  onDontShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
+  onShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
   onClose: () => void;
 }
 
@@ -45,7 +45,7 @@ export default function ContactSharingModal({
   }, [visible, attendee]);
 
   const handleDontShareClick = () => {
-    onDontShare(additionalInfo);
+    onDontShare(additionalInfo, name, organization, title);
   };
 
   const handleShareClick = () => {
@@ -53,7 +53,7 @@ export default function ContactSharingModal({
   };
 
   const handleSaveWithAdditionalInfo = () => {
-    onShare(additionalInfo);
+    onShare(additionalInfo, name, organization, title);
   };
 
   const handleBackToChoice = () => {

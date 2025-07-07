@@ -1,6 +1,7 @@
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ContactSharingModal from "@/components/ContactSharingModal";
+import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
@@ -14,9 +15,8 @@ import {
 } from "@/lib/attendeeStorage";
 import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, useColorScheme } from "react-native";
 import React, { useEffect, useState } from "react";
-import SormImageWrapper from "@/components/SormImageWrapper";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
 
 type UserType = "attendee" | "organizer";
 
@@ -153,20 +153,20 @@ export default function Login() {
     }
   };
 
-  const handleContactSharingDontShare = async () => {
+  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, "");
+      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
     } catch (error) {
       console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
     } catch (error) {
       console.error("Error saving contact sharing preferences:", error);
     }
