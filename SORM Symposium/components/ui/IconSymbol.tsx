@@ -30,6 +30,7 @@ const MAPPING = {
   "message.fill": "message",
   "star.fill": "star",
   "star": "star-outline",
+  "person.2.fill": "people",
 } as IconMapping;
 
 /**

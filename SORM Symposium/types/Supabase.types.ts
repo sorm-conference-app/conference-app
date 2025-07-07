@@ -85,8 +85,7 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker: string | null
-          speaker_bio: string | null
+          speaker_email: string | null
           speaker_name: string | null
           speaker_title: string | null
           start_time: string
@@ -102,8 +101,7 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
+          speaker_email?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
           start_time: string
@@ -119,8 +117,7 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
+          speaker_email?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
           start_time?: string
@@ -178,6 +175,8 @@ export type Database = {
           title: string | null;
           additional_info: string | null;
           is_admin: boolean;
+          share_info: boolean;
+          seen_share_info_popup: boolean;
         };
         Insert: {
           id?: number;
@@ -188,6 +187,8 @@ export type Database = {
           title?: string | null;
           additional_info?: string | null;
           is_admin?: boolean;
+          share_info?: boolean;
+          seen_share_info_popup?: boolean;
         };
         Update: {
           id?: number;
@@ -198,6 +199,44 @@ export type Database = {
           title?: string | null;
           additional_info?: string | null;
           is_admin?: boolean;
+          share_info?: boolean;
+          seen_share_info_popup?: boolean;
+        };
+        Relationships: [];
+      };
+      test_attendee_info: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          name: string | null;
+          organization: string | null;
+          title: string | null;
+          additional_info: string | null;
+          is_admin: boolean;
+          share_info: boolean;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          email: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          is_admin?: boolean;
+          share_info?: boolean;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          email?: string;
+          name?: string | null;
+          organization?: string | null;
+          title?: string | null;
+          additional_info?: string | null;
+          is_admin?: boolean;
+          share_info?: boolean;
         };
         Relationships: [];
       };
