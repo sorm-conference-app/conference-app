@@ -10,8 +10,8 @@ import { ThemedView } from './ThemedView';
 interface ContactSharingModalProps {
   visible: boolean;
   attendee: Attendee | null;
-  onDontShare: (additionalInfo: string) => void;
-  onShare: (additionalInfo: string) => void;
+  onDontShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
+  onShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
   onClose: () => void;
 }
 
@@ -28,18 +28,24 @@ export default function ContactSharingModal({
 }: ContactSharingModalProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [step, setStep] = useState<'choice' | 'additional-info'>('choice');
+  const [name, setName] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [title, setTitle] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
 
   // Reset state when modal becomes visible
   useEffect(() => {
     if (visible && attendee) {
       setStep('choice');
+      setName(attendee.name || '');
+      setOrganization(attendee.organization || '');
+      setTitle(attendee.title || '');
       setAdditionalInfo(attendee.additional_info || '');
     }
   }, [visible, attendee]);
 
   const handleDontShareClick = () => {
-    onDontShare(additionalInfo);
+    onDontShare(additionalInfo, name, organization, title);
   };
 
   const handleShareClick = () => {
@@ -47,7 +53,7 @@ export default function ContactSharingModal({
   };
 
   const handleSaveWithAdditionalInfo = () => {
-    onShare(additionalInfo);
+    onShare(additionalInfo, name, organization, title);
   };
 
   const handleBackToChoice = () => {
@@ -86,33 +92,50 @@ export default function ContactSharingModal({
                 styles.infoContainer,
                 { backgroundColor: Colors[colorScheme].background }
               ]}>
-                <ThemedText type="subtitle" style={styles.infoHeader}>
-                  Your Information:
-                </ThemedText>
-                
+                <ThemedView style={styles.infoRow}>
+                <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
+                  <ThemedText style={styles.infoValue}>{attendee.email}</ThemedText>
+                </ThemedView>
+
                 {attendee.name && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Name:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.name}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Enter your name"
+                      accessibilityLabel="Name"
+                      accessibilityHint="Name of the attendee"
+                    />
                   </ThemedView>
                 )}
-                
-                <ThemedView style={styles.infoRow}>
-                  <ThemedText style={styles.infoLabel}>Email:</ThemedText>
-                  <ThemedText style={styles.infoValue}>{attendee.email}</ThemedText>
-                </ThemedView>
                 
                 {attendee.organization && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.organization}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={organization}
+                      onChangeText={setOrganization}
+                      placeholder="Enter your organization"
+                      accessibilityLabel="Organization"
+                      accessibilityHint="Organization of the attendee"
+                    />
                   </ThemedView>
                 )}
                 
                 {attendee.title && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Title:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.title}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={title}
+                      onChangeText={setTitle}
+                      placeholder="Enter your title"
+                      accessibilityLabel="Title"
+                      accessibilityHint="Title of the attendee"
+                    />
                   </ThemedView>
                 )}
               </ThemedView>
@@ -301,7 +324,12 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     flex: 1,
+    fontSize: 16,
+  },
+  infoInput: {
+    flex: 1,
     fontSize: 14,
+    padding: 5,
   },
   changeText: {
     textAlign: 'center',
