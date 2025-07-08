@@ -61,7 +61,7 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
       },
     },
     {
-      queryKey: ["announcements", undefined],
+      queryKey: ["announcements"],
       queryFn: async function () {
         if (!db) {
           return [];
@@ -71,6 +71,22 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .select()
           .from(schema.announcements)
           .orderBy(desc(schema.announcements.created_at));
+
+        return data;
+      }
+    },
+    {
+      queryKey: ['announcements', 3], // Limit to 3 announcements
+      queryFn: async function () {
+        if (!db) {
+          return [];
+        }
+
+        const data = await db
+          .select()
+          .from(schema.announcements)
+          .orderBy(desc(schema.announcements.created_at))
+          .limit(3);
 
         return data;
       }

@@ -21,7 +21,7 @@ export default function AnnouncementsScreen() {
   const colorScheme = useColorScheme() ?? "light";
   const {
     data: announcements = [],
-    isPending: loading,
+    isFetching: loading,
     error,
     refetch,
   } = useAnnouncements();
@@ -31,7 +31,7 @@ export default function AnnouncementsScreen() {
   }, [refetch]);
 
   const renderContent = useCallback(() => {
-    if (loading && announcements.length === 0) {
+    if (loading) {
       return (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={Colors[colorScheme].tint} />
@@ -39,11 +39,12 @@ export default function AnnouncementsScreen() {
       );
     }
 
-    if (error && announcements.length === 0) {
+    if (error) {
       return (
         <View style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>
-            Could not load announcements. Please try again.
+            Could not load announcements. Reason: {error.message} Please try
+            again.
           </ThemedText>
           <ThemedText
             style={[styles.retryText, { color: Colors[colorScheme].tint }]}
@@ -74,6 +75,8 @@ export default function AnnouncementsScreen() {
       />
     ));
   }, [announcements, loading, error, refetchAnnouncements, colorScheme]);
+
+  console.log(announcements);
 
   return (
     <ThemedView

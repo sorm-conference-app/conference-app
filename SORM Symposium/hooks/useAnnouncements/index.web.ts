@@ -21,8 +21,10 @@ export default function useAnnouncements(limit?: number) {
   );
   const hookId = useRef(`hook_${Math.random().toString(36).substr(2, 6)}`);
 
+  const queryKey = limit ? ["announcements", limit] : ["announcements"];
+
   const { refetch, ...rest } = useQuery<Announcement[]>({
-    queryKey: ["announcements", limit],
+    queryKey,
     queryFn: async function () {
       console.log(
         `[${hookId.current}] Querying announcements with limit:`,
@@ -44,9 +46,7 @@ export default function useAnnouncements(limit?: number) {
         throw new Error(error.message);
       }
 
-      console.log(
-        `[${hookId.current}] Queried ${data.length} announcements`,
-      );
+      console.log(`[${hookId.current}] Queried ${data.length} announcements`);
       return data as Announcement[];
     },
     refetchOnWindowFocus: false,

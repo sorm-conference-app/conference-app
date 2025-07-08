@@ -24,8 +24,10 @@ export default function useAnnouncements(limit?: number) {
   const hookId = useRef(`hook_${Math.random().toString(36).substr(2, 6)}`);
   const cache = useCacheDatabase();
 
+  const queryKey = limit ? ["announcements", limit] : ["announcements"];
+
   const { refetch, ...rest } = useQuery<Announcement[]>({
-    queryKey: ["announcements", limit],
+    queryKey,
     queryFn: async function () {
       console.log(
         `[${hookId.current}] Querying announcements with limit:`,
@@ -53,16 +55,14 @@ export default function useAnnouncements(limit?: number) {
       }));
 
       // Insert the fetched data into the cache.
-      // Note: Using onConflictDoNothing to since we are not updating existing records.
+      // Note: Using onConflictDoNothing since we are not updating existing records.
       // However, if we plan to 'edit' announcements in the future, we should use onConflictDoUpdate.
       await cache
         .insert(announcements)
         .values(insertData)
         .onConflictDoNothing({ target: announcements.id });
 
-      console.log(
-        `[${hookId.current}] Queried ${data.length} announcements`,
-      );
+      console.log(`[${hookId.current}] Queried ${data.length} announcements`);
       return data as Announcement[];
     },
     refetchOnWindowFocus: false,

@@ -5,7 +5,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
-import { useAnnouncements } from "@/hooks/useAnnouncements";
+import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { clearVerifiedEmails } from "@/lib/attendeeStorage";
 import { Image } from "expo-image";
@@ -42,15 +42,23 @@ export default function Home() {
     } catch (error) {
       console.error("Error during logout:", error);
     }
-    
+
     // Redirect to login page (index.tsx) for all users
     router.replace("/");
   };
 
   const colorScheme = useColorScheme() ?? "light";
-  const { announcements, loading, error, refresh } = useAnnouncements(3);
+  const {
+    data: announcements = [],
+    isFetching: loading,
+    error,
+    refetch: refresh,
+  } = useAnnouncements(3);
 
   const renderAnnouncementContent = useCallback(() => {
+    function refetchAnnouncements() {
+      refresh();
+    }
     if (loading) {
       return (
         <View style={styles.loaderContainer}>
@@ -65,7 +73,7 @@ export default function Home() {
           <ThemedText style={styles.errorText}>
             Could not load announcements. Please try again.
           </ThemedText>
-          <ThemedText type="link" onPress={refresh} style={styles.retryLink}>
+          <ThemedText type="link" onPress={refetchAnnouncements} style={styles.retryLink}>
             Retry
           </ThemedText>
         </View>
@@ -165,7 +173,7 @@ export default function Home() {
           </ThemedText>
         </View>
       </ThemedView>
-      
+
       {/* Footer with auth buttons */}
       <ThemedView style={styles.footerContainer}>
         <View
