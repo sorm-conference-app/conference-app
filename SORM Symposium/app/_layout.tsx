@@ -18,7 +18,7 @@ import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { sendLogMessage } from "@/services/logging";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { asc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "@/drizzle/migrations";
 import * as schema from "@/db/schema";
@@ -60,6 +60,21 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
         }));
       },
     },
+    {
+      queryKey: ["announcements", undefined],
+      queryFn: async function () {
+        if (!db) {
+          return [];
+        }
+
+        const data = await db
+          .select()
+          .from(schema.announcements)
+          .orderBy(desc(schema.announcements.created_at));
+
+        return data;
+      }
+    }
   ];
 
 export default function RootLayout() {

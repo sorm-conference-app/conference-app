@@ -13,13 +13,17 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
 
-import { useAnnouncements } from "@/hooks/useAnnouncements";
+import useAnnouncements from "@/hooks/useAnnouncements";
 import { useCallback } from "react";
 import { Platform } from "react-native";
 
 export default function AnnouncementsScreen() {
   const colorScheme = useColorScheme() ?? "light";
-  const { announcements, loading, error, refresh } = useAnnouncements();
+  const { data: announcements = [], isPending: loading, error, refetch } = useAnnouncements();
+  
+  const refetchAnnouncements = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const renderContent = useCallback(() => {
     if (loading && announcements.length === 0) {
@@ -38,7 +42,7 @@ export default function AnnouncementsScreen() {
           </ThemedText>
           <ThemedText
             style={[styles.retryText, { color: Colors[colorScheme].tint }]}
-            onPress={refresh}
+            onPress={refetchAnnouncements}
           >
             {Platform.OS === "web" ? "Click to retry" : "Tap to retry"}
           </ThemedText>
@@ -64,7 +68,7 @@ export default function AnnouncementsScreen() {
         useTruncation={false}
       />
     ));
-  }, [announcements, loading, error, refresh, colorScheme]);
+  }, [announcements, loading, error, refetchAnnouncements, colorScheme]);
 
   return (
     <ThemedView
