@@ -1,5 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { checkMultipleFields } from '@/lib/wordFilter';
 import type { Attendee } from '@/services/attendees';
 import React, { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -32,6 +33,7 @@ export default function ContactSharingModal({
   const [organization, setOrganization] = useState('');
   const [title, setTitle] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
+  const [filterError, setFilterError] = useState('');
 
   // Reset state when modal becomes visible
   useEffect(() => {
@@ -41,23 +43,58 @@ export default function ContactSharingModal({
       setOrganization(attendee.organization || '');
       setTitle(attendee.title || '');
       setAdditionalInfo(attendee.additional_info || '');
+      setFilterError('');
     }
   }, [visible, attendee]);
 
+  /**
+   * Check all fields for inappropriate content
+   * @returns True if content is appropriate, false if filtered content found
+   */
+  const validateContent = (): boolean => {
+    const fields = {
+      name: name,
+      organization: organization,
+      title: title,
+      'additional information': additionalInfo,
+    };
+
+    const result = checkMultipleFields(fields);
+    
+    if (result.isFiltered) {
+      const fieldNames = result.fieldsWithIssues.join(', ');
+      setFilterError(`Please remove inappropriate content from: ${fieldNames}`);
+      return false;
+    }
+    
+    setFilterError('');
+    return true;
+  };
+
   const handleDontShareClick = () => {
+    if (!validateContent()) {
+      return;
+    }
     onDontShare(additionalInfo, name, organization, title);
   };
 
   const handleShareClick = () => {
+    if (!validateContent()) {
+      return;
+    }
     setStep('additional-info');
   };
 
   const handleSaveWithAdditionalInfo = () => {
+    if (!validateContent()) {
+      return;
+    }
     onShare(additionalInfo, name, organization, title);
   };
 
   const handleBackToChoice = () => {
     setStep('choice');
+    setFilterError(''); // Clear error when going back
   };
 
   if (!attendee) return null;
@@ -183,6 +220,11 @@ export default function ContactSharingModal({
                 </Pressable>
                 }
               </ThemedView>
+
+              {/* Filter error message */}
+              {filterError && (
+                <ThemedText style={styles.filterError}>{filterError}</ThemedText>
+              )}
             </>
           ) : (
             // Step 2: Additional information input
@@ -257,6 +299,11 @@ export default function ContactSharingModal({
                   </ThemedText>
                 </Pressable>
               </ThemedView>
+
+              {/* Filter error message */}
+              {filterError && (
+                <ThemedText style={styles.filterError}>{filterError}</ThemedText>
+              )}
             </ScrollView>
           )}
         </ThemedView>
@@ -377,5 +424,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: '600',
     fontSize: 16,
+  },
+  filterError: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 12,
+    fontSize: 14,
   },
 }); 
