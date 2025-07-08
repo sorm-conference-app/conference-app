@@ -5,10 +5,10 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { formatTimeRange } from "@/lib/dateTime";
-import { Dispatch, SetStateAction } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Dispatch, SetStateAction, useState } from "react";
+import { Pressable, StyleSheet, LayoutChangeEvent } from "react-native";
 import AgendaItemSaveButton from "./AgendaItemSaveButton";
-import { calculateHeight, formatTopicName, getTopicColor } from "./utils";
+import { formatTopicName, getTopicColor } from "./utils";
 
 type AgendaItemProps = {
   id: number;
@@ -19,6 +19,7 @@ type AgendaItemProps = {
   isDeleted: boolean;
   topic?: string | null;
   hasRSVP: boolean;
+  height: number;
   onPress: () => void;
   setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
 };
@@ -32,6 +33,7 @@ export default function AgendaItem({
   isDeleted,
   topic,
   hasRSVP,
+  height,
   setRsvpEventIds,
   onPress,
 }: AgendaItemProps) {
@@ -40,6 +42,7 @@ export default function AgendaItem({
   const topicColor = getTopicColor(topic ?? null);
   const topicName = formatTopicName(topic ?? null);
   const user = useSupabaseAuth();
+  const [containerWidth, setContainerWidth] = useState(0);
 
   return (
     <Pressable
@@ -48,8 +51,7 @@ export default function AgendaItem({
         { backgroundColor: topicColor },
         { borderColor: Colors[colorScheme].tint },
         {
-          minHeight:
-            title === "Break" ? 65 : calculateHeight(startTime, endTime),
+          minHeight: height,
         },
         pressed && styles.agendaItemPressed,
       ]}
@@ -68,7 +70,12 @@ export default function AgendaItem({
       >
         <ThemedView style={styles.titleRow}>
           <ThemedView style={styles.titleContainer}>
-            <ThemedText style={styles.title} type="defaultSemiBold">
+            <ThemedText 
+              style={styles.title} 
+              type="defaultSemiBold"
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
               {title}
             </ThemedText>
             {isDeleted && (
@@ -77,34 +84,57 @@ export default function AgendaItem({
                 - Deleted
               </ThemedText>
             )}
-            <IconSymbol name="chevron.right" size={20} color={tintColor} />
           </ThemedView>
-          {!user && (
-            <AgendaItemSaveButton
-              eventId={id}
-              isRSVP={hasRSVP}
-              setRsvpEventIds={setRsvpEventIds}
-            />
-          )}
         </ThemedView>
         {/* Topic Badge */}
-        <ThemedView
-          style={[styles.topicBadge, { backgroundColor: topicColor }]}
-        >
-          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
-        </ThemedView>
+        {topicName !== "Break" && (
+          <ThemedView
+            style={[styles.topicBadge, { backgroundColor: topicColor }]}
+          >
+            <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+          </ThemedView>
+        )}
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
-          <ThemedText style={styles.time}>
-            {formatTimeRange(startTime, endTime)}
-          </ThemedText>
+          <ThemedView 
+            style={styles.timeContainer}
+            onLayout={(event: LayoutChangeEvent) => {
+              setContainerWidth(event.nativeEvent.layout.width);
+            }}
+          >
+            {(() => {
+              const timeRange = formatTimeRange(startTime, endTime);
+              const parts = timeRange.split(' - ');
+              
+              // If container is narrow (less than ~120px), wrap at dash
+              // Otherwise, keep on one line
+              if (parts.length === 2 && containerWidth < 150) {
+                return (
+                  <>
+                    <ThemedText style={styles.time}>{parts[0]} -</ThemedText>
+                    <ThemedText style={styles.time}>{parts[1]}</ThemedText>
+                  </>
+                );
+              }
+              return <ThemedText style={styles.time}>{timeRange}</ThemedText>;
+            })()}
+          </ThemedView>
         </ThemedView>
-        {title !== "Break" && (
+        {topicName !== "Break" && (
           <ThemedView style={styles.infoRow}>
             <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
             <ThemedText style={styles.location}>{location}</ThemedText>
           </ThemedView>
         )}
+        {!user && (
+          <ThemedView style={styles.saveButton}>
+            <AgendaItemSaveButton
+              eventId={id}
+              isRSVP={hasRSVP}
+              setRsvpEventIds={setRsvpEventIds}
+            />
+          </ThemedView>
+          )}
       </ThemedView>
     </Pressable>
   );
@@ -138,6 +168,9 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   time: {
+    flex: 1,
+  },
+  timeContainer: {
     flex: 1,
   },
   topicBadge: {
@@ -177,5 +210,11 @@ const styles = StyleSheet.create({
     display: "flex",
     padding: 8,
     borderRadius: 3,
+  },
+  saveButton: {
+    position: "absolute",
+    padding: 4,
+    right: 4,
+    bottom: 4,
   },
 });

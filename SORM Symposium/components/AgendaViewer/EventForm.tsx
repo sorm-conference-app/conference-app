@@ -104,7 +104,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(
                 Boolean(
                   text &&
-                    (title !== "Break" ? location : true) &&
+                    (topic !== "Break" ? location : true) &&
                     startTime &&
                     endTime &&
                     eventDate
@@ -183,7 +183,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Location *</ThemedText>
+          <ThemedText>
+            {topic === "Break" ? "Location" : "Location *"}
+          </ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -199,7 +201,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(
                 Boolean(
                   title &&
-                    (title !== "Break" ? text : true) &&
+                    (topic !== "Break" ? text : true) &&
                     startTime &&
                     endTime &&
                     eventDate
@@ -231,7 +233,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(
                 Boolean(
                   title &&
-                    (title !== "Break" ? location : true) &&
+                    (topic !== "Break" ? location : true) &&
                     startTime &&
                     endTime &&
                     text
@@ -263,7 +265,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(
                 Boolean(
                   title &&
-                    (title !== "Break" ? location : true) &&
+                    (topic !== "Break" ? location : true) &&
                     text &&
                     endTime &&
                     eventDate
@@ -295,7 +297,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
               setCanSubmit(
                 Boolean(
                   title &&
-                    (title !== "Break" ? location : true) &&
+                    (topic !== "Break" ? location : true) &&
                     startTime &&
                     text &&
                     eventDate
