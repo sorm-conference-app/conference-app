@@ -9,6 +9,13 @@ import { ThemedText } from "./ThemedText";
 import ThemedTextInput from "./ThemedTextInput";
 import { ThemedView } from "./ThemedView";
 
+function handleString(str: string | null): string {
+  if (str === null) {
+    return "";
+  }
+  return str;
+}
+
 /**
  * Form for editing existing contact information in Supabase.
  * Allows selection of a contact, editing their info, and updating in the database.
@@ -56,10 +63,10 @@ export default function ContactEditForm() {
     if (selectedId !== "" && typeof selectedId === "number") {
       const contact = contacts.find(c => c.id === selectedId);
       if (contact) {
-        setFirstName(contact.first_name);
-        setLastName(contact.last_name);
-        setPhoneNumber(contact.phone_number);
-        setEmail(contact.email);
+        setFirstName(handleString(contact.first_name));
+        setLastName(handleString(contact.last_name));
+        setPhoneNumber(handleString(contact.phone_number));
+        setEmail(handleString(contact.email));
       }
     } else {
       // Clear fields if no contact is selected
@@ -172,14 +179,14 @@ export default function ContactEditForm() {
             <Picker.Item 
               label="Select a contact" 
               value="select" 
-              color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+              color={Platform.OS === 'android' ? Colors.light.text : Colors[colorScheme].text}
             />
             {contacts.map(contact => (
               <Picker.Item
                 key={contact.id}
                 label={`${contact.first_name} ${contact.last_name}`}
                 value={contact.id}
-                color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'}
+                color={Platform.OS === 'android' ? Colors.light.text : Colors[colorScheme].text}
               />
             ))}
           </Picker>
