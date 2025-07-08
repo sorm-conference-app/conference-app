@@ -269,21 +269,21 @@ export default function ContactEditForm() {
             <Picker.Item 
               label="Select a contact" 
               value="select" 
-              color={Colors[colorScheme].text}
+              color={Platform.OS === 'android' ? Colors.light.text : Colors[colorScheme].text}
             />
             {editingAttendee ? attendees.map(attendee => (
               <Picker.Item
                 key={attendee.id}
                 label={handleString(attendee.name)}
                 value={attendee.id}
-                color={Colors[colorScheme].text}
+                color={Platform.OS === 'android' ? Colors.light.text : Colors[colorScheme].text}
               />
             )) : contacts.map(contact => (
               <Picker.Item
                 key={contact.id}
                 label={`${contact.first_name} ${contact.last_name}`}
                 value={contact.id}
-                color={Colors[colorScheme].text}
+                color={Platform.OS === 'android' ? Colors.light.text : Colors[colorScheme].text}
               />
             ))}
           </Picker>
