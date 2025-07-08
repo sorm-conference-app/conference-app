@@ -19,8 +19,13 @@ import { Platform } from "react-native";
 
 export default function AnnouncementsScreen() {
   const colorScheme = useColorScheme() ?? "light";
-  const { data: announcements = [], isPending: loading, error, refetch } = useAnnouncements();
-  
+  const {
+    data: announcements = [],
+    isPending: loading,
+    error,
+    refetch,
+  } = useAnnouncements();
+
   const refetchAnnouncements = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -91,7 +96,7 @@ export default function AnnouncementsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={loading && announcements.length > 0}
-            onRefresh={refresh}
+            onRefresh={refetchAnnouncements}
             colors={[Colors[colorScheme].tint]}
             tintColor={Colors[colorScheme].tint}
           />
