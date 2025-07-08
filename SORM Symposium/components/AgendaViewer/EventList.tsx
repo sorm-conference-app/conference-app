@@ -21,11 +21,11 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import {
-  calculateEventOffset,
   calculateHeight,
   findConflicts,
   groupEventsByDate,
-  sortEventsByLocation,
+  isCol1Location,
+  isCol2Location,
 } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
 
@@ -49,9 +49,6 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
-
-  const COL_1_LOCATION = "102 A&B";
-  const COL_2_LOCATION = "102 C&D";
 
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
@@ -260,7 +257,7 @@ export function EventList({
                         });
                       }}
                     >
-                      {item.location === COL_1_LOCATION ? (
+                      {isCol1Location(item.location) ? (
                         <>
                           <View
                             style={[
@@ -286,7 +283,7 @@ export function EventList({
                             {/* Empty right column */}
                           </View>
                         </>
-                      ) : item.location === COL_2_LOCATION ? (
+                      ) : isCol2Location(item.location) ? (
                         <>
                           <View
                             style={[

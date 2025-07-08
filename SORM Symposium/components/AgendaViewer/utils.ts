@@ -1,5 +1,14 @@
 import { TopicColors } from '@/constants/Colors';
 import type { Event } from '@/types/Events.types';
+import { COL_1_LOCATIONS, COL_2_LOCATIONS } from './types';
+
+export function isCol1Location(location: string): boolean {
+  return COL_1_LOCATIONS.includes(location);
+}
+
+export function isCol2Location(location: string): boolean {
+  return COL_2_LOCATIONS.includes(location);
+}
 
 export type TimeConflict = {
   event1: Event;

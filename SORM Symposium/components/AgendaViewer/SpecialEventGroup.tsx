@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { Event } from '@/types/Events.types';
 import AgendaItem from './AgendaItem';
-import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset, calculateHeight } from './utils';
+import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset, calculateHeight, isCol1Location, isCol2Location } from './utils';
 
 type SpecialEventGroupProps = {
   mainEvent: Event;
@@ -28,9 +28,6 @@ export function SpecialEventGroup({
   }, mainEvent);
   const [longestEventHeight, setLongestEventHeight] = useState(longestEvent.topic === "Break" ? 50 : 
     calculateHeight(longestEvent.start_time, longestEvent.end_time));
-
-  const COL_1_LOCATION = "102 A&B";
-  const COL_2_LOCATION = "102 C&D";
 
   // All other events that overlap with the longest event, sorted by start time
   const otherEvents = allEvents
@@ -106,16 +103,16 @@ export function SpecialEventGroup({
   return (
     <View style={styles.container}>
       {/* Determine column order based on room locations */}
-      {longestEvent.location === COL_1_LOCATION ||
-       otherEvents.some(e => e.location === COL_1_LOCATION) ? (
-        // Room 1 events exist - put other events column on left, long event column on right
+      {isCol2Location(longestEvent.location) ||
+       otherEvents.some(e => isCol1Location(e.location)) ? (
+        // Put other events column on left, long event column on right
         <>
           {otherEventsColumn}
           {longEventColumn}
         </>
-      ) : longestEvent.location === COL_2_LOCATION ||
-           otherEvents.some(e => e.location === COL_2_LOCATION) ? (
-        // Room 2 events exist - put long event column on left, other events column on right
+      ) : isCol1Location(longestEvent.location) ||
+           otherEvents.some(e => isCol2Location(e.location)) ? (
+        // Put long event column on left, other events column on right
         <>
           {longEventColumn}
           {otherEventsColumn}
