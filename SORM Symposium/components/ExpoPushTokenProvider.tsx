@@ -9,6 +9,7 @@ import { router } from "expo-router";
 import saveExpoPushToken from "@/api/saveExpoPushToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceId } from "@/lib/user";
+import { triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -99,6 +100,10 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
             break;
           case "survey":
             router.push("/(tabs)/home");
+            // Trigger the survey flash animation three times with delays
+            triggerSurveyFlash();
+            setTimeout(() => triggerSurveyFlash(), 400);
+            setTimeout(() => triggerSurveyFlash(), 800);
             break;
           default:
             console.log("Unknown notification type:", data?.type);

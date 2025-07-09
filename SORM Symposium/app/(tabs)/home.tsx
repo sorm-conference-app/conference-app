@@ -8,11 +8,13 @@ import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { clearVerifiedEmails } from "@/lib/attendeeStorage";
+import { onSurveyFlash, triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   Platform,
   Pressable,
@@ -50,6 +52,8 @@ export default function Home() {
 
   const WIDE_SCREEN_WIDTH = 950;
   const [wideScreen, setWideScreen] = useState(false);
+  const [surveyFlashTrigger, setSurveyFlashTrigger] = useState(0);
+  const surveyAnimation = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const updateLayout = () => {
@@ -64,12 +68,40 @@ export default function Home() {
     };
   }, []);
 
+  // Listen for survey flash events
+  useEffect(() => {
+    const cleanup = onSurveyFlash(() => {
+      setSurveyFlashTrigger(prev => prev + 1);
+    });
+
+    return cleanup;
+  }, []);
+
+  // Trigger flash animation when surveyFlashTrigger changes
+  useEffect(() => {
+    if (surveyFlashTrigger > 0) {
+      Animated.sequence([
+        Animated.timing(surveyAnimation, {
+          toValue: 1.1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(surveyAnimation, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [surveyFlashTrigger, surveyAnimation]);
+
   const surveyContainer = () => {
     return (
-      <ThemedView style={[styles.surveyButtonContainer, 
+      <Animated.View style={[styles.surveyButtonContainer, 
         { position: wideScreen ? "absolute" : "relative",
           backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
           borderColor: Colors[colorScheme].tint,
+          transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
           Your feedback is important to us! Please take a moment to fill out our survey about the day's events.
@@ -84,7 +116,7 @@ export default function Home() {
             { color: Colors[colorScheme].adminButtonText, }]}>
               Go to Survey</ThemedText>
         </Pressable>
-      </ThemedView>
+      </Animated.View>
     );
   };
 
