@@ -10,11 +10,12 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { clearVerifiedEmails } from "@/lib/attendeeStorage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   Platform,
+  Pressable,
   StyleSheet,
   View,
 } from "react-native";
@@ -45,6 +46,46 @@ export default function Home() {
 
     // Redirect to login page (index.tsx) for all users
     router.replace("/");
+  };
+
+  const WIDE_SCREEN_WIDTH = 950;
+  const [wideScreen, setWideScreen] = useState(false);
+
+  useEffect(() => {
+    const updateLayout = () => {
+      setWideScreen(Dimensions.get("window").width > WIDE_SCREEN_WIDTH);
+    };
+
+    updateLayout();
+    const subscription = Dimensions.addEventListener("change", updateLayout);
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const surveyContainer = () => {
+    return (
+      <ThemedView style={[styles.surveyButtonContainer, 
+        { position: wideScreen ? "absolute" : "relative",
+          backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+          borderColor: Colors[colorScheme].tint,
+        }]}>
+        <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
+          Your feedback is important to us! Please take a moment to fill out our survey about the day's events.
+        </ThemedText>
+        <Pressable 
+          onPress={() => {}}
+          style={[styles.surveyButton,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].tint },
+          ]}>
+          <ThemedText style={[styles.surveyButtonText, 
+            { color: Colors[colorScheme].adminButtonText, }]}>
+              Go to Survey</ThemedText>
+        </Pressable>
+      </ThemedView>
+    );
   };
 
   const colorScheme = useColorScheme() ?? "light";
@@ -117,8 +158,9 @@ export default function Home() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome to the SORM Symposium!</ThemedText>
+        <ThemedText type="title">Welcome to the SORM{"\u00A0"}Symposium!</ThemedText>
       </ThemedView>
+      {surveyContainer()}
       <ThemedView style={styles.partContainer}>
         <ThemedText>
           The SORM Symposium will take place August 13-15 in College Station,
@@ -251,5 +293,32 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 16,
     alignItems: "center",
+  },
+  surveyButtonContainer: {
+    position: "relative",
+    flexDirection: "column",
+    right: 5,
+    maxWidth: 350,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 8,
+    zIndex: 1,
+  },
+  surveyButton: {
+    position: "absolute",
+    height: 67,
+    width: 90,
+    top: 10,
+    right: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginLeft: 10,
+  },
+  surveyButtonText: {
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 18,
   },
 });
