@@ -12,6 +12,12 @@ const handleEmail = (email: string) => {
   Linking.openURL(`mailto:${email}`);
 };
 
+const handleWebsite = (website: string | undefined) => {
+  if (website) {
+    Linking.openURL(website);
+  }
+};
+
 export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
@@ -75,12 +81,32 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         <Text style={[styles.contactLabel, { color: colors.text }]}>
           Contact:
         </Text>
-        <Text
-          style={[styles.contactInfo, { color: colors.link }]}
-          onPress={() => handleEmail(sponsor.contactInfo)}
-        >
-          {sponsor.contactInfo}
+        {sponsor.contactInfo && (
+          <Text
+            style={[styles.contactInfo, { color: colors.link }]}
+            onPress={() => handleEmail(sponsor.contactInfo)}
+          >
+            {sponsor.contactInfo}
+          </Text>
+        )}
+      </View>
+      {sponsor.contact && (
+        <Text style={[styles.contactInfo, { color: colors.text, marginLeft: 62 }]}>
+          {sponsor.contact}
         </Text>
+      )}
+
+      <View style={styles.contactContainer}>
+        <Text style={[styles.contactLabel, { color: colors.text }]}>
+          Website:
+        </Text>
+        {sponsor.website && (
+          <Text style={[styles.contactInfo, { color: colors.link }]}
+            onPress={() => handleWebsite(sponsor.website)}
+          >
+            {sponsor.website}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -110,8 +136,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   logo: {
-    width: 50,
-    height: 50,
     borderRadius: 8,
   },
   placeholderLogo: {
@@ -147,11 +171,12 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   contactContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    marginTop: 12,
   },
   contactLabel: {
     fontSize: 14,
