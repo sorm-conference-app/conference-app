@@ -5,6 +5,7 @@ import * as Device from "expo-device";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import { router } from "expo-router";
 import saveExpoPushToken from "@/api/saveExpoPushToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceId } from "@/lib/user";
@@ -85,6 +86,24 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
         console.log("Notification response received:", response);
+        
+        // Handle different notification types based on custom data
+        const data = response.notification.request.content.data;
+        
+        switch (data?.type) {
+          case "general":
+            router.push("/announcement/announcementList");
+            break;
+          case "event_reminder":
+            router.push("/agenda");
+            break;
+          case "survey":
+            router.push("/(tabs)/home");
+            break;
+          default:
+            console.log("Unknown notification type:", data?.type);
+            break;
+        }
       });
 
     registerForPushNotificationsAsync();

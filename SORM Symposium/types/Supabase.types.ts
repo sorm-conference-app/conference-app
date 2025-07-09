@@ -135,18 +135,21 @@ export type Database = {
           created_at: string
           id: number
           title: string
+          type: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: number
           title?: string
+          type?: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: number
           title?: string
+          type?: string
         }
         Relationships: []
       }

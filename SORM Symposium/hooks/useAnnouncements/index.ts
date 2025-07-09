@@ -5,6 +5,7 @@ export type Announcement = {
   title: string;
   body: string;
   created_at: string;
+  type: string;
 };
 
 /**
