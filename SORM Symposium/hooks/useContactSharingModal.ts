@@ -1,8 +1,8 @@
 import {
-    getAttendeeByEmail,
-    shouldShowContactSharingPopup,
-    updateContactSharingPreferences,
-    type Attendee
+  getAttendeeByEmail,
+  shouldShowContactSharingPopup,
+  updateContactSharingPreferences,
+  type Attendee
 } from '@/services/attendees';
 import { useCallback, useState } from 'react';
 
@@ -12,7 +12,7 @@ interface UseContactSharingModalReturn {
   showModal: (email: string) => Promise<boolean>;
   showModalForce: (email: string) => Promise<void>;
   hideModal: () => void;
-  savePreferences: (shareInfo: boolean, additionalInfo: string) => Promise<void>;
+  savePreferences: (shareInfo: boolean, additionalInfo: string, name?: string, organization?: string, title?: string) => Promise<void>;
 }
 
 /**
@@ -75,14 +75,17 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
    * Save the attendee's contact sharing preferences
    * @param shareInfo - Whether they want to share their info
    * @param additionalInfo - Additional information they want to share
+   * @param name - Updated name value
+   * @param organization - Updated organization value
+   * @param title - Updated title value
    */
-  const savePreferences = useCallback(async (shareInfo: boolean, additionalInfo: string) => {
+  const savePreferences = useCallback(async (shareInfo: boolean, additionalInfo: string, name?: string, organization?: string, title?: string) => {
     if (!attendee?.email) {
       throw new Error('No attendee email available');
     }
 
     try {
-      await updateContactSharingPreferences(attendee.email, shareInfo, additionalInfo);
+      await updateContactSharingPreferences(attendee.email, shareInfo, additionalInfo, name, organization, title);
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
       throw error;
