@@ -53,7 +53,8 @@ export const events = sqliteTable("events", {
 export const event_attendees = sqliteTable("event_attendees", {
   id: int().primaryKey({ autoIncrement: true }),
   event_id: int().notNull(),
-  attendee_device_id: text().notNull(),
+  attendee_device_id: text(), // Allow null for web platforms
+  attendee_id: int().notNull(),
   rsvp_at: int({ mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

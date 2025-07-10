@@ -38,25 +38,28 @@ export type Database = {
       }
       event_attendees: {
         Row: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id: number
           notified: boolean
           rsvp_at: string
+          attendee_id: number
         }
         Insert: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Update: {
-          attendee_device_id?: string
+          attendee_device_id?: string | null
           event_id?: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Relationships: [
           {

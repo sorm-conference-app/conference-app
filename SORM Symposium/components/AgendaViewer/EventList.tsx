@@ -2,7 +2,6 @@ import AgendaItem from "@/components/AgendaViewer/AgendaItem";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate } from "@/lib/dateTime";
-import { getDeviceId } from "@/lib/user";
 import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
@@ -23,6 +22,7 @@ import {
 import { Pressable } from "react-native-gesture-handler";
 import useEvents from "@/hooks/useEvents";
 import useRSVPEvents from "@/hooks/useRSVPEvents";
+import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
@@ -47,14 +47,11 @@ export function EventList({
   const COL_1_LOCATION = "Room 1";
   const COL_2_LOCATION = "Room 2";
 
-  const [deviceId, setDeviceId] = useState<string>("");
   const dateRefs = useRef<{ [key: string]: View | null }>({});
   const dateHeights = useRef<{ [key: string]: number }>({});
 
-  // Get device ID on mount
-  useEffect(() => {
-    getDeviceId().then(setDeviceId);
-  }, []);
+  // Get current attendee information
+  const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
 
   // Use the new caching hooks
   const {
@@ -71,7 +68,7 @@ export function EventList({
     isLoading: rsvpLoading,
     error: rsvpError,
     refetch: refetchRSVP,
-  } = useRSVPEvents(deviceId);
+  } = useRSVPEvents(attendee?.id || 0);
 
   // Create a set of RSVPed event IDs for quick lookup
   const rsvpEventIds = new Set(rsvpEvents.map(event => event.id));
@@ -86,10 +83,10 @@ export function EventList({
   });
 
   // Combine loading states
-  const loading = eventsLoading || rsvpLoading || !deviceId;
+  const loading = eventsLoading || rsvpLoading || attendeeLoading;
   
   // Combine error states
-  const error = eventsError || rsvpError;
+  const error = eventsError || rsvpError || attendeeError;
 
   // Function to handle RSVP updates - triggers refetch to get latest data
   const handleRSVPUpdate = () => {

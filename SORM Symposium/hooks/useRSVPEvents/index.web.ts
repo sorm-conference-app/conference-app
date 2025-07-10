@@ -8,28 +8,28 @@ import type { Event } from "@/types/Events.types";
  * @param deviceId The device ID to get RSVPed events for
  * @returns Object containing RSVPed events, loading state, error, and a refresh function
  */
-export default function useRSVPEvents(deviceId: string) {
+export default function useRSVPEvents(attendeeId: number) {
   // Create a stable channel name using a ref
   const channelName = useRef(
     `rsvp_events_changes_${Math.random().toString(36).substr(2, 9)}`,
   );
   const hookId = useRef(`hook_${Math.random().toString(36).substr(2, 6)}`);
 
-  const queryKey = ["rsvp_events", deviceId];
+  const queryKey = ["rsvp_events", attendeeId];
 
   const { refetch, ...rest } = useQuery<Event[]>({
     queryKey,
     queryFn: async function () {
       console.log(
-        `[${hookId.current}] Querying RSVPed events for device:`,
-        deviceId,
+        `[${hookId.current}] Querying RSVPed events for attendee:`,
+        attendeeId,
       );
 
       // First, get the event IDs that the user has RSVPed for
       const { data: rsvpData, error: rsvpError } = await supabase
         .from("event_attendees")
         .select("event_id")
-        .eq("attendee_device_id", deviceId);
+        .eq("attendee_id", attendeeId)
 
       if (rsvpError) {
         throw new Error(rsvpError.message);
