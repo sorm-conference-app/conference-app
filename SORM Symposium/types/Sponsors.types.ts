@@ -3,8 +3,12 @@ export interface Sponsor {
   name: string;
   description: string;
   level: string;
-  logo?: string;
-  contactInfo: string;
+  logo?: string | null;
+  contactInfo?: {
+    name: string;
+    email: string;
+    phone: string;
+  }[];
   website?: string;
 }
 
@@ -12,3 +16,7 @@ export interface SponsorGroup {
   level: string;
   sponsors: Sponsor[];
 } 
+
+export interface SponsorLogoIndex {
+  map: Map<string, string>;
+}
