@@ -5,7 +5,7 @@ import useCacheDatabase from "../useCacheDatabase";
 import { announcements } from "@/db/schema";
 
 // Set to true to test cache-only mode (no network requests)
-const CACHE_ONLY = true;
+const CACHE_ONLY = false;
 
 type Announcement = {
   id: number;

@@ -5,7 +5,7 @@ import { contact_info } from "@/db/schema";
 import { sql } from "drizzle-orm";
 
 // Set to true to test cache-only mode (no network requests)
-const CACHE_ONLY = true;
+const CACHE_ONLY = false;
 
 /**
  * This is the hook that will be used in native platforms.

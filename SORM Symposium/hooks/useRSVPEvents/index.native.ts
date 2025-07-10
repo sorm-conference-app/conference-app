@@ -8,7 +8,7 @@ import { sql } from "drizzle-orm";
 import { eq, and } from "drizzle-orm";
 
 // Set to true to test cache-only mode (no network requests)
-const CACHE_ONLY = true;
+const CACHE_ONLY = false;
 
 /**
  * Hook to fetch RSVPed events for a specific attendee

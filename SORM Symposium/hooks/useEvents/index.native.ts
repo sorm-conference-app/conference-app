@@ -7,7 +7,7 @@ import type { Event } from "@/types/Events.types";
 import { sql } from "drizzle-orm";
 
 // Set to true to test cache-only mode (no network requests)
-const CACHE_ONLY = true;
+const CACHE_ONLY = false;
 
 /**
  * Hook to fetch events from Supabase with real-time updates
