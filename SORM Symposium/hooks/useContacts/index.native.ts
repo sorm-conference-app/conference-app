@@ -4,6 +4,9 @@ import useCacheDatabase from "../useCacheDatabase";
 import { contact_info } from "@/db/schema";
 import { sql } from "drizzle-orm";
 
+// Set to true to test cache-only mode (no network requests)
+const CACHE_ONLY = true;
+
 /**
  * This is the hook that will be used in native platforms.
  */
@@ -24,6 +27,25 @@ export default function useContacts() {
   return useQuery<ContactInfo[]>({
     queryKey: ["contacts"],
     queryFn: async function () {
+      // Cache-only mode for testing
+      if (CACHE_ONLY) {
+        console.log("🔄 Using cache-only mode for contacts");
+        try {
+          const cachedContacts = await cache.select().from(contact_info);
+          console.log(`Retrieved ${cachedContacts.length} contacts from cache`);
+          
+          // Convert cached data to ContactInfo type
+          return cachedContacts.map(contact => ({
+            name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            phone: contact.phone_number || '',
+            email: contact.email || '',
+          }));
+        } catch (cacheError) {
+          console.warn("Failed to read contacts from cache:", cacheError);
+          return [];
+        }
+      }
+
       const { data = [], error } = await supabase
         .from("contact_info")
         .select("*")

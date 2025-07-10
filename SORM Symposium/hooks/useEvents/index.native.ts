@@ -6,6 +6,9 @@ import { events } from "@/db/schema";
 import type { Event } from "@/types/Events.types";
 import { sql } from "drizzle-orm";
 
+// Set to true to test cache-only mode (no network requests)
+const CACHE_ONLY = true;
+
 /**
  * Hook to fetch events from Supabase with real-time updates
  * @param options Optional parameters for filtering events
@@ -31,6 +34,24 @@ export default function useEvents(options?: {
         `[${hookId.current}] Querying events with options:`,
         options,
       );
+
+      // Cache-only mode for testing
+      if (CACHE_ONLY) {
+        console.log(`[${hookId.current}] 🔄 Using cache-only mode`);
+        try {
+          const cachedEvents = await cache.select().from(events);
+          console.log(`[${hookId.current}] Retrieved ${cachedEvents.length} events from cache`);
+          // Convert cached data to match Event type
+          return cachedEvents.map(event => ({
+            ...event,
+            created_at: event.created_at.toISOString(), // Convert Date to string
+            is_deleted: Boolean(event.is_deleted), // Convert number to boolean
+          })) as Event[];
+        } catch (cacheError) {
+          console.warn(`[${hookId.current}] Failed to read from cache:`, cacheError);
+          return [];
+        }
+      }
 
       let query = supabase
         .from("events")
@@ -91,8 +112,13 @@ export default function useEvents(options?: {
     refetchOnWindowFocus: false,
   });
 
-  // Set up real-time subscription
+  // Set up real-time subscription (only if not in cache-only mode)
   useEffect(() => {
+    if (CACHE_ONLY) {
+      console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
+      return;
+    }
+
     console.log(
       `[${hookId.current}] Setting up real-time subscription with channel:`,
       channelName.current,

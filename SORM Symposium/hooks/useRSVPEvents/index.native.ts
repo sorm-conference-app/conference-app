@@ -7,6 +7,9 @@ import type { Event } from "@/types/Events.types";
 import { sql } from "drizzle-orm";
 import { eq, and } from "drizzle-orm";
 
+// Set to true to test cache-only mode (no network requests)
+const CACHE_ONLY = true;
+
 /**
  * Hook to fetch RSVPed events for a specific attendee
  * @param attendeeId The attendee ID to get RSVPed events for
@@ -29,6 +32,46 @@ export default function useRSVPEvents(attendeeId: number) {
         `[${hookId.current}] Querying RSVPed events for attendee:`,
         attendeeId,
       );
+
+      // Cache-only mode for testing
+      if (CACHE_ONLY) {
+        console.log(`[${hookId.current}] 🔄 Using cache-only mode for RSVP events`);
+        try {
+          // Get RSVPed event IDs from cache
+          const rsvpData = await cache
+            .select()
+            .from(event_attendees)
+            .where(eq(event_attendees.attendee_id, attendeeId));
+          
+          if (rsvpData.length === 0) {
+            console.log(`[${hookId.current}] No RSVPed events found in cache`);
+            return [];
+          }
+
+          const eventIds = rsvpData.map(item => item.event_id);
+          
+          // Get the full event details from cache
+          const cachedEvents = await cache
+            .select()
+            .from(events)
+            .where(eq(events.is_deleted, 0));
+          
+          // Filter to only RSVPed events
+          const rsvpEvents = cachedEvents.filter(event => eventIds.includes(event.id));
+          
+          console.log(`[${hookId.current}] Retrieved ${rsvpEvents.length} RSVPed events from cache`);
+          
+          // Convert cached data to match Event type
+          return rsvpEvents.map(event => ({
+            ...event,
+            created_at: event.created_at.toISOString(), // Convert Date to string
+            is_deleted: Boolean(event.is_deleted), // Convert number to boolean
+          })) as Event[];
+        } catch (cacheError) {
+          console.warn(`[${hookId.current}] Failed to read from cache:`, cacheError);
+          return [];
+        }
+      }
 
       // First, get the event IDs that the user has RSVPed for
       const { data: rsvpData, error: rsvpError } = await supabase
@@ -124,8 +167,13 @@ export default function useRSVPEvents(attendeeId: number) {
     refetchOnWindowFocus: false,
   });
 
-  // Set up real-time subscription for both events and event_attendees tables
+  // Set up real-time subscription for both events and event_attendees tables (only if not in cache-only mode)
   useEffect(() => {
+    if (CACHE_ONLY) {
+      console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
+      return;
+    }
+
     console.log(
       `[${hookId.current}] Setting up real-time subscription with channel:`,
       channelName.current,
