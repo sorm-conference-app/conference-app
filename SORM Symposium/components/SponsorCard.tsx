@@ -3,6 +3,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Sponsor } from "@/types/Sponsors.types";
 import React from "react";
 import { Image, Linking, StyleSheet, Text, View } from "react-native";
+import { getSponsorLogo } from "@/hooks/useSponsorLogo";
 
 interface SponsorCardProps {
   sponsor: Sponsor;
@@ -21,6 +22,7 @@ const handleWebsite = (website: string | undefined) => {
 export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
+  const { logo, width, height } = getSponsorLogo(sponsor);
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -44,8 +46,8 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
     >
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          {sponsor.logo ? (
-            <Image source={{ uri: sponsor.logo }} style={styles.logo} />
+          {logo ? (
+            <Image source={ logo } style={{ width, height }} />
           ) : (
             <View
               style={[styles.placeholderLogo, { backgroundColor: colors.tint }]}
@@ -77,23 +79,25 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         {sponsor.description}
       </Text>
 
+      {sponsor.contactInfo && sponsor.contactInfo.length > 0 && (
       <View style={styles.contactContainer}>
         <Text style={[styles.contactLabel, { color: colors.text }]}>
           Contact:
         </Text>
-        {sponsor.contactInfo && (
-          <Text
-            style={[styles.contactInfo, { color: colors.link }]}
-            onPress={() => handleEmail(sponsor.contactInfo)}
-          >
-            {sponsor.contactInfo}
-          </Text>
-        )}
+        <View style={styles.contactInfoContainer}>
+        {sponsor.contactInfo.map((contact) => (
+          <View key={contact.name} style={styles.contactRow}>
+            <Text style={styles.contactInfo}>{contact.name}:{contact.phone && `   ${contact.phone}`}{contact.email && `   `}</Text>
+            {contact.email !== "" && <Text
+              style={[styles.contactInfo, { color: colors.link }]}
+              onPress={() => handleEmail(contact.email)}
+            >
+              {contact.email}
+            </Text>}
+          </View>
+          ))}
+        </View>
       </View>
-      {sponsor.contact && (
-        <Text style={[styles.contactInfo, { color: colors.text, marginLeft: 62 }]}>
-          {sponsor.contact}
-        </Text>
       )}
 
       <View style={styles.contactContainer}>
@@ -101,11 +105,13 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
           Website:
         </Text>
         {sponsor.website && (
+          <View style={styles.contactRow}>
           <Text style={[styles.contactInfo, { color: colors.link }]}
             onPress={() => handleWebsite(sponsor.website)}
           >
             {sponsor.website}
           </Text>
+          </View>
         )}
       </View>
     </View>
@@ -129,14 +135,13 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   logoContainer: {
     marginRight: 12,
-  },
-  logo: {
-    borderRadius: 8,
+    marginBottom: 8,
   },
   placeholderLogo: {
     width: 50,
@@ -151,6 +156,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
+    minWidth: 300,
   },
   name: {
     fontSize: 18,
@@ -173,18 +179,31 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
+  contactInfoContainer: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    marginTop: 0,
+  },
   contactContainer: {
     flexDirection: "row",
+    marginTop: 4,
+  },
+  contactRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    backgroundColor: "transparent",
+    marginLeft: 65,
     alignItems: "flex-start",
-    marginTop: 12,
+    width: "100%",
   },
   contactLabel: {
+    position: "absolute",
     fontSize: 14,
     fontWeight: "bold",
-    marginRight: 8,
   },
   contactInfo: {
     fontSize: 14,
-    flex: 1,
+    flexShrink: 1,
+    marginBottom: 4,
   },
 });

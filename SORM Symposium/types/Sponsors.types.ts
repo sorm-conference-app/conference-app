@@ -4,8 +4,11 @@ export interface Sponsor {
   description: string;
   level: string;
   logo?: string | null;
-  contact?: string;
-  contactInfo: string;
+  contactInfo?: {
+    name: string;
+    email: string;
+    phone: string;
+  }[];
   website?: string;
 }
 
