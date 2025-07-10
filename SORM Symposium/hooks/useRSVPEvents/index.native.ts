@@ -67,18 +67,23 @@ export default function useRSVPEvents(attendeeId: number) {
         notified: item.notified ? 1 : 0, // Convert boolean to integer for SQLite
       }));
 
-      await cache
-        .insert(event_attendees)
-        .values(rsvpInsertData)
-        .onConflictDoUpdate({
-          target: event_attendees.id,
-          set: {
-            event_id: sql`excluded.event_id`,
-            attendee_device_id: sql`excluded.attendee_device_id`,
-            rsvp_at: sql`excluded.rsvp_at`,
-            notified: sql`excluded.notified`,
-          },
-        });
+      try {
+        await cache
+          .insert(event_attendees)
+          .values(rsvpInsertData)
+          .onConflictDoUpdate({
+            target: event_attendees.id,
+            set: {
+              event_id: sql`excluded.event_id`,
+              attendee_device_id: sql`excluded.attendee_device_id`,
+              rsvp_at: sql`excluded.rsvp_at`,
+              notified: sql`excluded.notified`,
+            },
+          });
+      } catch (cacheError) {
+        console.warn(`[${hookId.current}] Failed to cache RSVP data:`, cacheError);
+        // Continue without caching - the data is still returned from Supabase
+      }
 
       // Cache the events data
       const eventsInsertData = eventsData.map((item) => ({
@@ -87,12 +92,13 @@ export default function useRSVPEvents(attendeeId: number) {
         is_deleted: item.is_deleted ? 1 : 0, // Convert boolean to integer for SQLite
       }));
 
-      await cache
-        .insert(events)
-        .values(eventsInsertData)
-        .onConflictDoUpdate({
-          target: events.id,
-                     set: {
+      try {
+        await cache
+          .insert(events)
+          .values(eventsInsertData)
+          .onConflictDoUpdate({
+            target: events.id,
+                       set: {
              title: sql`excluded.title`,
              description: sql`excluded.description`,
              event_date: sql`excluded.event_date`,
@@ -106,7 +112,11 @@ export default function useRSVPEvents(attendeeId: number) {
              slides_url: sql`excluded.slides_url`,
              is_deleted: sql`excluded.is_deleted`,
            },
-        });
+          });
+      } catch (cacheError) {
+        console.warn(`[${hookId.current}] Failed to cache events data:`, cacheError);
+        // Continue without caching - the data is still returned from Supabase
+      }
 
       console.log(`[${hookId.current}] Queried ${eventsData.length} RSVPed events`);
       return eventsData as Event[];

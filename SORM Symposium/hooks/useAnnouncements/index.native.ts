@@ -57,10 +57,15 @@ export default function useAnnouncements(limit?: number) {
       // Insert the fetched data into the cache.
       // Note: Using onConflictDoNothing since we are not updating existing records.
       // However, if we plan to 'edit' announcements in the future, we should use onConflictDoUpdate.
-      await cache
-        .insert(announcements)
-        .values(insertData)
-        .onConflictDoNothing({ target: announcements.id });
+      try {
+        await cache
+          .insert(announcements)
+          .values(insertData)
+          .onConflictDoNothing({ target: announcements.id });
+      } catch (cacheError) {
+        console.warn(`[${hookId.current}] Failed to cache announcements:`, cacheError);
+        // Continue without caching - the data is still returned from Supabase
+      }
 
       console.log(`[${hookId.current}] Queried ${data.length} announcements`);
       return data as Announcement[];

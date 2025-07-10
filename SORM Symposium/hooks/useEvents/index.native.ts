@@ -59,26 +59,31 @@ export default function useEvents(options?: {
       }));
 
       // Insert the fetched data into the cache
-      await cache
-        .insert(events)
-        .values(insertData)
-        .onConflictDoUpdate({
-          target: events.id,
-          set: {
-            title: sql`excluded.title`,
-            description: sql`excluded.description`,
-            event_date: sql`excluded.event_date`,
-            start_time: sql`excluded.start_time`,
-            end_time: sql`excluded.end_time`,
-            location: sql`excluded.location`,
-            speaker_name: sql`excluded.speaker_name`,
-            speaker_title: sql`excluded.speaker_title`,
-            speaker_email: sql`excluded.speaker_email`,
-            topic: sql`excluded.topic`,
-            slides_url: sql`excluded.slides_url`,
-            is_deleted: sql`excluded.is_deleted`,
-          },
-        });
+      try {
+        await cache
+          .insert(events)
+          .values(insertData)
+          .onConflictDoUpdate({
+            target: events.id,
+            set: {
+              title: sql`excluded.title`,
+              description: sql`excluded.description`,
+              event_date: sql`excluded.event_date`,
+              start_time: sql`excluded.start_time`,
+              end_time: sql`excluded.end_time`,
+              location: sql`excluded.location`,
+              speaker_name: sql`excluded.speaker_name`,
+              speaker_title: sql`excluded.speaker_title`,
+              speaker_email: sql`excluded.speaker_email`,
+              topic: sql`excluded.topic`,
+              slides_url: sql`excluded.slides_url`,
+              is_deleted: sql`excluded.is_deleted`,
+            },
+          });
+      } catch (cacheError) {
+        console.warn(`[${hookId.current}] Failed to cache events:`, cacheError);
+        // Continue without caching - the data is still returned from Supabase
+      }
 
       console.log(`[${hookId.current}] Queried ${data.length} events`);
       return data as Event[];
