@@ -1,9 +1,11 @@
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { getSponsorLogo } from "@/hooks/useSponsorLogo";
 import { Sponsor } from "@/types/Sponsors.types";
 import React from "react";
-import { Image, Linking, StyleSheet, Text, View } from "react-native";
-import { getSponsorLogo } from "@/hooks/useSponsorLogo";
+import { Image, Linking, StyleSheet } from "react-native";
 
 interface SponsorCardProps {
   sponsor: Sponsor;
@@ -38,83 +40,91 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
   };
 
   return (
-    <View
+    <ThemedView
       style={[
         styles.card,
         { backgroundColor: colors.secondaryBackgroundColor },
       ]}
     >
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
+      <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
+        <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
           {logo ? (
-            <Image source={ logo } style={{ width, height }} />
+            <Image source={logo} style={{ width, height }} />
           ) : (
-            <View
+            <ThemedView
               style={[styles.placeholderLogo, { backgroundColor: colors.tint }]}
             >
-              <Text
+              <ThemedText
                 style={[styles.placeholderText, { color: colors.background }]}
               >
                 {sponsor.name.charAt(0)}
-              </Text>
-            </View>
+              </ThemedText>
+            </ThemedView>
           )}
-        </View>
-        <View style={styles.titleContainer}>
-          <Text style={[styles.name, { color: colors.text }]}>
+        </ThemedView>
+        <ThemedView style={[styles.titleContainer, { backgroundColor: 'transparent' }]}>
+          <ThemedText style={[styles.name, { color: colors.text }]}>
             {sponsor.name}
-          </Text>
-          <View
+          </ThemedText>
+          <ThemedView
             style={[
               styles.levelBadge,
               { backgroundColor: getLevelColor(sponsor.level) },
             ]}
           >
-            <Text style={styles.levelText}>{sponsor.level}</Text>
-          </View>
-        </View>
-      </View>
+            <ThemedText style={styles.levelText}>{sponsor.level}</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
 
-      <Text style={[styles.description, { color: colors.text }]}>
+      <ThemedText style={[styles.description, { color: colors.text }]}>
         {sponsor.description}
-      </Text>
+      </ThemedText>
 
       {sponsor.contactInfo && sponsor.contactInfo.length > 0 && (
-      <View style={styles.contactContainer}>
-        <Text style={[styles.contactLabel, { color: colors.text }]}>
-          Contact:
-        </Text>
-        <View style={styles.contactInfoContainer}>
-        {sponsor.contactInfo.map((contact) => (
-          <View key={contact.name} style={styles.contactRow}>
-            <Text style={styles.contactInfo}>{contact.name}:{contact.phone && `   ${contact.phone}`}{contact.email && `   `}</Text>
-            {contact.email !== "" && <Text
-              style={[styles.contactInfo, { color: colors.link }]}
-              onPress={() => handleEmail(contact.email)}
-            >
-              {contact.email}
-            </Text>}
-          </View>
-          ))}
-        </View>
-      </View>
+        <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
+          <ThemedText style={[styles.contactLabel, { color: colors.text }]}>
+            Contact:
+          </ThemedText>
+          <ThemedView style={[styles.contactInfoContainer, { backgroundColor: 'transparent' }]}>
+            {sponsor.contactInfo.map((contact) => (
+              <ThemedView key={contact.name} style={[styles.contactRow, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={[styles.contactInfo]}>
+                  {contact.name}
+                  {contact.phone ? `: ${contact.phone}` : ""}
+                </ThemedText>
+                {contact.email !== "" && (
+                  <ThemedText
+                    style={[styles.contactInfo, { color: colors.link }]}
+                    onPress={() => handleEmail(contact.email)}
+                    type="link"
+                  >
+                    {contact.email}
+                  </ThemedText>
+                )}
+              </ThemedView>
+            ))}
+          </ThemedView>
+        </ThemedView>
       )}
 
-      <View style={styles.contactContainer}>
-        <Text style={[styles.contactLabel, { color: colors.text }]}>
+      <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
+        <ThemedText style={[styles.contactLabel, { color: colors.text }]}>
           Website:
-        </Text>
+        </ThemedText>
         {sponsor.website && (
-          <View style={styles.contactRow}>
-          <Text style={[styles.contactInfo, { color: colors.link }]}
-            onPress={() => handleWebsite(sponsor.website)}
-          >
-            {sponsor.website}
-          </Text>
-          </View>
+          <ThemedView style={[styles.contactRow, { backgroundColor: 'transparent' }]}>
+            <ThemedText
+              style={[styles.contactInfo, { color: colors.link }]}
+              onPress={() => handleWebsite(sponsor.website)}
+              type="link"
+            >
+              {sponsor.website}
+            </ThemedText>
+          </ThemedView>
         )}
-      </View>
-    </View>
+      </ThemedView>
+    </ThemedView>
   );
 };
 
@@ -183,27 +193,29 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "flex-start",
     marginTop: 0,
+    flex: 1,
   },
   contactContainer: {
     flexDirection: "row",
     marginTop: 4,
   },
   contactRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     backgroundColor: "transparent",
     marginLeft: 65,
     alignItems: "flex-start",
-    width: "100%",
+    marginTop: 4,
   },
   contactLabel: {
     position: "absolute",
     fontSize: 14,
     fontWeight: "bold",
+    alignItems: "baseline",
   },
   contactInfo: {
     fontSize: 14,
     flexShrink: 1,
     marginBottom: 4,
+    lineHeight: 18,
   },
 });
