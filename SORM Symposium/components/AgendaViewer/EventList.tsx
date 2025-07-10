@@ -1,4 +1,5 @@
 import AgendaItem from "@/components/AgendaViewer/AgendaItem";
+import { SpecialEventGroup } from "@/components/AgendaViewer/SpecialEventGroup";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate } from "@/lib/dateTime";
@@ -20,10 +21,11 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import {
-  calculateEventOffset,
+  calculateHeight,
   findConflicts,
   groupEventsByDate,
-  sortEventsByLocation,
+  isCol1Location,
+  isCol2Location,
 } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
 
@@ -47,8 +49,6 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
-  const COL_1_LOCATION = "Room 1";
-  const COL_2_LOCATION = "Room 2";
 
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
@@ -136,6 +136,9 @@ export function EventList({
             <ThemedText style={styles.header} type="title">
               Conference Schedule
             </ThemedText>
+            <ThemedText style={styles.subheader} type="subtitle">
+              Select an event to view more details
+            </ThemedText>
 
             <Pressable
               style={[
@@ -201,21 +204,12 @@ export function EventList({
                 </ThemedText>
                 {findConflicts(eventsByDate[date]).map((item) => {
                   if (item.conflictingItems.length > 0) {
-                    // Sort events based on location priority
-                    const sortedEvents = sortEventsByLocation(
-                      [item, ...item.conflictingItems],
-                      COL_1_LOCATION,
-                      COL_2_LOCATION,
-                    );
-                    const col1Event = sortedEvents[0];
-                    const col2Events = sortedEvents.slice(1);
-
+                    // Use SpecialEventGroup for conflicting events
                     return (
                       <View
                         key={item.id}
                         style={styles.conflictContent}
                         onLayout={(e) => {
-                          // calculate the y position of the events in this row
                           dateRefs.current[date]?.measure((y) => {
                             const previousHeights = sortedDates
                               .filter((d) => d < date)
@@ -223,72 +217,20 @@ export function EventList({
                                 (sum, d) => sum + (dateHeights.current[d] || 0),
                                 0,
                               );
-
-                            // call the onEventPosition callback with the y position of the events in this row
                             onEventPosition(
                               item,
                               y + e.nativeEvent.layout.y + previousHeights,
                             );
-                            for (const conflictItem of item.conflictingItems) {
-                              onEventPosition(
-                                conflictItem,
-                                y + e.nativeEvent.layout.y + previousHeights,
-                              );
-                            }
                           });
                         }}
                       >
-                        <View
-                          style={[
-                            styles.eventWrapper,
-                            { alignSelf: "flex-start" },
-                            {
-                              marginTop: calculateEventOffset(
-                                col2Events[0].start_time,
-                                col1Event.start_time,
-                              ),
-                            },
-                          ]}
-                        >
-                          <AgendaItem
-                            id={col1Event.id}
-                            title={col1Event.title}
-                            startTime={col1Event.start_time}
-                            endTime={col1Event.end_time}
-                            location={col1Event.location}
-                            isDeleted={col1Event.is_deleted}
-                            hasRSVP={rsvpEventIds.has(col1Event.id)}
-                            setRsvpEventIds={setRsvpEventIds}
-                            topic={col1Event.topic}
-                            onPress={() => onSelectEvent(col1Event)}
-                          />
-                        </View>
-                        <View style={styles.eventWrapper}>
-                          {col2Events.map((col2Event) => (
-                            <View
-                              key={col2Event.id}
-                              style={{
-                                marginTop: calculateEventOffset(
-                                  col1Event.start_time,
-                                  col2Event.start_time,
-                                ),
-                              }}
-                            >
-                              <AgendaItem
-                                id={col2Event.id}
-                                title={col2Event.title}
-                                startTime={col2Event.start_time}
-                                endTime={col2Event.end_time}
-                                location={col2Event.location}
-                                isDeleted={col2Event.is_deleted}
-                                hasRSVP={rsvpEventIds.has(col2Event.id)}
-                                setRsvpEventIds={setRsvpEventIds}
-                                topic={col2Event.topic}
-                                onPress={() => onSelectEvent(col2Event)}
-                              />
-                            </View>
-                          ))}
-                        </View>
+                        <SpecialEventGroup
+                          mainEvent={item}
+                          conflictingItems={item.conflictingItems}
+                          rsvpEventIds={rsvpEventIds}
+                          setRsvpEventIds={setRsvpEventIds}
+                          onSelectEvent={onSelectEvent}
+                        />
                       </View>
                     );
                   }
@@ -315,7 +257,7 @@ export function EventList({
                         });
                       }}
                     >
-                      {item.location === COL_1_LOCATION ? (
+                      {isCol1Location(item.location) ? (
                         <>
                           <View
                             style={[
@@ -333,6 +275,7 @@ export function EventList({
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={setRsvpEventIds}
                               topic={item.topic}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -340,7 +283,7 @@ export function EventList({
                             {/* Empty right column */}
                           </View>
                         </>
-                      ) : item.location === COL_2_LOCATION ? (
+                      ) : isCol2Location(item.location) ? (
                         <>
                           <View
                             style={[
@@ -360,6 +303,7 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={setRsvpEventIds}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -377,6 +321,7 @@ export function EventList({
                             hasRSVP={rsvpEventIds.has(item.id)}
                             setRsvpEventIds={setRsvpEventIds}
                             topic={item.topic}
+                            height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -419,6 +364,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
+    paddingBottom: 0,
   },
   content: {
     padding: 16,
@@ -443,5 +389,12 @@ const styles = StyleSheet.create({
   conflictContent: {
     flexDirection: "row",
     gap: 16,
+  },
+  subheader: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    marginTop: 8,
+    fontSize: 16,
+    textAlign: "center",
   },
 });
