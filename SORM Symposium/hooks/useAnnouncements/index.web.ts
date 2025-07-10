@@ -7,6 +7,7 @@ type Announcement = {
   title: string;
   body: string;
   created_at: string;
+  type: string;
 };
 
 /**
@@ -34,6 +35,7 @@ export default function useAnnouncements(limit?: number) {
       let query = supabase
         .from("test_announcements")
         .select("*")
+        .eq("type", "general")
         .order("created_at", { ascending: false });
 
       if (limit) {
