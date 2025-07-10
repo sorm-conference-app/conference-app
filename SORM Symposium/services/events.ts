@@ -53,15 +53,45 @@ export async function toggleRSVPStatus(
 ) {
   // If is RSVPing...
   if (status) {
+    // First check if the RSVP already exists
+    const { data: existingRSVP } = await supabase
+      .from("event_attendees")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("attendee_device_id", deviceId)
+      .maybeSingle();
+
+    if (existingRSVP) {
+      // RSVP already exists, no need to create it
+      return;
+    }
+
+    console.log("Creating new RSVP: ", eventId, deviceId);
+    // Create new RSVP
     const { error } = await supabase
       .from("event_attendees")
-      .upsert({ event_id: eventId, attendee_device_id: deviceId });
+      .insert({
+        event_id: eventId,
+        attendee_device_id: deviceId,
+        rsvp_at: new Date().toISOString(),
+        notified: false
+      });
+    
+    if (error) {
+      console.error("Error adding RSVP:", error);
+      throw error;
+    }
   } else {
     const { error } = await supabase
       .from("event_attendees")
       .delete()
       .eq("event_id", eventId)
       .eq("attendee_device_id", deviceId);
+    
+    if (error) {
+      console.error("Error removing RSVP:", error);
+      throw error;
+    }
   }
 }
 

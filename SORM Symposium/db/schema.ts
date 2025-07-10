@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { int, sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 /**
  * Note: Ensure to keep the tables in this file in sync with Supabase.
@@ -29,4 +29,33 @@ export const contact_info = sqliteTable("contact_info", {
   created_at: int({ mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
+});
+
+export const events = sqliteTable("events", {
+  id: int().primaryKey({ autoIncrement: true }),
+  created_at: int({ mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  title: text().notNull(),
+  description: text(),
+  event_date: text().notNull(),
+  start_time: text().notNull(),
+  end_time: text().notNull(),
+  location: text().notNull(),
+  speaker_name: text(),
+  speaker_title: text(),
+  speaker_email: text(),
+  topic: text(),
+  slides_url: text(),
+  is_deleted: int().notNull().default(0),
+});
+
+export const event_attendees = sqliteTable("event_attendees", {
+  id: int().primaryKey({ autoIncrement: true }),
+  event_id: int().notNull(),
+  attendee_device_id: text().notNull(),
+  rsvp_at: int({ mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  notified: int().notNull().default(0),
 });
