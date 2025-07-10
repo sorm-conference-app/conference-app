@@ -1,11 +1,14 @@
 /**
- * Word filter utility using the leo-profanity library for robust profanity detection in React Native / Expo environment
+ * Word filter utility using the leo-profanity library for profanity detection in React Native / Expo environment
  */
 
 import leoProfanity from 'leo-profanity';
 
 // Load the default English dictionary once when this module is imported
 leoProfanity.loadDictionary();
+
+// Add custom words that are not included in the default dictionary
+leoProfanity.add('crap');
 
 /**
  * Check if text contains any inappropriate content
