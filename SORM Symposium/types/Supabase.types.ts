@@ -38,25 +38,28 @@ export type Database = {
       }
       event_attendees: {
         Row: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id: number
           notified: boolean
           rsvp_at: string
+          attendee_id: number
         }
         Insert: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Update: {
-          attendee_device_id?: string
+          attendee_device_id?: string | null
           event_id?: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Relationships: [
           {
@@ -85,10 +88,9 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker: string | null
-          speaker_bio: string | null
           speaker_name: string | null
           speaker_title: string | null
+          speaker_email: string | null
           start_time: string
           title: string
           topic: string | null
@@ -102,10 +104,9 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
+          speaker_email?: string | null
           start_time: string
           title: string
           topic?: string | null
@@ -119,10 +120,9 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
+          speaker_email?: string | null
           start_time?: string
           title?: string
           topic?: string | null

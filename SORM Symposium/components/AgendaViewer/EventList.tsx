@@ -2,12 +2,6 @@ import AgendaItem from "@/components/AgendaViewer/AgendaItem";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate } from "@/lib/dateTime";
-import { getDeviceId } from "@/lib/user";
-import {
-  getAllEvents,
-  getRSVPedEvents,
-  subscribeToEvents,
-} from "@/services/events";
 import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
@@ -26,6 +20,9 @@ import {
   sortEventsByLocation,
 } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
+import useEvents from "@/hooks/useEvents";
+import useRSVPEvents from "@/hooks/useRSVPEvents";
+import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
@@ -50,56 +47,51 @@ export function EventList({
   const COL_1_LOCATION = "Room 1";
   const COL_2_LOCATION = "Room 2";
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const dateRefs = useRef<{ [key: string]: View | null }>({});
   const dateHeights = useRef<{ [key: string]: number }>({});
-  const displayedEvents = events.filter(
-    (event) =>
-      showDeleted === "all" ||
-      (showDeleted === "active" && !event.is_deleted) ||
-      (showDeleted === "deleted" && event.is_deleted) ||
-      (showDeleted === "saved" &&
-        !event.is_deleted &&
-        rsvpEventIds.has(event.id)),
-  );
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const deviceId = await getDeviceId();
-        const rsvpedEventIds = await getRSVPedEvents(deviceId);
-        const allEvents = await getAllEvents();
-        setEvents(allEvents);
-        setRsvpEventIds(new Set(rsvpedEventIds));
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Get current attendee information
+  const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
 
-    fetchEvents();
-  }, [reloadTrigger]);
+  // Use the new caching hooks
+  const {
+    data: allEvents = [],
+    isLoading: eventsLoading,
+    error: eventsError,
+    refetch: refetchEvents,
+  } = useEvents({
+    showDeleted: showDeleted === "all" ? true : showDeleted === "deleted" ? true : false,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
+  const {
+    data: rsvpEvents = [],
+    isLoading: rsvpLoading,
+    error: rsvpError,
+    refetch: refetchRSVP,
+  } = useRSVPEvents(attendee?.id || 0);
 
-    // Subscribe to real-time updates
-    const subscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents);
-      setLoading(false);
-    });
+  // Create a set of RSVPed event IDs for quick lookup
+  const rsvpEventIds = new Set(rsvpEvents.map(event => event.id));
 
-    // Cleanup subscription on unmount
-    return () => {
-      subscribe();
-    };
-  }, []);
+  // Filter and combine events based on showDeleted prop
+  const displayedEvents = allEvents.filter((event) => {
+    if (showDeleted === "all") return true;
+    if (showDeleted === "active") return !event.is_deleted;
+    if (showDeleted === "deleted") return event.is_deleted;
+    if (showDeleted === "saved") return !event.is_deleted && rsvpEventIds.has(event.id);
+    return !event.is_deleted; // default to active
+  });
+
+  // Combine loading states
+  const loading = eventsLoading || rsvpLoading || attendeeLoading;
+  
+  // Combine error states
+  const error = eventsError || rsvpError || attendeeError;
+
+  // Function to handle RSVP updates - triggers refetch to get latest data
+  const handleRSVPUpdate = () => {
+    refetchRSVP();
+  };
 
   if (loading) {
     return (
@@ -112,7 +104,9 @@ export function EventList({
   if (error) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText style={styles.errorText}>{error}</ThemedText>
+        <ThemedText style={styles.errorText}>
+          {error instanceof Error ? error.message : "Failed to load events"}
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -258,7 +252,7 @@ export function EventList({
                             location={col1Event.location}
                             isDeleted={col1Event.is_deleted}
                             hasRSVP={rsvpEventIds.has(col1Event.id)}
-                            setRsvpEventIds={setRsvpEventIds}
+                            setRsvpEventIds={handleRSVPUpdate}
                             topic={col1Event.topic}
                             onPress={() => onSelectEvent(col1Event)}
                           />
@@ -282,7 +276,7 @@ export function EventList({
                                 location={col2Event.location}
                                 isDeleted={col2Event.is_deleted}
                                 hasRSVP={rsvpEventIds.has(col2Event.id)}
-                                setRsvpEventIds={setRsvpEventIds}
+                                setRsvpEventIds={handleRSVPUpdate}
                                 topic={col2Event.topic}
                                 onPress={() => onSelectEvent(col2Event)}
                               />
@@ -331,7 +325,7 @@ export function EventList({
                               location={item.location}
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
-                              setRsvpEventIds={setRsvpEventIds}
+                              setRsvpEventIds={handleRSVPUpdate}
                               topic={item.topic}
                               onPress={() => onSelectEvent(item)}
                             />
@@ -359,7 +353,7 @@ export function EventList({
                               location={item.location}
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
-                              setRsvpEventIds={setRsvpEventIds}
+                              setRsvpEventIds={handleRSVPUpdate}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -375,7 +369,7 @@ export function EventList({
                             location={item.location}
                             isDeleted={item.is_deleted}
                             hasRSVP={rsvpEventIds.has(item.id)}
-                            setRsvpEventIds={setRsvpEventIds}
+                            setRsvpEventIds={handleRSVPUpdate}
                             topic={item.topic}
                             onPress={() => onSelectEvent(item)}
                           />
