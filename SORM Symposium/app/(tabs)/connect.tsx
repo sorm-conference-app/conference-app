@@ -1,11 +1,9 @@
 import { StyleSheet } from "react-native";
 import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedView } from "@/components/ThemedView";
 import AttendeeContactList from "@/components/Networking/AttendeeContactList";
 import { useState } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
 
 export default function Connect() {
   const colorScheme = useColorScheme() ?? "light";
@@ -16,12 +14,7 @@ export default function Connect() {
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: Colors[colorScheme].background },
-      ]}
-    >
+    <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
           title: "Connect",
@@ -31,7 +24,7 @@ export default function Connect() {
       <ThemedView style={styles.container}>
         <AttendeeContactList reloadTrigger={reloadTrigger} />
       </ThemedView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 
@@ -39,15 +32,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexGrow: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-  },
-  refreshButton: {
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
   },
 });

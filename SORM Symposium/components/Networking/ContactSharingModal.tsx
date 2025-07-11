@@ -129,9 +129,9 @@ export default function ContactSharingModal({
                 styles.infoContainer,
                 { backgroundColor: Colors[colorScheme].background }
               ]}>
-                <ThemedView style={styles.infoRow}>
-                <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
-                  <ThemedText style={styles.infoValue}>{attendee.email}</ThemedText>
+                <ThemedView style={[styles.infoRow, { flexWrap: 'wrap' }]}>
+                  <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
+                  <ThemedText style={[styles.infoValue, { textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
                 </ThemedView>
 
                 {attendee.name && (
