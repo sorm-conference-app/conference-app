@@ -2,6 +2,7 @@ import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
 import SormImageWrapper from "@/components/SormImageWrapper";
+import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
@@ -17,6 +18,7 @@ import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import { use6DigitVerificationModal } from '@/hooks/use6DigitVerificationModal';
 
 type UserType = "attendee" | "organizer";
 
@@ -38,10 +40,10 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
-
-  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(
-    email,
-  );
+  
+  const sixDigitVerificationModal = use6DigitVerificationModal();
+  
+  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
 
   useEffect(() => {
@@ -109,14 +111,9 @@ export default function Login() {
         const result = await signinAttendee(email, () => {
           setShowConfirmationModal(true);
         });
+        // Show the verification modal and wait for completion
         if (result.verified) {
-          // Check if we should show the contact sharing modal
-          const modalShown = await showContactSharingModal(email);
-          // Only navigate to home if the modal isn't shown
-          // If modal is shown, navigation will happen after it closes
-          if (!modalShown) {
-            router.push("/(tabs)/home");
-          }
+          sixDigitVerificationModal.showModal(email);
         }
       } else if (userType === "organizer") {
         await signinAdmin(email, password);
@@ -132,25 +129,9 @@ export default function Login() {
 
   const handleProceedAsAttendee = async () => {
     setShowConfirmationModal(false);
+    sixDigitVerificationModal.showModal(email);
     setIsProcessing(true);
     setErr("");
-
-    try {
-      const result = await signinAttendee(email);
-      if (result.verified) {
-        // Check if we should show the contact sharing modal
-        const modalShown = await showContactSharingModal(email);
-        // Only navigate to home if the modal isn't shown
-        // If modal is shown, navigation will happen after it closes
-        if (!modalShown) {
-          router.push("/(tabs)/home");
-        }
-      }
-    } catch (e) {
-      setErr("Failed to sign in: " + (e as Error).message);
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
@@ -185,6 +166,19 @@ export default function Login() {
     setErr("");
   };
 
+  const handleVerificationComplete = async () => {
+    sixDigitVerificationModal.hideModal();
+    const modalShown = await showContactSharingModal(email);
+    if (!modalShown) {
+      router.push("/(tabs)/home");
+    }
+  };
+
+  const handleCancel = () => {
+    sixDigitVerificationModal.hideModal();
+    setIsProcessing(false);
+  };
+
   const selectUserType = async (type: UserType) => {
     setUserType(type);
     setEmail("");
@@ -205,6 +199,7 @@ export default function Login() {
     setEmail("");
     setPassword("");
     setErr("");
+    setIsProcessing(false);
   };
 
   const getTitle = () => {
@@ -342,7 +337,7 @@ export default function Login() {
         )}
 
         <Pressable
-          onPress={handleSignIn}
+          onPress={() => {setEmail(email.toLowerCase()); handleSignIn();}}
           disabled={isButtonDisabled()}
           style={[
             styles.button,
@@ -395,6 +390,14 @@ export default function Login() {
         onDontShare={handleContactSharingDontShare}
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
+      />
+
+      <SixDigitVerificationModal
+        visible={sixDigitVerificationModal.visible}
+        email={email}
+        onVerificationComplete={handleVerificationComplete}
+        onCancel={handleCancel}
+        onResendCode={() => sixDigitVerificationModal.resendVerificationEmail(email)}
       />
     </SormImageWrapper>
   );

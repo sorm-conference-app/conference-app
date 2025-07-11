@@ -207,7 +207,7 @@ export default function InfoScreen() {
           <ThemedText style={styles.sectionTitle}>
             Emergency Information
           </ThemedText>
-          <ThemedText style={styles.emergencyNote}>
+          <ThemedText style={[styles.emergencyNote, { color: colorScheme === "light" ? "#BF0B00" : "#FF3B30" }]}>
             Call 911 immediately for any emergency
           </ThemedText>
 
@@ -338,19 +338,19 @@ export default function InfoScreen() {
                       {contact.name}
                     </ThemedText>
                     <ThemedView style={styles.contactDetail}>
-                      <IconSymbol name="phone.fill" color="#666" size={16} />
+                      <IconSymbol name="phone.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                       <ThemedText style={styles.contactText}>
                         {contact.phone}
                       </ThemedText>
                     </ThemedView>
                     <ThemedView style={styles.contactDetail}>
-                      <IconSymbol name="envelope.fill" color="#666" size={16} />
+                      <IconSymbol name="envelope.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                       <ThemedText style={styles.contactText}>
                         {contact.email}
                       </ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <IconSymbol name="chevron.right" color="#666" size={24} />
+                  <IconSymbol name="chevron.right" color={Colors[colorScheme].tabIconDefault} size={24} />
                 </TouchableOpacity>
               ))}
           </ThemedView>
@@ -451,11 +451,9 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   emergencyNote: {
-    fontSize: 16,
-    opacity: 0.7,
+    fontSize: 18,
     marginBottom: 20,
     fontStyle: "italic",
-    color: "#FF3B30",
     fontWeight: "600",
   },
   mapsContainer: {
@@ -473,6 +471,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   mapTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     paddingTop: 10,
   },
@@ -481,6 +480,7 @@ const styles = StyleSheet.create({
   },
   contactsContainer: {
     width: "100%",
+    paddingBottom: 16,
     paddingHorizontal: 16,
     maxWidth: 600,
   },
@@ -496,6 +496,8 @@ const styles = StyleSheet.create({
   },
   contactInfo: {
     flex: 1,
+    borderRadius: 12,
+    padding: 12,
   },
   contactName: {
     fontSize: 18,
