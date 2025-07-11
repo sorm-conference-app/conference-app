@@ -93,21 +93,27 @@ export async function shouldShowContactSharingPopup(email: string): Promise<bool
 export async function updateContactSharingPreferences(
   email: string,
   shareInfo: boolean,
-  additionalInfo: string = ''
+  additionalInfo: string = '',
+  name?: string,
+  organization?: string,
+  title?: string
 ): Promise<Attendee> {
   // Log values for debugging
-  console.log('Updating contact sharing preferences for:', email, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
+  console.log('Updating contact sharing info for:', email, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
 
-  // Call the stored function to perform the update
-  const { error } = await supabase.rpc('update_contact_sharing_preferences', {
+  // Call the stored function to perform the update with all attendee info
+  const { error } = await supabase.rpc('update_contact_sharing_info', {
     user_email: email,
     share_info_val: shareInfo,
+    name_val: name || null,
+    organization_val: organization || null,
+    title_val: title || null,
     additional_info_val: additionalInfo,
     seen_popup_val: true
   });
 
   if (error) {
-    console.error('Error updating contact sharing preferences:', error);
+    console.error('Error updating contact sharing info:', error);
     throw error;
   }
 

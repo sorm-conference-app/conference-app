@@ -70,6 +70,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="sponsors"
+        options={{
+          title: "Sponsors",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol name="star.fill" color={color} size={28} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="admin"
         options={{
           href: user ? "/(tabs)/admin" : null,

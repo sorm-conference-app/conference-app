@@ -251,7 +251,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_contact_sharing_info: {
+        Args: {
+          user_email: string
+          share_info_val: boolean
+          name_val: string | null
+          organization_val: string | null
+          title_val: string | null
+          additional_info_val: string
+          seen_popup_val: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

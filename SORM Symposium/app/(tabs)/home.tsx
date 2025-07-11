@@ -1,6 +1,7 @@
 import { Announcement } from "@/components/Announcement";
 import { ExternalLink } from "@/components/ExternalLink";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
@@ -21,9 +22,6 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-
-const width = () => Math.min(Dimensions.get("window").width, 500);
-const height = () => (width() * 182) / 500;
 
 export default function Home() {
   const navigateToAllAnnouncements = () => {
@@ -176,19 +174,7 @@ export default function Home() {
   }, [announcements, loading, error, refresh, colorScheme]);
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{
-        dark: Colors.dark.tint,
-        light: Colors.light.secondaryBackgroundColor,
-      }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/sorm-logo.png")}
-          style={[styles.logoImage, { width: width(), height: height() }]}
-          alt="SORM Symposium Logo"
-        />
-      }
-    >
+    <SormImageWrapper>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome to the SORM{"\u00A0"}Symposium!</ThemedText>
       </ThemedView>
@@ -268,7 +254,7 @@ export default function Home() {
           </ThemedText>
         </View>
       </ThemedView>
-    </ParallaxScrollView>
+    </SormImageWrapper>
   );
 }
 

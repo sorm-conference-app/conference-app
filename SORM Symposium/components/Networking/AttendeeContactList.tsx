@@ -1,17 +1,17 @@
-import { StyleSheet, RefreshControl, ScrollView, Pressable, Platform } from "react-native";
-import { ThemedText } from "../ThemedText";
-import { ThemedView } from "../ThemedView";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
-import React from "react";
 import { Colors } from "@/constants/Colors";
-import ContactRow from "./contactRow";
+import { supabase } from "@/constants/supabase";
+import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useContactSharingModal } from "@/hooks/useContactSharingModal";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getVerifiedEmails } from "@/lib/attendeeStorage";
 import { Attendee, getAttendeeByEmail } from "@/services/attendees";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { useContactSharingModal } from "@/hooks/useContactSharingModal";
-import ContactSharingModal from "../ContactSharingModal";
-import { supabase } from "@/constants/supabase";
+import React from "react";
+import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
+import ContactSharingModal from "./ContactSharingModal";
+import { ThemedText } from "../ThemedText";
+import { ThemedView } from "../ThemedView";
+import ContactRow from "./contactRow";
 
 interface AttendeeContactListProps {
   reloadTrigger?: number;
@@ -97,10 +97,10 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     }
   }
 
-  const handleContactSharingDontShare = async (additionalInfo: string) => {
+  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, additionalInfo);
+      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
       await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
@@ -108,10 +108,10 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     refresh();
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
       await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
