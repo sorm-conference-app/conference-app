@@ -1,31 +1,28 @@
 import AgendaItem from "@/components/AgendaViewer/AgendaItem";
+import { SpecialEventGroup } from "@/components/AgendaViewer/SpecialEventGroup";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate } from "@/lib/dateTime";
-import { getDeviceId } from "@/lib/user";
-import {
-  getAllEvents,
-  getRSVPedEvents,
-  subscribeToEvents,
-} from "@/services/events";
 import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
   SetStateAction,
-  useEffect,
   useRef,
-  useState,
 } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import {
-  calculateEventOffset,
+  calculateHeight,
   findConflicts,
   groupEventsByDate,
-  sortEventsByLocation,
+  isCol1Location,
+  isCol2Location,
 } from "./utils";
 import { Pressable } from "react-native-gesture-handler";
+import useEvents from "@/hooks/useEvents";
+import useRSVPEvents from "@/hooks/useRSVPEvents";
+import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
@@ -43,63 +40,56 @@ export function EventList({
   onEventPosition,
   showHeader = true,
   showDeleted = "active",
-  setShowDeleted = () => {}, // Default to a no-op function if not provided
+  setShowDeleted = () => {},
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
-  const COL_1_LOCATION = "Room 1";
-  const COL_2_LOCATION = "Room 2";
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [rsvpEventIds, setRsvpEventIds] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const dateRefs = useRef<{ [key: string]: View | null }>({});
   const dateHeights = useRef<{ [key: string]: number }>({});
-  const displayedEvents = events.filter(
-    (event) =>
-      showDeleted === "all" ||
-      (showDeleted === "active" && !event.is_deleted) ||
-      (showDeleted === "deleted" && event.is_deleted) ||
-      (showDeleted === "saved" &&
-        !event.is_deleted &&
-        rsvpEventIds.has(event.id)),
-  );
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const deviceId = await getDeviceId();
-        const rsvpedEventIds = await getRSVPedEvents(deviceId);
-        const allEvents = await getAllEvents();
-        setEvents(allEvents);
-        setRsvpEventIds(new Set(rsvpedEventIds));
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Get current attendee information
+  const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
 
-    fetchEvents();
-  }, [reloadTrigger]);
+  // Use the new caching hooks
+  const {
+    data: allEvents = [],
+    isLoading: eventsLoading,
+    error: eventsError,
+    refetch: refetchEvents,
+  } = useEvents({
+    showDeleted: showDeleted === "all" ? true : showDeleted === "deleted" ? true : false,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
+  const {
+    data: rsvpEvents = [],
+    isLoading: rsvpLoading,
+    error: rsvpError,
+    refetch: refetchRSVP,
+  } = useRSVPEvents(attendee?.id || 0);
 
-    // Subscribe to real-time updates
-    const subscribe = subscribeToEvents((updatedEvents) => {
-      setEvents(updatedEvents);
-      setLoading(false);
-    });
+  // Create a set of RSVPed event IDs for quick lookup
+  const rsvpEventIds = new Set<number>(rsvpEvents.map((event: Event) => event.id));
 
-    // Cleanup subscription on unmount
-    return () => {
-      subscribe();
-    };
-  }, []);
+  // Filter and combine events based on showDeleted prop
+  const displayedEvents = allEvents.filter((event: Event) => {
+    if (showDeleted === "all") return true;
+    if (showDeleted === "active") return !event.is_deleted;
+    if (showDeleted === "deleted") return event.is_deleted;
+    if (showDeleted === "saved") return !event.is_deleted && rsvpEventIds.has(event.id);
+    return !event.is_deleted; // default to active
+  });
+
+  // Combine loading states
+  const loading = eventsLoading || rsvpLoading || attendeeLoading;
+  
+  // Combine error states
+  const error = eventsError || rsvpError || attendeeError;
+
+  // Function to handle RSVP updates - triggers refetch to get latest data
+  const handleRSVPUpdate = () => {
+    refetchRSVP();
+  };
 
   if (loading) {
     return (
@@ -112,7 +102,9 @@ export function EventList({
   if (error) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText style={styles.errorText}>{error}</ThemedText>
+        <ThemedText style={styles.errorText}>
+          {error instanceof Error ? error.message : "Failed to load events"}
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -135,6 +127,9 @@ export function EventList({
           >
             <ThemedText style={styles.header} type="title">
               Conference Schedule
+            </ThemedText>
+            <ThemedText style={styles.subheader} type="subtitle">
+              Select an event to view more details
             </ThemedText>
 
             <Pressable
@@ -201,21 +196,12 @@ export function EventList({
                 </ThemedText>
                 {findConflicts(eventsByDate[date]).map((item) => {
                   if (item.conflictingItems.length > 0) {
-                    // Sort events based on location priority
-                    const sortedEvents = sortEventsByLocation(
-                      [item, ...item.conflictingItems],
-                      COL_1_LOCATION,
-                      COL_2_LOCATION,
-                    );
-                    const col1Event = sortedEvents[0];
-                    const col2Events = sortedEvents.slice(1);
-
+                    // Use SpecialEventGroup for conflicting events
                     return (
                       <View
                         key={item.id}
                         style={styles.conflictContent}
                         onLayout={(e) => {
-                          // calculate the y position of the events in this row
                           dateRefs.current[date]?.measure((y) => {
                             const previousHeights = sortedDates
                               .filter((d) => d < date)
@@ -223,72 +209,20 @@ export function EventList({
                                 (sum, d) => sum + (dateHeights.current[d] || 0),
                                 0,
                               );
-
-                            // call the onEventPosition callback with the y position of the events in this row
                             onEventPosition(
                               item,
                               y + e.nativeEvent.layout.y + previousHeights,
                             );
-                            for (const conflictItem of item.conflictingItems) {
-                              onEventPosition(
-                                conflictItem,
-                                y + e.nativeEvent.layout.y + previousHeights,
-                              );
-                            }
                           });
                         }}
                       >
-                        <View
-                          style={[
-                            styles.eventWrapper,
-                            { alignSelf: "flex-start" },
-                            {
-                              marginTop: calculateEventOffset(
-                                col2Events[0].start_time,
-                                col1Event.start_time,
-                              ),
-                            },
-                          ]}
-                        >
-                          <AgendaItem
-                            id={col1Event.id}
-                            title={col1Event.title}
-                            startTime={col1Event.start_time}
-                            endTime={col1Event.end_time}
-                            location={col1Event.location}
-                            isDeleted={col1Event.is_deleted}
-                            hasRSVP={rsvpEventIds.has(col1Event.id)}
-                            setRsvpEventIds={setRsvpEventIds}
-                            topic={col1Event.topic}
-                            onPress={() => onSelectEvent(col1Event)}
-                          />
-                        </View>
-                        <View style={styles.eventWrapper}>
-                          {col2Events.map((col2Event) => (
-                            <View
-                              key={col2Event.id}
-                              style={{
-                                marginTop: calculateEventOffset(
-                                  col1Event.start_time,
-                                  col2Event.start_time,
-                                ),
-                              }}
-                            >
-                              <AgendaItem
-                                id={col2Event.id}
-                                title={col2Event.title}
-                                startTime={col2Event.start_time}
-                                endTime={col2Event.end_time}
-                                location={col2Event.location}
-                                isDeleted={col2Event.is_deleted}
-                                hasRSVP={rsvpEventIds.has(col2Event.id)}
-                                setRsvpEventIds={setRsvpEventIds}
-                                topic={col2Event.topic}
-                                onPress={() => onSelectEvent(col2Event)}
-                              />
-                            </View>
-                          ))}
-                        </View>
+                        <SpecialEventGroup
+                          mainEvent={item}
+                          conflictingItems={item.conflictingItems}
+                          rsvpEventIds={rsvpEventIds}
+                          setRsvpEventIds={handleRSVPUpdate}
+                          onSelectEvent={onSelectEvent}
+                        />
                       </View>
                     );
                   }
@@ -315,7 +249,7 @@ export function EventList({
                         });
                       }}
                     >
-                      {item.location === COL_1_LOCATION ? (
+                      {isCol1Location(item.location) ? (
                         <>
                           <View
                             style={[
@@ -331,8 +265,9 @@ export function EventList({
                               location={item.location}
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
-                              setRsvpEventIds={setRsvpEventIds}
+                              setRsvpEventIds={handleRSVPUpdate}
                               topic={item.topic}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -340,7 +275,7 @@ export function EventList({
                             {/* Empty right column */}
                           </View>
                         </>
-                      ) : item.location === COL_2_LOCATION ? (
+                      ) : isCol2Location(item.location) ? (
                         <>
                           <View
                             style={[
@@ -359,7 +294,8 @@ export function EventList({
                               location={item.location}
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
-                              setRsvpEventIds={setRsvpEventIds}
+                              setRsvpEventIds={handleRSVPUpdate}
+                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -375,8 +311,9 @@ export function EventList({
                             location={item.location}
                             isDeleted={item.is_deleted}
                             hasRSVP={rsvpEventIds.has(item.id)}
-                            setRsvpEventIds={setRsvpEventIds}
+                            setRsvpEventIds={handleRSVPUpdate}
                             topic={item.topic}
+                            height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
@@ -419,6 +356,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
+    paddingBottom: 0,
   },
   content: {
     padding: 16,
@@ -443,5 +381,12 @@ const styles = StyleSheet.create({
   conflictContent: {
     flexDirection: "row",
     gap: 16,
+  },
+  subheader: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    marginTop: 8,
+    fontSize: 16,
+    textAlign: "center",
   },
 });

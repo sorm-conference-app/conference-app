@@ -1,5 +1,7 @@
 import { supabase } from "@/constants/supabase";
 import type { Event } from "@/types/Events.types";
+import { Platform } from "react-native";
+import { getMobileDeviceId } from "@/lib/deviceUtils";
 
 /**
  * Fetches all events from the database
@@ -22,15 +24,15 @@ export async function getAllEvents(): Promise<Event[]> {
 
 /**
  * Get the event IDs that the current user is RSVPed for.
- * @param deviceId The id that represents a user's device.
+ * @param attendeeId The attendee ID to get RSVPed events for.
  * @returns An array consisting of the IDs of the events that the user RSVPed for.
  * An empty array means they are not RSVPed for any event.
  */
-export async function getRSVPedEvents(deviceId: string): Promise<number[]> {
+export async function getRSVPedEvents(attendeeId: number): Promise<number[]> {
   const { data, error } = await supabase
     .from("event_attendees")
     .select("event_id")
-    .eq("attendee_device_id", deviceId);
+    .eq("attendee_id", attendeeId);
 
   if (error) {
     console.error("Error fetching RSVPed events: ", error);
@@ -43,26 +45,86 @@ export async function getRSVPedEvents(deviceId: string): Promise<number[]> {
 /**
  * Update the RSVP status for a user.
  * @param eventId The ID of the event.
- * @param deviceId The ID of the current device.
+ * @param attendeeId The ID of the current attendee.
  * @param status The new RSVP status.
+ * @param deviceId Optional device ID for mobile platforms (iOS/Android).
  */
 export async function toggleRSVPStatus(
   eventId: number,
-  deviceId: string,
+  attendeeId: number,
   status: boolean,
+  deviceId?: string,
 ) {
   // If is RSVPing...
   if (status) {
+    // First check if the RSVP already exists
+    const { data: existingRSVP } = await supabase
+      .from("event_attendees")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("attendee_id", attendeeId)
+      .maybeSingle();
+
+    if (existingRSVP) {
+      // RSVP already exists, no need to create it
+      return;
+    }
+
+    console.log("Creating new RSVP: ", eventId, attendeeId, deviceId);
+    
+    // Prepare insert data
+    const insertData: any = {
+      event_id: eventId,
+      attendee_id: attendeeId,
+      rsvp_at: new Date().toISOString(),
+      notified: false
+    };
+
+    // Handle device ID based on platform
+    if (Platform.OS !== 'web' && deviceId) {
+      // On mobile platforms, use the provided device ID
+      insertData.attendee_device_id = deviceId;
+    } else {
+      // On web, use null since device ID is not needed for notifications
+      insertData.attendee_device_id = null;
+    }
+
+    // Create new RSVP
     const { error } = await supabase
       .from("event_attendees")
-      .upsert({ event_id: eventId, attendee_device_id: deviceId });
+      .insert(insertData);
+    
+    if (error) {
+      console.error("Error adding RSVP:", error);
+      throw error;
+    }
   } else {
     const { error } = await supabase
       .from("event_attendees")
       .delete()
       .eq("event_id", eventId)
-      .eq("attendee_device_id", deviceId);
+      .eq("attendee_id", attendeeId);
+    
+    if (error) {
+      console.error("Error removing RSVP:", error);
+      throw error;
+    }
   }
+}
+
+/**
+ * Update the RSVP status for a user with automatic device ID handling.
+ * @param eventId The ID of the event.
+ * @param attendeeId The ID of the current attendee.
+ * @param status The new RSVP status.
+ */
+export async function toggleRSVPStatusAuto(
+  eventId: number,
+  attendeeId: number,
+  status: boolean,
+) {
+  const deviceId = await getMobileDeviceId();
+  return toggleRSVPStatus(eventId, attendeeId, status, deviceId);
 }
 
 /**
