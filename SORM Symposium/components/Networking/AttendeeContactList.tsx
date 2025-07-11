@@ -8,7 +8,7 @@ import { getVerifiedEmails } from "@/lib/attendeeStorage";
 import { Attendee, getAttendeeByEmail } from "@/services/attendees";
 import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
-import ContactSharingModal from "../ContactSharingModal";
+import ContactSharingModal from "./ContactSharingModal";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import ContactRow from "./contactRow";

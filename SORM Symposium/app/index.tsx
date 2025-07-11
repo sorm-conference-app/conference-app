@@ -1,6 +1,6 @@
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import ContactSharingModal from "@/components/ContactSharingModal";
+import ContactSharingModal from "@/components/Networking/ContactSharingModal";
 import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";

@@ -4,9 +4,9 @@ import { checkMultipleFields } from '@/lib/wordFilter';
 import type { Attendee } from '@/services/attendees';
 import React, { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { ThemedText } from './ThemedText';
-import ThemedTextInput from './ThemedTextInput';
-import { ThemedView } from './ThemedView';
+import { ThemedText } from '../ThemedText';
+import ThemedTextInput from '../ThemedTextInput';
+import { ThemedView } from '../ThemedView';
 
 interface ContactSharingModalProps {
   visible: boolean;

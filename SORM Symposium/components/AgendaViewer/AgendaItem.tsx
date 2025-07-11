@@ -5,7 +5,7 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { formatTimeRange } from "@/lib/dateTime";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, LayoutChangeEvent } from "react-native";
 import AgendaItemSaveButton from "./AgendaItemSaveButton";
 import { formatTopicName, getTopicColor } from "./utils";
@@ -21,7 +21,7 @@ type AgendaItemProps = {
   hasRSVP: boolean;
   height: number;
   onPress: () => void;
-  setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
+  setRsvpEventIds: () => void;
 };
 
 export default function AgendaItem({

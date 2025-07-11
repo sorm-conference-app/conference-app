@@ -8,6 +8,9 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver.unstable_enablePackageExports = false;
 
+/* for drizzle. */
+config.resolver.sourceExts.push("sql");
+
 // Add path alias support
 config.resolver.alias = {
   "@": path.resolve(__dirname),

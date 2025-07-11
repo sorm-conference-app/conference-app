@@ -5,9 +5,9 @@ import { Tables } from "@/types/Supabase.types";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
-import { ThemedText } from "./ThemedText";
-import ThemedTextInput from "./ThemedTextInput";
-import { ThemedView } from "./ThemedView";
+import { ThemedText } from "../ThemedText";
+import ThemedTextInput from "../ThemedTextInput";
+import { ThemedView } from "../ThemedView";
 import ConfirmEditEmailModal from "./ConfirmEditEmailModal";
 import { showSuccessMessage, showErrorMessage } from "@/lib/alerts";
 

@@ -15,6 +15,7 @@ type Announcement = {
   created_at: Date;
   body: string;
   title: string | null;
+  type: string;
 };
 
 type WebhookPayload = {
@@ -72,6 +73,10 @@ Deno.serve(async (req) => {
         title: payload.record.title,
         body: payload.record.body,
         sound: "default",
+        data: {
+          type: payload.record.type,
+          id: payload.record.id,
+        },
       }),
     }).then((res) => res.json());
 

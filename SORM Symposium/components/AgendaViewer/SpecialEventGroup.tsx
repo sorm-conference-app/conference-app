@@ -8,7 +8,7 @@ type SpecialEventGroupProps = {
   mainEvent: Event;
   conflictingItems: Event[];
   rsvpEventIds: Set<number>;
-  setRsvpEventIds: React.Dispatch<React.SetStateAction<Set<number>>>;
+  setRsvpEventIds: () => void;
   onSelectEvent: (event: Event) => void;
 };
 

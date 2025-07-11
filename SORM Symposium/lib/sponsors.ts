@@ -1,5 +1,4 @@
-import React from "react";
-import { Sponsor, SponsorGroup, SponsorLogoIndex } from "@/types/Sponsors.types";
+import { Sponsor, SponsorGroup } from "@/types/Sponsors.types";
 
 // Sample sponsor data - replace with actual data from your backend
 const sponsors: Sponsor[] = [

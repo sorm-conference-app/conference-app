@@ -7,7 +7,7 @@ SORM Symposium/node_modules/
 
 .env.local
 
+*.db
+
 expo-env.d.ts
 SORM Symposium/.env
-
-SORM Symposium/drizzle/
