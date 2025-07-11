@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     textAlign: "center",
-    opacity: 0.8,
   },
   groupContainer: {
     marginTop: 20,

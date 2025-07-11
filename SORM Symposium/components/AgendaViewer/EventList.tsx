@@ -9,7 +9,7 @@ import React, {
   SetStateAction,
   useRef,
 } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import {
@@ -23,6 +23,7 @@ import { Pressable } from "react-native-gesture-handler";
 import useEvents from "@/hooks/useEvents";
 import useRSVPEvents from "@/hooks/useRSVPEvents";
 import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
+import { IconSymbol } from "../ui/IconSymbol";
 
 type EventListProps = {
   onSelectEvent: (event: Event) => void;
@@ -129,7 +130,12 @@ export function EventList({
               Conference Schedule
             </ThemedText>
             <ThemedText style={styles.subheader} type="subtitle">
-              Select an event to view more details
+              {Platform.OS === 'web' ? 'Click' : 'Tap'} on an event to view more details
+            </ThemedText>
+            <ThemedText style={styles.subheader} type="subtitle">
+              {Platform.OS === 'web' ? 'Click' : 'Tap'} the <IconSymbol 
+              name="star" size={20} color={Colors[colorScheme].text}
+              /> icon to save an event
             </ThemedText>
 
             <Pressable
@@ -139,6 +145,7 @@ export function EventList({
                   borderRadius: 5,
                   borderWidth: 1,
                   marginLeft: 16,
+                  marginTop: 16,
                 },
                 { backgroundColor: Colors[colorScheme].adminButton },
                 { borderColor: Colors[colorScheme].text },
@@ -384,8 +391,7 @@ const styles = StyleSheet.create({
   },
   subheader: {
     paddingHorizontal: 16,
-    marginBottom: 16,
-    marginTop: 8,
+    marginTop: 16,
     fontSize: 16,
     textAlign: "center",
   },
