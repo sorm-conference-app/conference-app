@@ -45,43 +45,26 @@ const sponsors: Sponsor[] = [
   },
   {
     id: "3",
-    name: "DataFlow Systems",
-    description: "Enterprise data management and analytics platform provider, helping organizations make data-driven decisions.",
-    level: "Resilient",
+    name: "Tactics, Techniques, and Procedures, LLC",
+    description: "Is your organization ready for the unexpected? At Tactics, Techniques, and Procedures, LLC, (TTP, LLC) we combine decades of cross-functional expertise to fortify your business against today’s threats and tomorrow’s challenges. Our consultants deliver comprehensive solutions across multiple disciplines. From Business Continuity, Emergency Management, OSHA compliance, Threat and Vulnerability Assessments to Crisis Communications, Risk Management, Information, Personnel, and Industrial Security programs. Whether you're strengthening your workforce, safeguarding sensitive assets, or preparing for crises, TTP, LLC stands as your unwavering partner. We don’t just advise—we empower, protect, and prepare your organization to thrive in uncertainty.",
+    level: "Ultra-Resilient",
     logo: null, 
     contactInfo: [{
-      name: "DataFlow Systems",
-      email: "info@dataflow.com",
-      phone: ""
+      name: "Chris Bygum",
+      email: "cbygum@gmail.com",
+      phone: "805-889-1807"
     }],
-    website: "https://dataflow.com"
+    website: ""
   },
   {
     id: "4",
-    name: "CloudNet Pro",
-    description: "Professional cloud networking services and infrastructure solutions for growing businesses.",
+    name: "Gallagher",
+    description: "Welcome to Gallagher: A leading global insurance brokerage, risk management, and consulting firm founded in 1927",
     level: "Resilient",
-    logo: null, 
-    contactInfo: [{
-      name: "CloudNet Pro",
-      email: "support@cloudnetpro.com",
-      phone: ""
-    }],
-    website: "https://cloudnetpro.com"
+    logo: "../assets/images/SponsorLogos/GallagherLogo.jpg", 
+    contactInfo: [],
+    website: "https://www.ajg.com"
   },
-  {
-    id: "5",
-    name: "SecureTech",
-    description: "Cybersecurity solutions provider specializing in protecting digital assets and ensuring compliance.",
-    level: "TBD",
-    logo: null, 
-    contactInfo: [{
-      name: "SecureTech",
-      email: "security@securetech.com",
-      phone: ""
-    }],
-    website: "https://securetech.com"
-  }
 ];
 
 export function getSponsorsByLevel(): SponsorGroup[] {

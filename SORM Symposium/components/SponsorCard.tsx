@@ -108,11 +108,10 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedView>
       )}
 
-      <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
+      {sponsor.website !== "" && ( <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
         <ThemedText style={[styles.contactLabel, { color: colors.text }]}>
           Website:
         </ThemedText>
-        {sponsor.website && (
           <ThemedView style={[styles.contactRow, { backgroundColor: 'transparent' }]}>
             <ThemedText
               style={[styles.contactInfo, { color: colors.link }]}
@@ -122,8 +121,8 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
               {sponsor.website}
             </ThemedText>
           </ThemedView>
-        )}
-      </ThemedView>
+        </ThemedView>
+      )}
     </ThemedView>
   );
 };
