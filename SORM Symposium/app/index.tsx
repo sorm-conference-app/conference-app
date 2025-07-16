@@ -2,6 +2,7 @@ import signinAdmin, { requestOTP } from "@/api/signinUser";
 import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
+import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
@@ -213,180 +214,198 @@ export default function Login() {
   // Initial screen - user type selection
   if (!userType) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
-        <ThemedText>{getDescription()}</ThemedText>
+      <SormImageWrapper>
+        <ThemedView style={styles.container}>
+          <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
+          <ThemedText>{getDescription()}</ThemedText>
 
-        <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
-        <Pressable
-          onPress={() => selectUserType("attendee")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText
+          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+          <Pressable
+            onPress={() => selectUserType("attendee")}
             style={[
-              styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText },
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
             ]}
           >
-            Symposium Attendee
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          onPress={() => selectUserType("organizer")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Attendee
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={() => selectUserType("organizer")}
             style={[
-              styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText },
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
             ]}
           >
-            Symposium Organizer
-          </ThemedText>
-        </Pressable>
-      </ThemedView>
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Organizer
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </SormImageWrapper>
     );
   }
 
   // Login screen for selected user type
   return (
     <>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>
-          {getTitle()}
-        </ThemedText>
-        <ThemedText>{getDescription()}</ThemedText>
+      <SormImageWrapper>
+        <ThemedView style={styles.container}>
+          <ThemedText type="title" style={{ marginBottom: 10 }}>
+            {getTitle()}
+          </ThemedText>
+          <ThemedText>{getDescription()}</ThemedText>
 
-        {userType === "attendee" && (
-          <ThemedView style={styles.contactMethodContainer}>
-            <ThemedText>Contact Method</ThemedText>
-            <ThemedView style={styles.segmentedControl}>
-              <Pressable
-                onPress={() => setContactMethod("email")}
-                style={[
-                  styles.segmentButton,
-                  contactMethod === "email" && styles.activeSegmentButton,
-                  { borderColor: Colors[colorScheme].text }
-                ]}
-              >
-                <ThemedText
+          {userType === "attendee" && (
+            <ThemedView style={styles.contactMethodContainer}>
+              <ThemedText>Contact Method</ThemedText>
+              <ThemedView style={styles.segmentedControl}>
+                <Pressable
+                  onPress={() => setContactMethod("email")}
                   style={[
-                    styles.segmentText,
-                    contactMethod === "email" && styles.activeSegmentText
+                    styles.segmentButton,
+                    {
+                      backgroundColor: contactMethod === "email" 
+                        ? Colors[colorScheme].adminButton 
+                        : Colors[colorScheme].background,
+                      borderColor: Colors[colorScheme].text
+                    }
                   ]}
                 >
-                  Email
-                </ThemedText>
-              </Pressable>
-              <Pressable
-                onPress={() => setContactMethod("phone")}
-                style={[
-                  styles.segmentButton,
-                  contactMethod === "phone" && styles.activeSegmentButton,
-                  { borderColor: Colors[colorScheme].text }
-                ]}
-              >
-                <ThemedText
+                  <ThemedText
+                    style={[
+                      styles.segmentText,
+                      { color: contactMethod === "email" 
+                          ? Colors[colorScheme].adminButtonText 
+                          : Colors[colorScheme].text 
+                      }
+                    ]}
+                  >
+                    Email
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={() => setContactMethod("phone")}
                   style={[
-                    styles.segmentText,
-                    contactMethod === "phone" && styles.activeSegmentText
+                    styles.segmentButton,
+                    {
+                      backgroundColor: contactMethod === "phone" 
+                        ? Colors[colorScheme].adminButton 
+                        : Colors[colorScheme].background,
+                      borderColor: Colors[colorScheme].text
+                    }
                   ]}
                 >
-                  Phone
-                </ThemedText>
-              </Pressable>
+                  <ThemedText
+                    style={[
+                      styles.segmentText,
+                      { color: contactMethod === "phone" 
+                          ? Colors[colorScheme].adminButtonText 
+                          : Colors[colorScheme].text 
+                      }
+                    ]}
+                  >
+                    Phone
+                  </ThemedText>
+                </Pressable>
+              </ThemedView>
             </ThemedView>
-          </ThemedView>
-        )}
-
-        <ThemedView style={styles.inputContainer}>
-          <ThemedText>{contactMethod === "email" ? "Email" : "Phone Number"}</ThemedText>
-          <ThemedTextInput
-            value={contact}
-            textContentType={contactMethod === "email" ? "emailAddress" : "telephoneNumber"}
-            keyboardType={contactMethod === "email" ? "email-address" : "phone-pad"}
-            onChangeText={setContact}
-            placeholder={contactMethod === "email" ? "Enter your email" : "Enter your phone number"}
-            accessibilityLabel={`${contactMethod} input field`}
-            accessibilityHint={`Enter your ${contactMethod}`}
-            accessibilityRole="text"
-          />
-          {contact.length > 0 && !validContact && (
-            <ThemedText style={styles.invalid}>
-              Not a valid {contactMethod} {contactMethod === "phone" ? "number" : ""}.
-            </ThemedText>
           )}
-        </ThemedView>
 
-        {userType === "organizer" && (
           <ThemedView style={styles.inputContainer}>
-            <ThemedText>Password</ThemedText>
+            <ThemedText>{contactMethod === "email" ? "Email" : "Phone Number"}</ThemedText>
             <ThemedTextInput
-              value={password}
-              textContentType="password"
-              secureTextEntry
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              accessibilityLabel="Password input field"
-              accessibilityHint="Enter your password"
+              value={contact}
+              textContentType={contactMethod === "email" ? "emailAddress" : "telephoneNumber"}
+              keyboardType={contactMethod === "email" ? "email-address" : "phone-pad"}
+              onChangeText={setContact}
+              placeholder={contactMethod === "email" ? "Enter your email" : "Enter your phone number"}
+              accessibilityLabel={`${contactMethod} input field`}
+              accessibilityHint={`Enter your ${contactMethod}`}
               accessibilityRole="text"
             />
+            {contact.length > 0 && !validContact && (
+              <ThemedText style={styles.invalid}>
+                Not a valid {contactMethod} {contactMethod === "phone" ? "number" : ""}.
+              </ThemedText>
+            )}
           </ThemedView>
-        )}
 
-        <Pressable
-          onPress={handleSignIn}
-          disabled={isButtonDisabled()}
-          style={[
-            styles.button,
-            isButtonDisabled()
-              ? { backgroundColor: Colors[colorScheme].tabIconDefault }
-              : { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText
+          {userType === "organizer" && (
+            <ThemedView style={styles.inputContainer}>
+              <ThemedText>Password</ThemedText>
+              <ThemedTextInput
+                value={password}
+                textContentType="password"
+                secureTextEntry
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                accessibilityLabel="Password input field"
+                accessibilityHint="Enter your password"
+                accessibilityRole="text"
+              />
+            </ThemedView>
+          )}
+
+          <Pressable
+            onPress={handleSignIn}
+            disabled={isButtonDisabled()}
             style={[
-              styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText },
+              styles.button,
+              isButtonDisabled()
+                ? { backgroundColor: Colors[colorScheme].tabIconDefault }
+                : { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
             ]}
           >
-            {getButtonText()}
-          </ThemedText>
-        </Pressable>
-        
-        <Pressable
-          onPress={goBack}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].adminButtonText },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              {getButtonText()}
+            </ThemedText>
+          </Pressable>
+          
+          <Pressable
+            onPress={goBack}
             style={[
-              styles.buttonText,
-              { color: Colors[colorScheme].adminButtonText },
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].adminButtonText },
+              { borderWidth: 1 },
             ]}
           >
-            Back
-          </ThemedText>
-        </Pressable>
-        
-        <ThemedText style={styles.invalid}>{err}</ThemedText>
-      </ThemedView>
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Back
+            </ThemedText>
+          </Pressable>
+          
+          <ThemedText style={styles.invalid}>{err}</ThemedText>
+        </ThemedView>
+      </SormImageWrapper>
 
       <ConfirmationModal
         visible={showConfirmationModal}
@@ -432,19 +451,14 @@ const styles = StyleSheet.create({
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
+    borderRadius: 8,
     alignItems: "center",
-  },
-  activeSegmentButton: {
-    backgroundColor: "#007AFF",
   },
   segmentText: {
     fontSize: 16,
-  },
-  activeSegmentText: {
-    color: "white",
     fontWeight: "bold",
   },
   inputContainer: {

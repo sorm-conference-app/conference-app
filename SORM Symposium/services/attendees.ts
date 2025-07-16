@@ -153,11 +153,11 @@ export async function verifyAttendeeContact(contact: string): Promise<Attendee> 
 
 /**
  * Check if the contact sharing popup should be shown for an attendee
- * @param email - The email to check
+ * @param contact - The email or phone to check
  * @returns True if the popup should be shown (user hasn't seen it before)
  */
-export async function shouldShowContactSharingPopup(email: string): Promise<boolean> {
-  const attendee = await getAttendeeByEmail(email);
+export async function shouldShowContactSharingPopup(contact: string): Promise<boolean> {
+  const attendee = await getAttendeeByContact(contact);
   if (!attendee) return false;
   
   // Show popup if they haven't seen it before (seen_share_info_popup is null or false)
@@ -178,21 +178,19 @@ export async function updateContactSharingPreferences(
   // Determine if contact is email or phone
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
 
-  // Call the stored function to perform the update with all attendee info
-  // For now, we'll keep using email-based updates and add phone support later
-  if (!isEmail) {
-    throw new Error('Contact sharing preferences update currently only supports email');
-  }
-  
-  const { error } = await supabase.rpc('update_contact_sharing_info', {
-    user_email: contact,
+  // Prepare parameters based on contact type
+  const rpcParams = {
+    user_email: isEmail ? contact : null,
+    user_phone: isEmail ? null : contact,
     share_info_val: shareInfo,
     name_val: name || null,
     organization_val: organization || null,
     title_val: title || null,
     additional_info_val: additionalInfo,
     seen_popup_val: true
-  });
+  };
+  
+  const { error } = await supabase.rpc('update_contact_sharing_info', rpcParams);
 
   if (error) {
     console.error('Error updating contact sharing info:', error);

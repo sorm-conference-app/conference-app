@@ -1,9 +1,9 @@
 import useSupabaseAuth from '@/hooks/useSupabaseAuth';
 import {
-    getAttendeeByContact,
-    shouldShowContactSharingPopup,
-    updateContactSharingPreferences,
-    type Attendee
+  getAttendeeByContact,
+  shouldShowContactSharingPopup,
+  updateContactSharingPreferences,
+  type Attendee
 } from '@/services/attendees';
 import { useCallback, useState } from 'react';
 
@@ -50,13 +50,8 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
         return false;
       }
 
-      // Only check email for popup logic (phone users always get prompted for now)
-      const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(userContact);
-      let shouldShow = true;
-      
-      if (isEmail) {
-        shouldShow = await shouldShowContactSharingPopup(userContact);
-      }
+      // Check if popup should be shown for both email and phone users
+      const shouldShow = await shouldShowContactSharingPopup(userContact);
       
       if (shouldShow) {
         const attendeeData = await getAttendeeByContact(userContact);

@@ -274,13 +274,14 @@ export type Database = {
     Functions: {
       update_contact_sharing_info: {
         Args: {
-          user_email: string
+          user_email?: string | null
+          user_phone?: string | null
           share_info_val: boolean
-          name_val: string | null
-          organization_val: string | null
-          title_val: string | null
-          additional_info_val: string
-          seen_popup_val: boolean
+          name_val?: string | null
+          organization_val?: string | null
+          title_val?: string | null
+          additional_info_val?: string
+          seen_popup_val?: boolean
         }
         Returns: undefined
       }
