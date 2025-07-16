@@ -13,9 +13,21 @@ import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import PhoneInput, { ICountry, isValidPhoneNumber } from "react-native-international-phone-number";
 
 type UserType = "attendee" | "organizer";
 type ContactMethod = "email" | "phone";
+
+/**
+ * Clean phone number by removing all non-digit characters
+ * @param phoneNumber - Phone number with potential formatting
+ * @returns Clean phone number with only digits
+ */
+const cleanPhoneNumber = (phoneNumber: string): string => {
+  // Remove all non-digit characters
+  let cleaned = phoneNumber.replace(/\D/g, '');
+  return cleaned;
+};
 
 export default function Login() {
   const colorScheme = useColorScheme() || "light";
@@ -23,6 +35,8 @@ export default function Login() {
   const [userType, setUserType] = useState<UserType | null>(null);
   const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
   const [contact, setContact] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
   const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -40,7 +54,9 @@ export default function Login() {
   
   // Validation functions
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  const validPhone = /^\+?[1-9]\d{1,14}$/.test(contact); // Basic international phone format
+  const validPhone = contactMethod === "phone" && selectedCountry 
+    ? isValidPhoneNumber(phoneNumber, selectedCountry)
+    : false;
   const validContact = contactMethod === "email" ? validEmail : validPhone;
   const validPassword = password.length > 0;
 
@@ -71,8 +87,13 @@ export default function Login() {
     
     try {
       if (userType === "attendee") {
+        // For phone numbers, use the cleaned number with country code
+        const contactToSend = contactMethod === "phone" && selectedCountry
+          ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+          : contact;
+        
         // Request OTP for attendee
-        const result = await requestOTP(contact);
+        const result = await requestOTP(contactToSend);
         setShowVerificationModal(true);
       } else if (userType === "organizer") {
         // Admin password login
@@ -90,8 +111,13 @@ export default function Login() {
     setShowVerificationModal(false);
     
     try {
+      // Use cleaned formatted phone number for contact sharing
+      const contactForSharing = contactMethod === "phone" && selectedCountry
+        ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+        : contact;
+      
       // Check if we should show the contact sharing modal
-      const modalShown = await showContactSharingModal(contact);
+      const modalShown = await showContactSharingModal(contactForSharing);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
         router.push("/(tabs)/home");
@@ -109,7 +135,10 @@ export default function Login() {
 
   const handleVerificationResend = async () => {
     try {
-      await requestOTP(contact);
+      const contactToSend = contactMethod === "phone" && selectedCountry
+        ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+        : contact;
+      await requestOTP(contactToSend);
     } catch (error) {
       setErr(`Failed to resend code: ${(error as Error).message}`);
     }
@@ -156,6 +185,8 @@ export default function Login() {
   const selectUserType = (type: UserType) => {
     setUserType(type);
     setContact("");
+    setPhoneNumber("");
+    setSelectedCountry(null);
     setPassword("");
     setErr("");
     setContactMethod("email"); // Reset to email by default
@@ -165,9 +196,19 @@ export default function Login() {
   const goBack = () => {
     setUserType(null);
     setContact("");
+    setPhoneNumber("");
+    setSelectedCountry(null);
     setPassword("");
     setErr("");
     setContactMethod("email");
+  };
+
+  const handlePhoneNumberChange = (phoneNum: string) => {
+    setPhoneNumber(phoneNum);
+  };
+
+  const handleCountryChange = (country: ICountry) => {
+    setSelectedCountry(country);
   };
 
   const getTitle = () => {
@@ -276,7 +317,12 @@ export default function Login() {
               <ThemedText>Contact Method</ThemedText>
               <ThemedView style={styles.segmentedControl}>
                 <Pressable
-                  onPress={() => setContactMethod("email")}
+                  onPress={() => {
+                    setContactMethod("email");
+                    setContact("");
+                    setPhoneNumber("");
+                    setSelectedCountry(null);
+                  }}
                   style={[
                     styles.segmentButton,
                     {
@@ -300,7 +346,12 @@ export default function Login() {
                   </ThemedText>
                 </Pressable>
                 <Pressable
-                  onPress={() => setContactMethod("phone")}
+                  onPress={() => {
+                    setContactMethod("phone");
+                    setContact("");
+                    setPhoneNumber("");
+                    setSelectedCountry(null);
+                  }}
                   style={[
                     styles.segmentButton,
                     {
@@ -329,17 +380,53 @@ export default function Login() {
 
           <ThemedView style={styles.inputContainer}>
             <ThemedText>{contactMethod === "email" ? "Email" : "Phone Number"}</ThemedText>
-            <ThemedTextInput
-              value={contact}
-              textContentType={contactMethod === "email" ? "emailAddress" : "telephoneNumber"}
-              keyboardType={contactMethod === "email" ? "email-address" : "phone-pad"}
-              onChangeText={setContact}
-              placeholder={contactMethod === "email" ? "Enter your email" : "Enter your phone number"}
-              accessibilityLabel={`${contactMethod} input field`}
-              accessibilityHint={`Enter your ${contactMethod}`}
-              accessibilityRole="text"
-            />
-            {contact.length > 0 && !validContact && (
+            
+            {contactMethod === "email" ? (
+              <ThemedTextInput
+                value={contact}
+                textContentType="emailAddress"
+                keyboardType="email-address"
+                onChangeText={setContact}
+                placeholder="Enter your email"
+                accessibilityLabel="Email input field"
+                accessibilityHint="Enter your email"
+                accessibilityRole="text"
+              />
+            ) : (
+              <PhoneInput
+                value={phoneNumber}
+                onChangePhoneNumber={handlePhoneNumberChange}
+                selectedCountry={selectedCountry}
+                onChangeSelectedCountry={handleCountryChange}
+                defaultCountry="US"
+                placeholder="Enter your phone number"
+                theme={colorScheme === 'dark' ? 'dark' : 'light'}
+                phoneInputStyles={{
+                  container: [
+                    styles.phoneContainer,
+                    {
+                      backgroundColor: Colors[colorScheme].background,
+                      borderColor: Colors[colorScheme].text,
+                    }
+                  ],
+                  input: [
+                    styles.phoneTextInput,
+                    {
+                      color: Colors[colorScheme].text,
+                    }
+                  ],
+                  callingCode: [
+                    styles.phoneCodeText,
+                    {
+                      color: Colors[colorScheme].text,
+                    }
+                  ],
+                }}
+              />
+            )}
+            
+            {((contactMethod === "email" && contact.length > 0 && !validEmail) ||
+              (contactMethod === "phone" && phoneNumber.length > 0 && !validPhone)) && (
               <ThemedText style={styles.invalid}>
                 Not a valid {contactMethod} {contactMethod === "phone" ? "number" : ""}.
               </ThemedText>
@@ -415,7 +502,9 @@ export default function Login() {
 
       <SixDigitVerificationModal
         visible={showVerificationModal}
-        contact={contact}
+        contact={contactMethod === "phone" && selectedCountry
+          ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+          : contact}
         mode="otp_verification"
         onVerificationComplete={handleVerificationComplete}
         onCancel={handleVerificationCancel}
@@ -480,5 +569,17 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 14,
     marginTop: 5,
+  },
+  phoneContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    width: "100%",
+  },
+  phoneTextInput: {
+    fontSize: 16,
+    height: 50,
+  },
+  phoneCodeText: {
+    fontSize: 16,
   },
 });

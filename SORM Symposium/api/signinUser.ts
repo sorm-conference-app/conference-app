@@ -80,6 +80,7 @@ export async function requestOTP(contact: string) {
   try {
     if (isEmail) {
       // Send email OTP
+      console.log("Sending email OTP to", contact);
       const { error } = await supabase.auth.signInWithOtp({
         email: contact,
         options: {
@@ -102,6 +103,7 @@ export async function requestOTP(contact: string) {
       };
     } else {
       // Send phone OTP
+      console.log("Sending phone OTP to", contact);
       const { error } = await supabase.auth.signInWithOtp({
         phone: contact,
         options: {

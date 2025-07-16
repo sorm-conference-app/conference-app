@@ -15,6 +15,29 @@ export interface Attendee {
 }
 
 /**
+ * Normalize phone number to E.164 format for database queries
+ * @param phone - Phone number that may or may not have + prefix
+ * @returns Phone number in E.164 format (with + prefix)
+ */
+function normalizePhoneNumber(phone: string): string {
+  // Remove all non-digit characters and any existing + prefix
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // If it looks like a US number (10-11 digits), ensure it starts with +1
+  if (digitsOnly.length === 10) {
+    return `+1${digitsOnly}`;
+  } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    return `+${digitsOnly}`;
+  } else if (digitsOnly.length > 7) {
+    // For other international numbers, add + prefix if missing
+    return `+${digitsOnly}`;
+  }
+  
+  // Return as-is if it doesn't look like a valid phone number
+  return phone.startsWith('+') ? phone : `+${digitsOnly}`;
+}
+
+/**
  * Check if an attendee exists in the database by email
  * @param email - The email to check
  * @returns The attendee object if found, null otherwise
@@ -40,14 +63,17 @@ export async function getAttendeeByEmail(email: string): Promise<Attendee | null
 
 /**
  * Check if an attendee exists in the database by phone
- * @param phone - The phone number to check
+ * @param phone - The phone number to check (with or without + prefix)
  * @returns The attendee object if found, null otherwise
  */
 export async function getAttendeeByPhone(phone: string): Promise<Attendee | null> {
+  // Normalize phone number to E.164 format for consistent database queries
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
   const { data, error } = await supabase
     .from('attendee_info')
     .select('*')
-    .eq('phone', phone)
+    .eq('phone', normalizedPhone)
     .single();
 
   if (error) {
@@ -177,11 +203,14 @@ export async function updateContactSharingPreferences(
 
   // Determine if contact is email or phone
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  
+  // Normalize contact for consistent database operations
+  const normalizedContact = isEmail ? contact : normalizePhoneNumber(contact);
 
   // Prepare parameters based on contact type
   const rpcParams = {
-    user_email: isEmail ? contact : null,
-    user_phone: isEmail ? null : contact,
+    user_email: isEmail ? normalizedContact : null,
+    user_phone: isEmail ? null : normalizedContact,
     share_info_val: shareInfo,
     name_val: name || null,
     organization_val: organization || null,
@@ -197,8 +226,8 @@ export async function updateContactSharingPreferences(
     throw error;
   }
 
-  // Fetch and return the fresh row
-  const updatedAttendee = await getAttendeeByContact(contact);
+  // Fetch and return the fresh row using normalized contact
+  const updatedAttendee = await getAttendeeByContact(normalizedContact);
   if (!updatedAttendee) {
     throw new Error('Failed to fetch updated attendee');
   }
