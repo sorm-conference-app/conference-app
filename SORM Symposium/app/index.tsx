@@ -1,17 +1,24 @@
 import signinAdmin, { signinAttendee } from "@/api/signinUser";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import ContactSharingModal from "@/components/ContactSharingModal";
+import ContactSharingModal from "@/components/Networking/ContactSharingModal";
+import SormImageWrapper from "@/components/SormImageWrapper";
+import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
-import { clearVerifiedEmails, getVerifiedEmails, storeVerifiedEmail } from "@/lib/attendeeStorage";
+import {
+  clearVerifiedEmails,
+  getVerifiedEmails,
+  storeVerifiedEmail,
+} from "@/lib/attendeeStorage";
 import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, useColorScheme } from "react-native";
 import React, { useEffect, useState } from "react";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import { use6DigitVerificationModal } from '@/hooks/use6DigitVerificationModal';
 
 type UserType = "attendee" | "organizer";
 
@@ -22,8 +29,9 @@ export default function Login() {
   const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
-  
+  const [showConfirmationModal, setShowConfirmationModal] =
+    useState<boolean>(false);
+
   // Contact sharing modal hook
   const {
     isVisible: isContactSharingVisible,
@@ -32,6 +40,8 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
+  
+  const sixDigitVerificationModal = use6DigitVerificationModal();
   
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
   const validPassword = password.length > 0;
@@ -48,7 +58,7 @@ export default function Login() {
         if (verifiedEmails.length > 0) {
           // Validate each stored email against the database
           const validEmails: string[] = [];
-          
+
           for (const email of verifiedEmails) {
             try {
               const isValid = await isAttendeeEmail(email);
@@ -75,7 +85,7 @@ export default function Login() {
           }
         }
       } catch (error) {
-        console.error('Error checking verified emails:', error);
+        console.error("Error checking verified emails:", error);
       }
     };
 
@@ -95,20 +105,15 @@ export default function Login() {
 
     setIsProcessing(true);
     setErr("");
-    
+
     try {
       if (userType === "attendee") {
         const result = await signinAttendee(email, () => {
           setShowConfirmationModal(true);
         });
+        // Show the verification modal and wait for completion
         if (result.verified) {
-          // Check if we should show the contact sharing modal
-          const modalShown = await showContactSharingModal(email);
-          // Only navigate to home if the modal isn't shown
-          // If modal is shown, navigation will happen after it closes
-          if (!modalShown) {
-            router.push("/(tabs)/home");
-          }
+          sixDigitVerificationModal.showModal(email);
         }
       } else if (userType === "organizer") {
         await signinAdmin(email, password);
@@ -124,43 +129,27 @@ export default function Login() {
 
   const handleProceedAsAttendee = async () => {
     setShowConfirmationModal(false);
+    sixDigitVerificationModal.showModal(email);
     setIsProcessing(true);
     setErr("");
-    
-    try {
-      const result = await signinAttendee(email);
-      if (result.verified) {
-        // Check if we should show the contact sharing modal
-        const modalShown = await showContactSharingModal(email);
-        // Only navigate to home if the modal isn't shown
-        // If modal is shown, navigation will happen after it closes
-        if (!modalShown) {
-          router.push("/(tabs)/home");
-        }
-      }
-    } catch (e) {
-      setErr("Failed to sign in: " + (e as Error).message);
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
-  const handleContactSharingDontShare = async () => {
+  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, '');
+      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
     } catch (error) {
-      console.error('Error saving contact sharing preferences:', error);
+      console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
     } catch (error) {
-      console.error('Error saving contact sharing preferences:', error);
+      console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
@@ -175,6 +164,19 @@ export default function Login() {
     setUserType("organizer");
     setPassword("");
     setErr("");
+  };
+
+  const handleVerificationComplete = async () => {
+    sixDigitVerificationModal.hideModal();
+    const modalShown = await showContactSharingModal(email);
+    if (!modalShown) {
+      router.push("/(tabs)/home");
+    }
+  };
+
+  const handleCancel = () => {
+    sixDigitVerificationModal.hideModal();
+    setIsProcessing(false);
   };
 
   const selectUserType = async (type: UserType) => {
@@ -197,6 +199,7 @@ export default function Login() {
     setEmail("");
     setPassword("");
     setErr("");
+    setIsProcessing(false);
   };
 
   const getTitle = () => {
@@ -243,44 +246,62 @@ export default function Login() {
   // Initial screen - user type selection
   if (!userType) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
-        <ThemedText>{getDescription()}</ThemedText>
+      <SormImageWrapper>
+        <ThemedView style={styles.container}>
+          <ThemedText type="title" style={{ marginBottom: 10 }}>
+            {getTitle()}
+          </ThemedText>
+          <ThemedText>{getDescription()}</ThemedText>
 
-        <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
-        <Pressable
-          onPress={() => selectUserType("attendee")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
-          >Symposium Attendee</ThemedText>
-        </Pressable>
-        <Pressable
-          onPress={() => selectUserType("organizer")}
-          style={[
-            styles.button,
-            { backgroundColor: Colors[colorScheme].adminButton },
-            { borderColor: Colors[colorScheme].text },
-            { borderWidth: 1 },
-          ]}
-        >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}
-          >Symposium Organizer</ThemedText>
-        </Pressable>
-      </ThemedView>
+          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+          <Pressable
+            onPress={() => selectUserType("attendee")}
+            style={[
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Attendee
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={() => selectUserType("organizer")}
+            style={[
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Symposium Organizer
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </SormImageWrapper>
     );
   }
 
   // Login screen for selected user type
   return (
-    <>
+    <SormImageWrapper>
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
+        <ThemedText type="title" style={{ marginBottom: 10 }}>
+          {getTitle()}
+        </ThemedText>
         <ThemedText>{getDescription()}</ThemedText>
 
         <ThemedView style={styles.inputContainer}>
@@ -316,18 +337,25 @@ export default function Login() {
         )}
 
         <Pressable
-          onPress={handleSignIn}
+          onPress={() => {setEmail(email.toLowerCase()); handleSignIn();}}
           disabled={isButtonDisabled()}
           style={[
             styles.button,
             isButtonDisabled()
-              ? { backgroundColor: Colors[colorScheme].tabIconDefault } 
+              ? { backgroundColor: Colors[colorScheme].tabIconDefault }
               : { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].text },
             { borderWidth: 1 },
           ]}
         >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>{getButtonText()}</ThemedText>
+          <ThemedText
+            style={[
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
+            ]}
+          >
+            {getButtonText()}
+          </ThemedText>
         </Pressable>
         <Pressable
           onPress={goBack}
@@ -338,7 +366,14 @@ export default function Login() {
             { borderWidth: 1 },
           ]}
         >
-          <ThemedText style={[styles.buttonText, { color: Colors[colorScheme].adminButtonText }]}>Back</ThemedText>
+          <ThemedText
+            style={[
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
+            ]}
+          >
+            Back
+          </ThemedText>
         </Pressable>
         <ThemedText style={styles.invalid}>{err}</ThemedText>
       </ThemedView>
@@ -356,7 +391,15 @@ export default function Login() {
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
       />
-    </>
+
+      <SixDigitVerificationModal
+        visible={sixDigitVerificationModal.visible}
+        email={email}
+        onVerificationComplete={handleVerificationComplete}
+        onCancel={handleCancel}
+        onResendCode={() => sixDigitVerificationModal.resendVerificationEmail(email)}
+      />
+    </SormImageWrapper>
   );
 }
 
@@ -375,11 +418,11 @@ const styles = StyleSheet.create({
   button: {
     padding: 10,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 18,
   },
 });

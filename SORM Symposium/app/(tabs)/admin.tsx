@@ -1,6 +1,6 @@
 import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
 import AnnouncementForm from "@/components/AnnouncementForm";
-import ContactEditForm from "@/components/ContactEditForm";
+import ContactEditForm from "@/components/Networking/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
