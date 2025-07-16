@@ -1,29 +1,33 @@
+import { verifyOTP } from '@/api/signinUser';
 import { Colors } from '@/constants/Colors';
+import { checkCode } from '@/hooks/use6DigitVerification';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
 import { ThemedView } from './ThemedView';
-import { checkCode } from '@/hooks/use6DigitVerification';
 
 interface SixDigitVerificationModalProps {
   visible: boolean;
-  email: string;
-  onVerificationComplete: () => void;
+  contact: string;
+  onVerificationComplete: (result?: any) => void;
   onCancel: () => void;
   onResendCode: () => void;
+  mode?: 'email_verification' | 'otp_verification'; // New prop to distinguish between modes
 }
 
 /**
- * Modal component for 6-digit email verification code input
+ * Modal component for 6-digit verification code input
+ * Supports both email verification codes and OTP verification
  */
 export default function SixDigitVerificationModal({
   visible,
-  email,
+  contact,
   onVerificationComplete,
   onCancel,
-  onResendCode
+  onResendCode,
+  mode = 'email_verification'
 }: SixDigitVerificationModalProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [verificationCode, setVerificationCode] = useState('');
@@ -32,6 +36,14 @@ export default function SixDigitVerificationModal({
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(30);
   const cooldownRef = useRef<number | null>(null);
+  // Track the last code we have already attempted to verify to avoid
+  // sending multiple identical verification requests due to re-renders
+  // (e.g. those caused by state updates or React 18 StrictMode double mounting)
+  const lastAttemptedCodeRef = useRef<string | null>(null);
+
+  // Determine if this is an email or phone contact
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const contactMethod = isEmail ? 'email' : 'phone';
 
   // Reset state when modal becomes visible
   useEffect(() => {
@@ -68,18 +80,34 @@ export default function SixDigitVerificationModal({
   // Check for valid 6-digit code on input change
   useEffect(() => {
     const verifyCode = async () => {
-      if (verificationCode.length !== 6 || !/^\d{6}$/.test(verificationCode)) {
+      if (
+        verificationCode.length !== 6 ||
+        !/^\d{6}$/.test(verificationCode) ||
+        verificationCode === lastAttemptedCodeRef.current
+      ) {
         return;
       } else {
+        // Remember that we've now attempted this code
+        lastAttemptedCodeRef.current = verificationCode;
         setIsVerifying(true);
         setError('');
 
         try {
-          const isValid = await checkCode(email, verificationCode);
+          let isValid = false;
+          let result = null;
+
+          if (mode === 'email_verification') {
+            // Use the existing 6-digit verification for email verification codes
+            isValid = await checkCode(contact, verificationCode);
+          } else {
+            // Use OTP verification for login
+            result = await verifyOTP(contact, verificationCode);
+            isValid = result.verified;
+          }
         
           if (isValid) {
             // Code is valid, complete verification
-            onVerificationComplete();
+            onVerificationComplete(result);
           } else {
             setError('Invalid or expired verification code. Please try again or resend a new code.');
             setVerificationCode('');
@@ -94,7 +122,7 @@ export default function SixDigitVerificationModal({
       }
     };
     verifyCode();
-  }, [verificationCode]);
+  }, [verificationCode, mode, contact, onVerificationComplete]);
 
   const handleResendCode = async () => {
     setIsResending(true);
@@ -118,6 +146,33 @@ export default function SixDigitVerificationModal({
     onCancel();
   };
 
+  const getContactDisplay = () => {
+    if (contactMethod === 'email') {
+      return contact;
+    } else {
+      // Mask phone number for privacy
+      const visiblePart = contact.slice(-4);
+      const maskedPart = '*'.repeat(Math.max(0, contact.length - 4));
+      return maskedPart + visiblePart;
+    }
+  };
+
+  const getTitle = () => {
+    if (mode === 'email_verification') {
+      return 'Email Verification Required';
+    } else {
+      return 'Enter Verification Code';
+    }
+  };
+
+  const getMessage = () => {
+    if (mode === 'email_verification') {
+      return "We&apos;ve sent a verification code to your email address to ensure your account security.";
+    } else {
+      return `We sent a verification code to your ${contactMethod}:`;
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -131,11 +186,11 @@ export default function SixDigitVerificationModal({
           { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
         ]}>
           <ThemedText type="title" style={styles.title}>
-            Email Verification Required
+            {getTitle()}
           </ThemedText>
           
           <ThemedText style={styles.message}>
-            We've sent a verification code to your email address to ensure your account security.
+            {getMessage()}
           </ThemedText>
 
           <ThemedView style={[
@@ -143,17 +198,21 @@ export default function SixDigitVerificationModal({
             { backgroundColor: Colors[colorScheme].background }
           ]}>
             <ThemedText type="subtitle" style={styles.emailHeader}>
-              Verification Email Sent To:
+              {mode === 'email_verification' ? 'Verification Email Sent To:' : `Code sent to your ${contactMethod}:`}
             </ThemedText>
-            <ThemedText style={styles.emailAddress}>{email}</ThemedText>
-            <ThemedText style={styles.emailSource}>
-              From: sorm.symposium@gmail.com
-            </ThemedText>
+            <ThemedText style={styles.emailAddress}>{getContactDisplay()}</ThemedText>
+            {mode === 'email_verification' && (
+              <ThemedText style={styles.emailSource}>
+                From: sorm.symposium@gmail.com
+              </ThemedText>
+            )}
           </ThemedView>
 
-          <ThemedText style={styles.message}>
-            Check your spam folder if you don't see it in your inbox.
-          </ThemedText>
+          {mode === 'email_verification' && (
+            <ThemedText style={styles.message}>
+              Check your spam folder if you don&apos;t see it in your inbox.
+            </ThemedText>
+          )}
 
           <ThemedView style={[
             styles.codeContainer,
@@ -173,7 +232,7 @@ export default function SixDigitVerificationModal({
               maxLength={6}
               style={styles.codeInput}
               accessibilityLabel="Verification code input field"
-              accessibilityHint="Enter the 6-digit verification code sent to your email"
+              accessibilityHint="Enter the 6-digit verification code sent to your contact"
               autoFocus={true}
             />
             {isVerifying && (

@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { getAttendeeByEmail } from "@/services/attendees";
-import { getVerifiedEmails } from "@/lib/attendeeStorage";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import type { Attendee } from "@/services/attendees";
+import { getAttendeeByEmail, getAttendeeByPhone } from "@/services/attendees";
+import { useEffect, useState } from "react";
 
 /**
- * Hook to get the current attendee's information
+ * Hook to get the current attendee's information based on authenticated session
  * @returns Object containing attendee data, loading state, and error
  */
 export function useCurrentAttendee() {
@@ -23,17 +22,15 @@ export function useCurrentAttendee() {
       setLoading(true);
       setError(null);
 
-      const verifiedEmails = await getVerifiedEmails();
-      const firstVerifiedEmail = verifiedEmails.length > 0 ? verifiedEmails[0] : null;
-      
       let attendeeData: Attendee | null = null;
 
-      // If we have a verified email, fetch the user's attendee info
-      if (firstVerifiedEmail) {
-        attendeeData = await getAttendeeByEmail(firstVerifiedEmail);
-      } else if (session?.user?.email) {
-        // If they're logged in as an admin, get their email from auth
-        attendeeData = await getAttendeeByEmail(session.user.email);
+      if (session?.user) {
+        // Get attendee info based on authenticated user's email or phone
+        if (session.user.email) {
+          attendeeData = await getAttendeeByEmail(session.user.email);
+        } else if (session.user.phone) {
+          attendeeData = await getAttendeeByPhone(session.user.phone);
+        }
       }
 
       setAttendee(attendeeData);

@@ -1,37 +1,33 @@
-import signinAdmin, { signinAttendee } from "@/api/signinUser";
+import signinAdmin, { requestOTP } from "@/api/signinUser";
+import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
-import SormImageWrapper from "@/components/SormImageWrapper";
-import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
-import {
-  clearVerifiedEmails,
-  getVerifiedEmails,
-  storeVerifiedEmail,
-} from "@/lib/attendeeStorage";
-import { isAttendeeEmail } from "@/services/attendees";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
-import { use6DigitVerificationModal } from '@/hooks/use6DigitVerificationModal';
 
 type UserType = "attendee" | "organizer";
+type ContactMethod = "email" | "phone";
 
 export default function Login() {
   const colorScheme = useColorScheme() || "light";
+  const session = useSupabaseAuth();
   const [userType, setUserType] = useState<UserType | null>(null);
-  const [email, setEmail] = useState<string>("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
+  const [contact, setContact] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] =
-    useState<boolean>(false);
-
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+  const [showVerificationModal, setShowVerificationModal] = useState<boolean>(false);
+  
   // Contact sharing modal hook
   const {
     isVisible: isContactSharingVisible,
@@ -41,60 +37,26 @@ export default function Login() {
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
   
-  const sixDigitVerificationModal = use6DigitVerificationModal();
-  
-  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
+  // Validation functions
+  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const validPhone = /^\+?[1-9]\d{1,14}$/.test(contact); // Basic international phone format
+  const validContact = contactMethod === "email" ? validEmail : validPhone;
   const validPassword = password.length > 0;
 
   useEffect(() => {
     supabase.auth.signOut();
   }, []);
 
-  // Check for verified attendees on component mount and redirect automatically
+  // Check if user is already authenticated and redirect
   useEffect(() => {
-    const checkVerifiedAttendees = async () => {
-      try {
-        const verifiedEmails = await getVerifiedEmails();
-        if (verifiedEmails.length > 0) {
-          // Validate each stored email against the database
-          const validEmails: string[] = [];
-
-          for (const email of verifiedEmails) {
-            try {
-              const isValid = await isAttendeeEmail(email);
-              if (isValid) {
-                validEmails.push(email);
-              }
-            } catch (error) {
-              console.error(`Error validating email ${email}:`, error);
-              // Remove invalid email from consideration but don't throw
-            }
-          }
-
-          // Update local storage to only contain valid emails
-          if (validEmails.length !== verifiedEmails.length) {
-            await clearVerifiedEmails();
-            for (const validEmail of validEmails) {
-              await storeVerifiedEmail(validEmail);
-            }
-          }
-
-          // Redirect only if we have at least one valid attendee email
-          if (validEmails.length > 0) {
-            router.push("/(tabs)/home");
-          }
-        }
-      } catch (error) {
-        console.error("Error checking verified emails:", error);
-      }
-    };
-
-    checkVerifiedAttendees();
-  }, []);
+    if (session?.user) {
+      router.push("/(tabs)/home");
+    }
+  }, [session]);
 
   const handleSignIn = async () => {
-    if (!validEmail) {
-      setErr("Please enter a valid email address");
+    if (!validContact) {
+      setErr(`Please enter a valid ${contactMethod} address`);
       return;
     }
 
@@ -105,51 +67,75 @@ export default function Login() {
 
     setIsProcessing(true);
     setErr("");
-
+    
     try {
       if (userType === "attendee") {
-        const result = await signinAttendee(email, () => {
-          setShowConfirmationModal(true);
-        });
-        // Show the verification modal and wait for completion
-        if (result.verified) {
-          sixDigitVerificationModal.showModal(email);
-        }
+        // Request OTP for attendee
+        const result = await requestOTP(contact);
+        setShowVerificationModal(true);
       } else if (userType === "organizer") {
-        await signinAdmin(email, password);
-        await clearVerifiedEmails();
+        // Admin password login
+        await signinAdmin(contact, password);
         router.push("/(tabs)/home");
       }
     } catch (e) {
-      setErr("Failed to sign in: " + (e as Error).message);
+      setErr((e as Error).message);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleProceedAsAttendee = async () => {
-    setShowConfirmationModal(false);
-    sixDigitVerificationModal.showModal(email);
-    setIsProcessing(true);
+  const handleVerificationComplete = async (result: any) => {
+    setShowVerificationModal(false);
+    
+    try {
+      // Check if we should show the contact sharing modal
+      const modalShown = await showContactSharingModal(contact);
+      // Only navigate to home if the modal isn't shown
+      if (!modalShown) {
+        router.push("/(tabs)/home");
+      }
+    } catch (error) {
+      console.error('Error showing contact sharing modal:', error);
+      router.push("/(tabs)/home");
+    }
+  };
+
+  const handleVerificationCancel = () => {
+    setShowVerificationModal(false);
     setErr("");
   };
 
-  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
+  const handleVerificationResend = async () => {
+    try {
+      await requestOTP(contact);
+    } catch (error) {
+      setErr(`Failed to resend code: ${(error as Error).message}`);
+    }
+  };
+
+  const handleProceedAsAttendee = () => {
+    setShowConfirmationModal(false);
+    // This logic would be triggered from the confirmation modal
+    // which handles dual registration scenarios
+  };
+
+  const handleContactSharingDontShare = async () => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
+      await saveContactSharingPreferences(false, '');
     } catch (error) {
-      console.error("Error saving contact sharing preferences:", error);
+      console.error('Error saving contact sharing preferences:', error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
+  const handleContactSharingShare = async (additionalInfo: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
+      await saveContactSharingPreferences(true, additionalInfo);
     } catch (error) {
-      console.error("Error saving contact sharing preferences:", error);
+      console.error('Error saving contact sharing preferences:', error);
     }
     router.push("/(tabs)/home");
   };
@@ -166,40 +152,21 @@ export default function Login() {
     setErr("");
   };
 
-  const handleVerificationComplete = async () => {
-    sixDigitVerificationModal.hideModal();
-    const modalShown = await showContactSharingModal(email);
-    if (!modalShown) {
-      router.push("/(tabs)/home");
-    }
-  };
-
-  const handleCancel = () => {
-    sixDigitVerificationModal.hideModal();
-    setIsProcessing(false);
-  };
-
-  const selectUserType = async (type: UserType) => {
+  const selectUserType = (type: UserType) => {
     setUserType(type);
-    setEmail("");
+    setContact("");
     setPassword("");
     setErr("");
+    setContactMethod("email"); // Reset to email by default
     supabase.auth.signOut();
-    if (type === "attendee") {
-      // Check for any locally verified emails
-      const verifiedEmails = await getVerifiedEmails();
-      if (verifiedEmails.length > 0) {
-        router.push("/(tabs)/home");
-      }
-    }
   };
 
   const goBack = () => {
     setUserType(null);
-    setEmail("");
+    setContact("");
     setPassword("");
     setErr("");
-    setIsProcessing(false);
+    setContactMethod("email");
   };
 
   const getTitle = () => {
@@ -216,7 +183,7 @@ export default function Login() {
   const getDescription = () => {
     switch (userType) {
       case "attendee":
-        return "Please enter the email address you used to register for the Symposium:";
+        return `Please enter the ${contactMethod} you used to register for the Symposium:`;
       case "organizer":
         return "Sign in to continue.";
       default:
@@ -228,7 +195,7 @@ export default function Login() {
     if (isProcessing) return "Processing...";
     switch (userType) {
       case "attendee":
-        return "Continue";
+        return "Send Verification Code";
       case "organizer":
         return "Sign In";
       default:
@@ -238,7 +205,7 @@ export default function Login() {
 
   const isButtonDisabled = () => {
     if (isProcessing) return true;
-    if (!validEmail) return true;
+    if (!validContact) return true;
     if (userType === "organizer" && !validPassword) return true;
     return false;
   };
@@ -246,77 +213,118 @@ export default function Login() {
   // Initial screen - user type selection
   if (!userType) {
     return (
-      <SormImageWrapper>
-        <ThemedView style={styles.container}>
-          <ThemedText type="title" style={{ marginBottom: 10 }}>
-            {getTitle()}
-          </ThemedText>
-          <ThemedText>{getDescription()}</ThemedText>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
+        <ThemedText>{getDescription()}</ThemedText>
 
-          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
-          <Pressable
-            onPress={() => selectUserType("attendee")}
+        <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+        <Pressable
+          onPress={() => selectUserType("attendee")}
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].text },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText
             style={[
-              styles.button,
-              { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
             ]}
           >
-            <ThemedText
-              style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].adminButtonText },
-              ]}
-            >
-              Symposium Attendee
-            </ThemedText>
-          </Pressable>
-          <Pressable
-            onPress={() => selectUserType("organizer")}
+            Symposium Attendee
+          </ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={() => selectUserType("organizer")}
+          style={[
+            styles.button,
+            { backgroundColor: Colors[colorScheme].adminButton },
+            { borderColor: Colors[colorScheme].text },
+            { borderWidth: 1 },
+          ]}
+        >
+          <ThemedText
             style={[
-              styles.button,
-              { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              styles.buttonText,
+              { color: Colors[colorScheme].adminButtonText },
             ]}
           >
-            <ThemedText
-              style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].adminButtonText },
-              ]}
-            >
-              Symposium Organizer
-            </ThemedText>
-          </Pressable>
-        </ThemedView>
-      </SormImageWrapper>
+            Symposium Organizer
+          </ThemedText>
+        </Pressable>
+      </ThemedView>
     );
   }
 
   // Login screen for selected user type
   return (
-    <SormImageWrapper>
+    <>
       <ThemedView style={styles.container}>
         <ThemedText type="title" style={{ marginBottom: 10 }}>
           {getTitle()}
         </ThemedText>
         <ThemedText>{getDescription()}</ThemedText>
 
+        {userType === "attendee" && (
+          <ThemedView style={styles.contactMethodContainer}>
+            <ThemedText>Contact Method</ThemedText>
+            <ThemedView style={styles.segmentedControl}>
+              <Pressable
+                onPress={() => setContactMethod("email")}
+                style={[
+                  styles.segmentButton,
+                  contactMethod === "email" && styles.activeSegmentButton,
+                  { borderColor: Colors[colorScheme].text }
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.segmentText,
+                    contactMethod === "email" && styles.activeSegmentText
+                  ]}
+                >
+                  Email
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                onPress={() => setContactMethod("phone")}
+                style={[
+                  styles.segmentButton,
+                  contactMethod === "phone" && styles.activeSegmentButton,
+                  { borderColor: Colors[colorScheme].text }
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.segmentText,
+                    contactMethod === "phone" && styles.activeSegmentText
+                  ]}
+                >
+                  Phone
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          </ThemedView>
+        )}
+
         <ThemedView style={styles.inputContainer}>
-          <ThemedText>Email</ThemedText>
+          <ThemedText>{contactMethod === "email" ? "Email" : "Phone Number"}</ThemedText>
           <ThemedTextInput
-            value={email}
-            textContentType="emailAddress"
-            onChangeText={setEmail}
-            placeholder="Enter your email"
-            accessibilityLabel="Email input field"
-            accessibilityHint="Enter your email"
+            value={contact}
+            textContentType={contactMethod === "email" ? "emailAddress" : "telephoneNumber"}
+            keyboardType={contactMethod === "email" ? "email-address" : "phone-pad"}
+            onChangeText={setContact}
+            placeholder={contactMethod === "email" ? "Enter your email" : "Enter your phone number"}
+            accessibilityLabel={`${contactMethod} input field`}
+            accessibilityHint={`Enter your ${contactMethod}`}
             accessibilityRole="text"
           />
-          {email.length > 0 && !validEmail && (
-            <ThemedText style={styles.invalid}>Not a valid email.</ThemedText>
+          {contact.length > 0 && !validContact && (
+            <ThemedText style={styles.invalid}>
+              Not a valid {contactMethod} {contactMethod === "phone" ? "number" : ""}.
+            </ThemedText>
           )}
         </ThemedView>
 
@@ -337,7 +345,7 @@ export default function Login() {
         )}
 
         <Pressable
-          onPress={() => {setEmail(email.toLowerCase()); handleSignIn();}}
+          onPress={handleSignIn}
           disabled={isButtonDisabled()}
           style={[
             styles.button,
@@ -357,6 +365,7 @@ export default function Login() {
             {getButtonText()}
           </ThemedText>
         </Pressable>
+        
         <Pressable
           onPress={goBack}
           style={[
@@ -375,6 +384,7 @@ export default function Login() {
             Back
           </ThemedText>
         </Pressable>
+        
         <ThemedText style={styles.invalid}>{err}</ThemedText>
       </ThemedView>
 
@@ -384,6 +394,15 @@ export default function Login() {
         onGoToAdminLogin={handleGoToAdminLogin}
       />
 
+      <SixDigitVerificationModal
+        visible={showVerificationModal}
+        contact={contact}
+        mode="otp_verification"
+        onVerificationComplete={handleVerificationComplete}
+        onCancel={handleVerificationCancel}
+        onResendCode={handleVerificationResend}
+      />
+
       <ContactSharingModal
         visible={isContactSharingVisible}
         attendee={contactSharingAttendee}
@@ -391,38 +410,61 @@ export default function Login() {
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
       />
-
-      <SixDigitVerificationModal
-        visible={sixDigitVerificationModal.visible}
-        email={email}
-        onVerificationComplete={handleVerificationComplete}
-        onCancel={handleCancel}
-        onResendCode={() => sixDigitVerificationModal.resendVerificationEmail(email)}
-      />
-    </SormImageWrapper>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 25,
-    height: "100%",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  contactMethodContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  segmentedControl: {
+    flexDirection: "row",
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  activeSegmentButton: {
+    backgroundColor: "#007AFF",
+  },
+  segmentText: {
+    fontSize: 16,
+  },
+  activeSegmentText: {
+    color: "white",
+    fontWeight: "bold",
   },
   inputContainer: {
-    marginTop: 5,
-    marginBottom: 5,
+    width: "100%",
+    marginBottom: 15,
+  },
+  button: {
+    width: "100%",
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
   invalid: {
     color: "red",
-  },
-  button: {
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    fontWeight: "bold",
-    fontSize: 18,
+    fontSize: 14,
+    marginTop: 5,
   },
 });

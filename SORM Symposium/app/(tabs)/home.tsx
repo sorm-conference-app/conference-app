@@ -1,6 +1,5 @@
 import { Announcement } from "@/components/Announcement";
 import { ExternalLink } from "@/components/ExternalLink";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -8,19 +7,18 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { clearVerifiedEmails } from "@/lib/attendeeStorage";
-import { onSurveyFlash, triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
-import { Image } from "expo-image";
+
+import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Platform,
+    Pressable,
+    StyleSheet,
+    View,
 } from "react-native";
 
 export default function Home() {
@@ -30,21 +28,18 @@ export default function Home() {
 
   /**
    * Handle logout functionality
-   * - Log out any users from Supabase
-   * - Clear verified emails from local storage
-   * - Redirect to login page for all users
+   * - Log out users from Supabase
+   * - Redirect to login page
    */
   const handleLogout = async () => {
     try {
-      // Clear verified emails from local storage
-      await clearVerifiedEmails();
-      // Log out any admin users from Supabase
+      // Log out from Supabase (handles both admin and attendee sessions)
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Error during logout:", error);
     }
 
-    // Redirect to login page (index.tsx) for all users
+    // Redirect to login page (index.tsx)
     router.replace("/");
   };
 
@@ -102,7 +97,7 @@ export default function Home() {
           transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
-          Your feedback is important to us! Please take a moment to fill out our survey about the day's events.
+          Your feedback is important to us! Please take a moment to fill out our survey about the day&apos;s events.
         </ThemedText>
         <Pressable 
           onPress={() => {}}
