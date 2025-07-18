@@ -46,8 +46,10 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         { backgroundColor: colors.secondaryBackgroundColor },
       ]}
     >
-      <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
-        <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
+      <ThemedView style={[styles.header, { backgroundColor: "transparent" }]}>
+        <ThemedView
+          style={[styles.logoContainer, { backgroundColor: "transparent" }]}
+        >
           {sponsor.logo ? (
             <SponsorLogo {...sponsor} />
           ) : (
@@ -62,7 +64,9 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
             </ThemedView>
           )}
         </ThemedView>
-        <ThemedView style={[styles.titleContainer, { backgroundColor: 'transparent' }]}>
+        <ThemedView
+          style={[styles.titleContainer, { backgroundColor: "transparent" }]}
+        >
           <ThemedText style={[styles.name, { color: colors.text }]}>
             {sponsor.name}
           </ThemedText>
@@ -82,13 +86,23 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
       </ThemedText>
 
       {sponsor.contactInfo && sponsor.contactInfo.length > 0 && (
-        <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
+        <ThemedView
+          style={[styles.contactContainer, { backgroundColor: "transparent" }]}
+        >
           <ThemedText style={[styles.contactLabel, { color: colors.text }]}>
             Contact:
           </ThemedText>
-          <ThemedView style={[styles.contactInfoContainer, { backgroundColor: 'transparent' }]}>
+          <ThemedView
+            style={[
+              styles.contactInfoContainer,
+              { backgroundColor: "transparent" },
+            ]}
+          >
             {sponsor.contactInfo.map((contact) => (
-              <ThemedView key={contact.name} style={[styles.contactRow, { backgroundColor: 'transparent' }]}>
+              <ThemedView
+                key={contact.name}
+                style={[styles.contactRow, { backgroundColor: "transparent" }]}
+              >
                 <ThemedText style={[styles.contactInfo]}>
                   {contact.name}
                   {contact.phone ? `: ${contact.phone}` : ""}
@@ -108,18 +122,30 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedView>
       )}
 
-      <ThemedView style={[styles.contactContainer, { backgroundColor: 'transparent' }]}>
+      <ThemedView
+        style={[styles.contactContainer, { backgroundColor: "transparent" }]}
+      >
         <ThemedText style={[styles.contactLabel, { color: colors.text }]}>
           Website:
         </ThemedText>
-        {sponsor.website && (
-          <ThemedView style={[styles.contactRow, { backgroundColor: 'transparent' }]}>
+        {sponsor.website ? (
+          <ThemedView
+            style={[styles.contactRow, { backgroundColor: "transparent" }]}
+          >
             <ThemedText
               style={[styles.contactInfo, { color: colors.link }]}
               onPress={() => handleWebsite(sponsor.website)}
               type="link"
             >
               {sponsor.website}
+            </ThemedText>
+          </ThemedView>
+        ) : (
+          <ThemedView
+            style={[styles.contactRow, { backgroundColor: "transparent" }]}
+          >
+            <ThemedText style={[styles.contactInfo, { color: colors.text }]}>
+              Coming soon
             </ThemedText>
           </ThemedView>
         )}

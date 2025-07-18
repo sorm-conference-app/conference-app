@@ -1,4 +1,5 @@
 import { getSponsorLogo } from "@/hooks/useSponsorLogo";
+import { showMessage } from "@/lib/alerts";
 import { Sponsor } from "@/types/Sponsors.types";
 import { Image, Linking, Pressable, StyleSheet } from "react-native";
 
@@ -13,11 +14,10 @@ function SponsorLogo({ hyperlink = false, ...props }: SponsorLogoProps) {
 
   function onNavigate() {
     if (!props.website) {
-      console.warn("No website provided for sponsor logo navigation.");
-      return;
+      showMessage("Website is currently unavailable and is coming soon.");
+    } else {
+      Linking.openURL(props.website);
     }
-    
-    Linking.openURL(props.website);
   }
 
   if (hyperlink) {

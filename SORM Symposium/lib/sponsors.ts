@@ -60,6 +60,15 @@ const sponsors: Sponsor[] = [
   },
   {
     id: "4",
+    name: "TTP",
+    description: "...",
+    level: "Ultra-Resilient",
+    logo: "../assets/images/Spo nsorLogos/ttp-logo.png",
+    contactInfo: [],
+    website: undefined
+  },
+  {
+    id: "5",
     name: "DataFlow Systems",
     description:
       "Enterprise data management and analytics platform provider, helping organizations make data-driven decisions.",
@@ -75,7 +84,7 @@ const sponsors: Sponsor[] = [
     website: "https://dataflow.com",
   },
   {
-    id: "5",
+    id: "6",
     name: "CloudNet Pro",
     description:
       "Professional cloud networking services and infrastructure solutions for growing businesses.",
@@ -91,7 +100,7 @@ const sponsors: Sponsor[] = [
     website: "https://cloudnetpro.com",
   },
   {
-    id: "6",
+    id: "7",
     name: "SecureTech",
     description:
       "Cybersecurity solutions provider specializing in protecting digital assets and ensuring compliance.",
