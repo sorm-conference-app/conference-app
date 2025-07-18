@@ -4,6 +4,7 @@ import { Sponsor } from "@/types/Sponsors.types";
 import IHSLogo from "@/assets/images/SponsorLogos/IHSMainLogo.png";
 import BELFORLogo from "@/assets/images/SponsorLogos/BelforPropRest.jpg";
 import GallagherLogo from "@/assets/images/SponsorLogos/GallagherLogo.png";
+import TTPLogo from "@/assets/images/SponsorLogos/TTPLogo.png";
 
 // Function to get the sponsor logo and dimensions
 export function getSponsorLogo(sponsor: Sponsor) {
@@ -14,6 +15,8 @@ export function getSponsorLogo(sponsor: Sponsor) {
       return { logo: BELFORLogo, width: 180, height: 60 };
     case "Gallagher":
       return { logo: GallagherLogo, width: 195, height: 80 };
+    case "Tactics, Techniques, and Procedures, LLC":
+      return { logo: TTPLogo, width: 50, height: 60 };
     default:
       return { logo: null, width: 0, height: 0 };
   }
