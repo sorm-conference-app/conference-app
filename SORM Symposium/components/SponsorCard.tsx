@@ -47,7 +47,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
       ]}
     >
       <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
-        <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
+        <ThemedView style={[styles.logoContainer, { backgroundColor: logo ? Colors.light.background : 'transparent'}]}>
           {logo ? (
             <Image source={logo} style={{ width, height }} />
           ) : (
@@ -151,6 +151,8 @@ const styles = StyleSheet.create({
   logoContainer: {
     marginRight: 12,
     marginBottom: 8,
+    borderRadius: 8,
+    padding: 8,
   },
   placeholderLogo: {
     width: 50,
