@@ -3,7 +3,7 @@ import { Sponsor } from "@/types/Sponsors.types";
 // Sponsor Logo Imports
 import IHSLogo from "@/assets/images/SponsorLogos/IHSMainLogo.png";
 import BELFORLogo from "@/assets/images/SponsorLogos/BelforPropRest.jpg";
-import GallagherLogo from "@/assets/images/SponsorLogos/GallagherLogo.jpg";
+import GallagherLogo from "@/assets/images/SponsorLogos/GallagherLogo.png";
 
 // Function to get the sponsor logo and dimensions
 export function getSponsorLogo(sponsor: Sponsor) {
@@ -13,7 +13,7 @@ export function getSponsorLogo(sponsor: Sponsor) {
     case "BELFOR Property Restoration":
       return { logo: BELFORLogo, width: 180, height: 60 };
     case "Gallagher":
-      return { logo: GallagherLogo, width: 279, height: 60 };
+      return { logo: GallagherLogo, width: 195, height: 80 };
     default:
       return { logo: null, width: 0, height: 0 };
   }

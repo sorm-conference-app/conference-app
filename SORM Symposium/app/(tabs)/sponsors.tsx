@@ -56,37 +56,27 @@ export default function Sponsors() {
           </View>
 
           {sponsorGroups.map((group) => (
-            <View key={group.level} style={styles.groupContainer}>
-              <View
-                style={[
-                  styles.levelHeader,
-                  { backgroundColor: getLevelColor(group.level) },
-                ]}
-              >
-                <Text style={styles.levelTitle}>{group.level} Sponsors</Text>
-                <Text style={styles.sponsorCount}>
-                  {group.sponsors.length} sponsor
-                  {group.sponsors.length !== 1 ? "s" : ""}
-                </Text>
-              </View>
-
-              {group.sponsors.length > 0 ? (
-                group.sponsors.map((sponsor) => (
-                  <SponsorCard key={sponsor.id} sponsor={sponsor} />
-                ))
-              ) : (
+            group.sponsors.length > 0 && (
+            <>
+              <View key={group.level} style={styles.groupContainer}>
                 <View
                   style={[
-                    styles.emptyState,
-                    { backgroundColor: colors.secondaryBackgroundColor },
+                    styles.levelHeader,
+                    { backgroundColor: getLevelColor(group.level) },
                   ]}
                 >
-                  <Text style={[styles.emptyText, { color: colors.text }]}>
-                    No {group.level} sponsors yet
+                  <Text style={styles.levelTitle}>{group.level} Sponsors</Text>
+                  <Text style={styles.sponsorCount}>
+                    {group.sponsors.length} sponsor
+                    {group.sponsors.length !== 1 ? "s" : ""}
                   </Text>
-                </View>
-              )}
-            </View>
+                </View>              
+                  {group.sponsors.map((sponsor) => (
+                    <SponsorCard key={sponsor.id} sponsor={sponsor} />
+                  ))}
+              </View>
+            </>
+            )
           ))}
         </ScrollView>
       </ThemedView>
