@@ -16,9 +16,11 @@ import {
 } from "@/lib/attendeeStorage";
 import { isAttendeeEmail } from "@/services/attendees";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
-import { use6DigitVerificationModal } from '@/hooks/use6DigitVerificationModal';
+import { use6DigitVerificationModal } from "@/hooks/use6DigitVerificationModal";
+import { getAllSponsors } from "@/lib/sponsors";
+import SponsorLogo from "@/components/SponsorLogo";
 
 type UserType = "attendee" | "organizer";
 
@@ -31,6 +33,7 @@ export default function Login() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] =
     useState<boolean>(false);
+  const sponsors = useMemo(() => getAllSponsors(), []);
 
   // Contact sharing modal hook
   const {
@@ -40,10 +43,12 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
-  
+
   const sixDigitVerificationModal = use6DigitVerificationModal();
-  
-  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(email);
+
+  const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(
+    email,
+  );
   const validPassword = password.length > 0;
 
   useEffect(() => {
@@ -134,20 +139,42 @@ export default function Login() {
     setErr("");
   };
 
-  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
+  const handleContactSharingDontShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string,
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
+      await saveContactSharingPreferences(
+        false,
+        additionalInfo,
+        name,
+        organization,
+        title,
+      );
     } catch (error) {
       console.error("Error saving contact sharing preferences:", error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
+  const handleContactSharingShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string,
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
+      await saveContactSharingPreferences(
+        true,
+        additionalInfo,
+        name,
+        organization,
+        title,
+      );
     } catch (error) {
       console.error("Error saving contact sharing preferences:", error);
     }
@@ -243,6 +270,24 @@ export default function Login() {
     return false;
   };
 
+  const footerLogos = (
+    <>
+      <ThemedView
+        style={{ flexDirection: "column", alignItems: "center", marginTop: 5 }}
+      >
+        <ThemedText
+          type="subtitle"
+          style={{ marginBottom: 5, textAlign: "center", fontStyle: "italic" }}
+        >
+          Thank you to our sponsors for making this event possible
+        </ThemedText>
+        {sponsors.map((sponsor) => (
+          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} />
+        ))}
+      </ThemedView>
+    </>
+  );
+
   // Initial screen - user type selection
   if (!userType) {
     return (
@@ -290,6 +335,7 @@ export default function Login() {
               Symposium Organizer
             </ThemedText>
           </Pressable>
+          {footerLogos}
         </ThemedView>
       </SormImageWrapper>
     );
@@ -337,7 +383,10 @@ export default function Login() {
         )}
 
         <Pressable
-          onPress={() => {setEmail(email.toLowerCase()); handleSignIn();}}
+          onPress={() => {
+            setEmail(email.toLowerCase());
+            handleSignIn();
+          }}
           disabled={isButtonDisabled()}
           style={[
             styles.button,
@@ -376,6 +425,7 @@ export default function Login() {
           </ThemedText>
         </Pressable>
         <ThemedText style={styles.invalid}>{err}</ThemedText>
+        {footerLogos}
       </ThemedView>
 
       <ConfirmationModal
@@ -397,7 +447,9 @@ export default function Login() {
         email={email}
         onVerificationComplete={handleVerificationComplete}
         onCancel={handleCancel}
-        onResendCode={() => sixDigitVerificationModal.resendVerificationEmail(email)}
+        onResendCode={() =>
+          sixDigitVerificationModal.resendVerificationEmail(email)
+        }
       />
     </SormImageWrapper>
   );
@@ -405,7 +457,6 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 25,
     height: "100%",
   },
   inputContainer: {

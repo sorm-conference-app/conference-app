@@ -23,7 +23,7 @@ import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "@/drizzle/migrations";
 import * as schema from "@/db/schema";
 import getCacheDatabase from "@/db";
-import { Platform } from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 // Enable screens for better performance
 enableScreens();
@@ -73,10 +73,10 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .orderBy(desc(schema.announcements.created_at));
 
         return data;
-      }
+      },
     },
     {
-      queryKey: ['announcements', 3], // Limit to 3 announcements
+      queryKey: ["announcements", 3], // Limit to 3 announcements
       queryFn: async function () {
         if (!db) {
           return [];
@@ -89,8 +89,8 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .limit(3);
 
         return data;
-      }
-    }
+      },
+    },
   ];
 
 export default function RootLayout() {
@@ -153,7 +153,7 @@ export default function RootLayout() {
   }
 
   const Screens = (
-    <>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <Stack
         screenOptions={{
           contentStyle: {
@@ -172,7 +172,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </KeyboardAvoidingView>
   );
 
   return (

@@ -6,6 +6,7 @@ import { getSponsorLogo } from "@/hooks/useSponsorLogo";
 import { Sponsor } from "@/types/Sponsors.types";
 import React from "react";
 import { Image, Linking, StyleSheet } from "react-native";
+import SponsorLogo from "./SponsorLogo";
 
 interface SponsorCardProps {
   sponsor: Sponsor;
@@ -24,7 +25,6 @@ const handleWebsite = (website: string | undefined) => {
 export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
   const colorScheme = useColorScheme() ?? "light";
   const colors = Colors[colorScheme];
-  const { logo, width, height } = getSponsorLogo(sponsor);
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -48,8 +48,8 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
     >
       <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
         <ThemedView style={[styles.logoContainer, { backgroundColor: 'transparent' }]}>
-          {logo ? (
-            <Image source={logo} style={{ width, height }} />
+          {sponsor.logo ? (
+            <SponsorLogo {...sponsor} />
           ) : (
             <ThemedView
               style={[styles.placeholderLogo, { backgroundColor: colors.tint }]}
