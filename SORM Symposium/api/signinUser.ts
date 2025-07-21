@@ -28,9 +28,10 @@ export async function isAdminEmailOld(email: string): Promise<boolean> {
  * Sign in an admin user.
  * @param email The admin's email.
  * @param password The admin's password.
+ * @param onSuccess Optional callback to execute after successful authentication
  * @returns The user object returned by Supabase.
  */
-export default async function signinAdmin(email: string, password: string) {
+export default async function signinAdmin(email: string, password: string, onSuccess?: () => void) {
   const isAttendee = await isAttendeeEmail(email);
   if (!isAttendee) {
     throw new Error("This email is not registered. Please try a different email or contact a Symposium Organizer for a paper copy of the schedule.");
@@ -51,6 +52,11 @@ export default async function signinAdmin(email: string, password: string) {
       throw new Error("Incorrect password. Please check your password and try again.");
     }
     throw error;
+  }
+  
+  // Call success callback to set login flow in the UI
+  if (onSuccess) {
+    onSuccess();
   }
   
   return data;

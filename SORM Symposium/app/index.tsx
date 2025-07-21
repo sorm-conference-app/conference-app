@@ -1,6 +1,7 @@
 import signinAdmin, { requestOTP } from "@/api/signinUser";
 import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useLoginFlow } from "@/components/LoginFlowProvider";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
 import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
@@ -33,6 +34,7 @@ const cleanPhoneNumber = (phoneNumber: string): string => {
 export default function Login() {
   const colorScheme = useColorScheme() || "light";
   const session = useSupabaseAuth();
+  const { setLoginFlow, clearLoginFlow } = useLoginFlow();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [attendeeStep, setAttendeeStep] = useState<AttendeeStep>("collectEmail");
   const [attendeeEmail, setAttendeeEmail] = useState<string>("");
@@ -65,8 +67,16 @@ export default function Login() {
   const validPassword = password.length > 0;
 
   useEffect(() => {
-    supabase.auth.signOut();
-  }, []);
+    // Only clear login flow and sign out if there's no active session
+    // This prevents clearing the flow after successful authentication
+    if (!session?.user) {
+      const clearAuth = async () => {
+        await clearLoginFlow();
+        await supabase.auth.signOut();
+      };
+      clearAuth();
+    }
+  }, [clearLoginFlow, session?.user]);
 
   // Check if user is already authenticated and redirect
   useEffect(() => {
@@ -114,8 +124,10 @@ export default function Login() {
         await requestOTP(contactToSend, attendeeEmail);
         setShowVerificationModal(true);
       } else if (userType === "organizer") {
-        // Admin password login
-        await signinAdmin(contact, password);
+        // Admin password login - set login flow to 'organizer' on success
+        await signinAdmin(contact, password, () => {
+          setLoginFlow('organizer');
+        });
         router.push("/(tabs)/home");
       }
     } catch (e) {
@@ -129,6 +141,9 @@ export default function Login() {
     setShowVerificationModal(false);
     
     try {
+      // Set login flow to 'attendee' for OTP verification
+      await setLoginFlow('attendee');
+      
       // Use cleaned formatted phone number for contact sharing
       const contactForSharing = contactMethod === "phone" && selectedCountry
         ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
@@ -200,7 +215,7 @@ export default function Login() {
     setErr("");
   };
 
-  const selectUserType = (type: UserType) => {
+  const selectUserType = async (type: UserType) => {
     setUserType(type);
     setAttendeeStep("collectEmail");
     setAttendeeEmail("");
@@ -210,7 +225,8 @@ export default function Login() {
     setPassword("");
     setErr("");
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
-    supabase.auth.signOut();
+    await clearLoginFlow();
+    await supabase.auth.signOut();
   };
 
   const goBack = () => {

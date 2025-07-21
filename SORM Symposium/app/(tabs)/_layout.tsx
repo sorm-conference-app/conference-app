@@ -1,14 +1,20 @@
-import { Tabs } from "expo-router";
-import { Platform } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { useColorScheme } from "react-native";
-import { Colors } from "@/constants/Colors";
 import { HapticTab } from "@/components/HapticTab";
+import { useLoginFlow } from "@/components/LoginFlowProvider";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
+import { Colors } from "@/constants/Colors";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { Tabs } from "expo-router";
+import { Platform, useColorScheme } from "react-native";
 
 export default function TabLayout() {
   const user = useSupabaseAuth();
+  const isAdmin = useIsAdmin();
+  const { loginFlow } = useLoginFlow();
+  
+  // Only show admin tab if user is authenticated, has admin role, and came through organizer login flow
+  const shouldShowAdminTab = user && isAdmin && loginFlow === 'organizer';
 
   return (
     <Tabs
@@ -81,7 +87,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="admin"
         options={{
-          href: user ? "/(tabs)/admin" : null,
+          href: shouldShowAdminTab ? "/(tabs)/admin" : null,
           title: "Admin",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="person.fill" color={color} size={28} />

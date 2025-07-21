@@ -176,6 +176,7 @@ export type Database = {
           id: number;
           created_at: string;
           email: string;
+          phone: string | null;
           name: string | null;
           organization: string | null;
           title: string | null;
@@ -188,6 +189,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -200,6 +202,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email?: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;

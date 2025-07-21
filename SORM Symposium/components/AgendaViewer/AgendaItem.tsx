@@ -6,7 +6,7 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { formatTimeRange } from "@/lib/dateTime";
 import { useState } from "react";
-import { Pressable, StyleSheet, LayoutChangeEvent } from "react-native";
+import { LayoutChangeEvent, Pressable, StyleSheet } from "react-native";
 import AgendaItemSaveButton from "./AgendaItemSaveButton";
 import { formatTopicName, getTopicColor } from "./utils";
 

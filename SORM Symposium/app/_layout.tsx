@@ -3,15 +3,16 @@ import { useEffect, useRef } from "react";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
+import { LoginFlowProvider } from "@/components/LoginFlowProvider";
 import getCacheDatabase from "@/db";
 import * as schema from "@/db/schema";
 import migrations from "@/drizzle/migrations";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { sendLogMessage } from "@/services/logging";
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asc, desc } from "drizzle-orm";
@@ -55,7 +56,7 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
 
         return data.map((row) => ({
           name: `${row.first_name} ${row.last_name}`,
-          phone: row.phone,
+          phone: row.phone_number,
           email: row.email,
         }));
       },
@@ -182,17 +183,19 @@ export default function RootLayout() {
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
           <ExpoPushTokenProvider>
-            <AuthSessionProvider>
-              <ActiveUsersProvider>
-                {SQLiteProvider ? (
-                  <SQLiteProvider databaseName={databaseName} useSuspense>
-                    {Screens}
-                  </SQLiteProvider>
-                ) : (
-                  Screens
-                )}
-              </ActiveUsersProvider>
-            </AuthSessionProvider>
+            <LoginFlowProvider>
+              <AuthSessionProvider>
+                <ActiveUsersProvider>
+                  {SQLiteProvider ? (
+                    <SQLiteProvider databaseName={databaseName} useSuspense>
+                      {Screens}
+                    </SQLiteProvider>
+                  ) : (
+                    Screens
+                  )}
+                </ActiveUsersProvider>
+              </AuthSessionProvider>
+            </LoginFlowProvider>
           </ExpoPushTokenProvider>
         </ThemeProvider>
       </GestureHandlerRootView>

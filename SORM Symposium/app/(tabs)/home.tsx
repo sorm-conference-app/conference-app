@@ -1,5 +1,6 @@
 import { Announcement } from "@/components/Announcement";
 import { ExternalLink } from "@/components/ExternalLink";
+import { useLoginFlow } from "@/components/LoginFlowProvider";
 import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -7,6 +8,7 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 
 import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { router } from "expo-router";
@@ -26,13 +28,20 @@ export default function Home() {
     router.push("/announcement/announcementList");
   };
 
+  const user = useSupabaseAuth();
+  const { clearLoginFlow } = useLoginFlow();
+
   /**
    * Handle logout functionality
+   * - Clear login flow tracking
    * - Log out users from Supabase
    * - Redirect to login page
    */
   const handleLogout = async () => {
     try {
+      // Clear login flow tracking first
+      await clearLoginFlow();
+      
       // Log out from Supabase (handles both admin and attendee sessions)
       await supabase.auth.signOut();
     } catch (error) {
