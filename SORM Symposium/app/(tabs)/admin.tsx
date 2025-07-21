@@ -12,6 +12,7 @@ import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Redirect } from "expo-router";
 import React, { useRef } from "react";
 import {
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -91,7 +92,7 @@ export default function Admin() {
     return <Redirect href="/(tabs)/home" />;
   }
 
-  if (!isAdmin || loginFlow !== 'organizer') {
+  if (!isAdmin || loginFlow !== 'organizer' || Platform.OS !== 'web') {
     return <Redirect href="/(tabs)/home" />;
   }
 

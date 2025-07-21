@@ -13,8 +13,8 @@ export default function TabLayout() {
   const isAdmin = useIsAdmin();
   const { loginFlow } = useLoginFlow();
   
-  // Only show admin tab if user is authenticated, has admin role, and came through organizer login flow
-  const shouldShowAdminTab = user && isAdmin && loginFlow === 'organizer';
+  // Only show admin tab if user is authenticated, has admin role, came through organizer login flow, AND is on web platform
+  const shouldShowAdminTab = user && isAdmin && loginFlow === 'organizer' && Platform.OS === 'web';
 
   return (
     <Tabs
