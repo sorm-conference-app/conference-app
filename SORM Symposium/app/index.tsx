@@ -17,6 +17,7 @@ import PhoneInput, { ICountry, isValidPhoneNumber } from "react-native-internati
 
 type UserType = "attendee" | "organizer";
 type ContactMethod = "email" | "phone";
+type AttendeeStep = "collectEmail" | "collectContact";
 
 /**
  * Clean phone number by removing all non-digit characters
@@ -33,7 +34,9 @@ export default function Login() {
   const colorScheme = useColorScheme() || "light";
   const session = useSupabaseAuth();
   const [userType, setUserType] = useState<UserType | null>(null);
-  const [contactMethod, setContactMethod] = useState<ContactMethod>("email");
+  const [attendeeStep, setAttendeeStep] = useState<AttendeeStep>("collectEmail");
+  const [attendeeEmail, setAttendeeEmail] = useState<string>("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("phone"); // Default to phone
   const [contact, setContact] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
@@ -53,6 +56,7 @@ export default function Login() {
   } = useContactSharingModal();
   
   // Validation functions
+  const validAttendeeEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(attendeeEmail);
   const validEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
   const validPhone = contactMethod === "phone" && selectedCountry 
     ? isValidPhoneNumber(phoneNumber, selectedCountry)
@@ -70,6 +74,20 @@ export default function Login() {
       router.push("/(tabs)/home");
     }
   }, [session]);
+
+  const handleEmailSubmit = () => {
+    if (!validAttendeeEmail) {
+      setErr("Please enter a valid email address");
+      return;
+    }
+
+    setErr("");
+    setAttendeeStep("collectContact");
+    // Pre-fill email contact if they choose email verification
+    if (contactMethod === "email") {
+      setContact(attendeeEmail);
+    }
+  };
 
   const handleSignIn = async () => {
     if (!validContact) {
@@ -92,8 +110,8 @@ export default function Login() {
           ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
           : contact;
         
-        // Request OTP for attendee
-        const result = await requestOTP(contactToSend);
+        // Request OTP for attendee with their registered email for identification
+        await requestOTP(contactToSend, attendeeEmail);
         setShowVerificationModal(true);
       } else if (userType === "organizer") {
         // Admin password login
@@ -138,7 +156,7 @@ export default function Login() {
       const contactToSend = contactMethod === "phone" && selectedCountry
         ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
         : contact;
-      await requestOTP(contactToSend);
+      await requestOTP(contactToSend, userType === "attendee" ? attendeeEmail : undefined);
     } catch (error) {
       setErr(`Failed to resend code: ${(error as Error).message}`);
     }
@@ -184,23 +202,37 @@ export default function Login() {
 
   const selectUserType = (type: UserType) => {
     setUserType(type);
+    setAttendeeStep("collectEmail");
+    setAttendeeEmail("");
     setContact("");
     setPhoneNumber("");
     setSelectedCountry(null);
     setPassword("");
     setErr("");
-    setContactMethod("email"); // Reset to email by default
+    setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
     supabase.auth.signOut();
   };
 
   const goBack = () => {
-    setUserType(null);
-    setContact("");
-    setPhoneNumber("");
-    setSelectedCountry(null);
-    setPassword("");
-    setErr("");
-    setContactMethod("email");
+    if (userType === "attendee" && attendeeStep === "collectContact") {
+      // Go back to email collection step
+      setAttendeeStep("collectEmail");
+      setContact("");
+      setPhoneNumber("");
+      setSelectedCountry(null);
+      setErr("");
+    } else {
+      // Go back to user type selection
+      setUserType(null);
+      setAttendeeStep("collectEmail");
+      setAttendeeEmail("");
+      setContact("");
+      setPhoneNumber("");
+      setSelectedCountry(null);
+      setPassword("");
+      setErr("");
+      setContactMethod("email");
+    }
   };
 
   const handlePhoneNumberChange = (phoneNum: string) => {
@@ -214,7 +246,9 @@ export default function Login() {
   const getTitle = () => {
     switch (userType) {
       case "attendee":
-        return "Symposium Attendee";
+        return attendeeStep === "collectEmail" 
+          ? "Symposium Attendee - Registration Email" 
+          : "Symposium Attendee - Verification";
       case "organizer":
         return "Symposium Organizer";
       default:
@@ -225,7 +259,9 @@ export default function Login() {
   const getDescription = () => {
     switch (userType) {
       case "attendee":
-        return `Please enter the ${contactMethod} you used to register for the Symposium:`;
+        return attendeeStep === "collectEmail"
+          ? "Please enter the email address you used to register for the Symposium. This helps us identify your account."
+          : `Now we'll send you a verification code to confirm your identity. Choose your preferred method:`;
       case "organizer":
         return "Sign in to continue.";
       default:
@@ -237,7 +273,7 @@ export default function Login() {
     if (isProcessing) return "Processing...";
     switch (userType) {
       case "attendee":
-        return "Send Verification Code";
+        return attendeeStep === "collectEmail" ? "Continue" : "Send Verification Code";
       case "organizer":
         return "Sign In";
       default:
@@ -247,9 +283,30 @@ export default function Login() {
 
   const isButtonDisabled = () => {
     if (isProcessing) return true;
-    if (!validContact) return true;
-    if (userType === "organizer" && !validPassword) return true;
+    if (userType === "attendee") {
+      if (attendeeStep === "collectEmail") {
+        return !validAttendeeEmail;
+      } else {
+        return !validContact;
+      }
+    }
+    if (userType === "organizer") {
+      return !validEmail || !validPassword;
+    }
     return false;
+  };
+
+  // Handle contact method change for attendees in verification step
+  const handleContactMethodChange = (method: ContactMethod) => {
+    setContactMethod(method);
+    if (method === "email") {
+      setContact(attendeeEmail); // Pre-fill with registered email
+      setPhoneNumber("");
+      setSelectedCountry(null);
+    } else {
+      setContact("");
+    }
+    setErr("");
   };
 
   // Initial screen - user type selection
@@ -302,7 +359,89 @@ export default function Login() {
     );
   }
 
-  // Login screen for selected user type
+  // Attendee email collection step
+  if (userType === "attendee" && attendeeStep === "collectEmail") {
+    return (
+      <SormImageWrapper>
+        <ThemedView style={styles.container}>
+          <ThemedText type="title" style={{ marginBottom: 10 }}>
+            {getTitle()}
+          </ThemedText>
+          <ThemedText style={{ marginBottom: 20 }}>{getDescription()}</ThemedText>
+          
+          <ThemedView style={styles.emailHintContainer}>
+            <ThemedText style={styles.emailHint}>
+              💡 This email is only used to identify your registration. You can verify with a different contact method on the next step.
+            </ThemedText>
+          </ThemedView>
+
+          <ThemedView style={styles.inputContainer}>
+            <ThemedText>Registration Email</ThemedText>
+            <ThemedTextInput
+              value={attendeeEmail}
+              textContentType="emailAddress"
+              keyboardType="email-address"
+              onChangeText={setAttendeeEmail}
+              placeholder="Enter your registration email"
+              accessibilityLabel="Registration email input field"
+              accessibilityHint="Enter the email you used to register"
+              accessibilityRole="text"
+            />
+            {attendeeEmail.length > 0 && !validAttendeeEmail && (
+              <ThemedText style={styles.invalid}>
+                Please enter a valid email address.
+              </ThemedText>
+            )}
+          </ThemedView>
+
+          <Pressable
+            onPress={handleEmailSubmit}
+            disabled={isButtonDisabled()}
+            style={[
+              styles.button,
+              isButtonDisabled()
+                ? { backgroundColor: Colors[colorScheme].tabIconDefault }
+                : { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].text },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              {getButtonText()}
+            </ThemedText>
+          </Pressable>
+          
+          <Pressable
+            onPress={goBack}
+            style={[
+              styles.button,
+              { backgroundColor: Colors[colorScheme].adminButton },
+              { borderColor: Colors[colorScheme].adminButtonText },
+              { borderWidth: 1 },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.buttonText,
+                { color: Colors[colorScheme].adminButtonText },
+              ]}
+            >
+              Back
+            </ThemedText>
+          </Pressable>
+          
+          <ThemedText style={styles.invalid}>{err}</ThemedText>
+        </ThemedView>
+      </SormImageWrapper>
+    );
+  }
+
+  // Login screen for selected user type (organizer or attendee verification step)
   return (
     <>
       <SormImageWrapper>
@@ -313,69 +452,66 @@ export default function Login() {
           <ThemedText>{getDescription()}</ThemedText>
 
           {userType === "attendee" && (
-            <ThemedView style={styles.contactMethodContainer}>
-              <ThemedText>Contact Method</ThemedText>
-              <ThemedView style={styles.segmentedControl}>
-                <Pressable
-                  onPress={() => {
-                    setContactMethod("email");
-                    setContact("");
-                    setPhoneNumber("");
-                    setSelectedCountry(null);
-                  }}
-                  style={[
-                    styles.segmentButton,
-                    {
-                      backgroundColor: contactMethod === "email" 
-                        ? Colors[colorScheme].adminButton 
-                        : Colors[colorScheme].background,
-                      borderColor: Colors[colorScheme].text
-                    }
-                  ]}
-                >
-                  <ThemedText
-                    style={[
-                      styles.segmentText,
-                      { color: contactMethod === "email" 
-                          ? Colors[colorScheme].adminButtonText 
-                          : Colors[colorScheme].text 
-                      }
-                    ]}
-                  >
-                    Email
-                  </ThemedText>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setContactMethod("phone");
-                    setContact("");
-                    setPhoneNumber("");
-                    setSelectedCountry(null);
-                  }}
-                  style={[
-                    styles.segmentButton,
-                    {
-                      backgroundColor: contactMethod === "phone" 
-                        ? Colors[colorScheme].adminButton 
-                        : Colors[colorScheme].background,
-                      borderColor: Colors[colorScheme].text
-                    }
-                  ]}
-                >
-                  <ThemedText
-                    style={[
-                      styles.segmentText,
-                      { color: contactMethod === "phone" 
-                          ? Colors[colorScheme].adminButtonText 
-                          : Colors[colorScheme].text 
-                      }
-                    ]}
-                  >
-                    Phone
-                  </ThemedText>
-                </Pressable>
+            <>
+              <ThemedView style={styles.registeredEmailContainer}>
+                <ThemedText style={styles.registeredEmailLabel}>Registered Email:</ThemedText>
+                <ThemedText style={styles.registeredEmailText}>{attendeeEmail}</ThemedText>
               </ThemedView>
-            </ThemedView>
+
+              <ThemedView style={styles.contactMethodContainer}>
+                <ThemedText>Verification Method</ThemedText>
+                <ThemedView style={styles.segmentedControl}>
+                  <Pressable
+                    onPress={() => handleContactMethodChange("phone")}
+                    style={[
+                      styles.segmentButton,
+                      {
+                        backgroundColor: contactMethod === "phone" 
+                          ? Colors[colorScheme].adminButton 
+                          : Colors[colorScheme].background,
+                        borderColor: Colors[colorScheme].text
+                      }
+                    ]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.segmentText,
+                        { color: contactMethod === "phone" 
+                            ? Colors[colorScheme].adminButtonText 
+                            : Colors[colorScheme].text 
+                        }
+                      ]}
+                    >
+                      Phone
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleContactMethodChange("email")}
+                    style={[
+                      styles.segmentButton,
+                      {
+                        backgroundColor: contactMethod === "email" 
+                          ? Colors[colorScheme].adminButton 
+                          : Colors[colorScheme].background,
+                        borderColor: Colors[colorScheme].text
+                      }
+                    ]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.segmentText,
+                        { color: contactMethod === "email" 
+                            ? Colors[colorScheme].adminButtonText 
+                            : Colors[colorScheme].text 
+                        }
+                      ]}
+                    >
+                      Email
+                    </ThemedText>
+                  </Pressable>
+                </ThemedView>
+              </ThemedView>
+            </>
           )}
 
           <ThemedView style={styles.inputContainer}>
@@ -391,6 +527,8 @@ export default function Login() {
                 accessibilityLabel="Email input field"
                 accessibilityHint="Enter your email"
                 accessibilityRole="text"
+                editable={userType === "organizer"} // Only editable for organizers
+                style={userType === "attendee" ? styles.readOnlyInput : undefined}
               />
             ) : (
               <PhoneInput
@@ -506,6 +644,7 @@ export default function Login() {
           ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
           : contact}
         mode="otp_verification"
+        attendeeEmail={userType === "attendee" ? attendeeEmail : undefined}
         onVerificationComplete={handleVerificationComplete}
         onCancel={handleVerificationCancel}
         onResendCode={handleVerificationResend}
@@ -528,6 +667,38 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+  },
+  emailHintContainer: {
+    width: "100%",
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#3b82f6',
+  },
+  emailHint: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  registeredEmailContainer: {
+    width: "100%",
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#22c55e',
+  },
+  registeredEmailLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  registeredEmailText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   contactMethodContainer: {
     width: "100%",
@@ -553,6 +724,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: "100%",
     marginBottom: 15,
+  },
+  readOnlyInput: {
+    backgroundColor: 'rgba(128, 128, 128, 0.1)',
+    opacity: 0.8,
   },
   button: {
     width: "100%",

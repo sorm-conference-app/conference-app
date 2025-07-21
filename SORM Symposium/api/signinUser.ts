@@ -57,15 +57,26 @@ export default async function signinAdmin(email: string, password: string) {
 }
 
 /**
- * Request OTP for email or phone
- * @param contact Email address or phone number
+ * Request OTP for email or phone with attendee identification
+ * @param contact Email address or phone number for verification
+ * @param attendeeEmail The email used to register (for attendee identification)
  * @returns Object with success status and message
  */
-export async function requestOTP(contact: string) {
-  // Validate that contact is registered
-  const isRegistered = await isAttendeeContact(contact);
-  if (!isRegistered) {
-    throw new Error("This contact is not registered. Please try a different email/phone or contact a Symposium Organizer for a paper copy of the schedule.");
+export async function requestOTP(contact: string, attendeeEmail?: string) {
+  // If attendeeEmail is provided, validate that it's registered first
+  if (attendeeEmail) {
+    const attendeeExists = await isAttendeeEmail(attendeeEmail);
+    if (!attendeeExists) {
+      throw new Error("The registration email you provided is not found. Please check the email and try again.");
+    }
+  }
+
+  // Validate that contact is registered (for organizers or when no attendeeEmail provided)
+  if (!attendeeEmail) {
+    const isRegistered = await isAttendeeContact(contact);
+    if (!isRegistered) {
+      throw new Error("This contact is not registered. Please try a different email/phone or contact a Symposium Organizer for a paper copy of the schedule.");
+    }
   }
 
   // Check if this is an admin (only for email)
@@ -130,12 +141,13 @@ export async function requestOTP(contact: string) {
 }
 
 /**
- * Verify OTP code for email or phone
- * @param contact Email address or phone number
+ * Verify OTP code for email or phone with attendee identification
+ * @param contact Email address or phone number used for verification
  * @param token OTP code
+ * @param attendeeEmail The email used to register (for attendee identification)
  * @returns Object with verification status and attendee info
  */
-export async function verifyOTP(contact: string, token: string) {
+export async function verifyOTP(contact: string, token: string, attendeeEmail?: string) {
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
   
   try {
@@ -173,8 +185,9 @@ export async function verifyOTP(contact: string, token: string) {
       throw new Error("Authentication failed. Please try again.");
     }
     
-    // Verify the user exists in our attendee database
-    const attendee = await verifyAttendeeContact(contact);
+    // Get the attendee info - use provided attendeeEmail if available, otherwise use contact
+    const attendeeContactForLookup = attendeeEmail || contact;
+    const attendee = await verifyAttendeeContact(attendeeContactForLookup);
     
     return {
       verified: true,

@@ -15,6 +15,7 @@ interface SixDigitVerificationModalProps {
   onCancel: () => void;
   onResendCode: () => void;
   mode?: 'email_verification' | 'otp_verification'; // New prop to distinguish between modes
+  attendeeEmail?: string; // The registered email for attendee identification in OTP mode
 }
 
 /**
@@ -27,7 +28,8 @@ export default function SixDigitVerificationModal({
   onVerificationComplete,
   onCancel,
   onResendCode,
-  mode = 'email_verification'
+  mode = 'email_verification',
+  attendeeEmail
 }: SixDigitVerificationModalProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [verificationCode, setVerificationCode] = useState('');
@@ -101,7 +103,7 @@ export default function SixDigitVerificationModal({
             isValid = await checkCode(contact, verificationCode);
           } else {
             // Use OTP verification for login
-            result = await verifyOTP(contact, verificationCode);
+            result = await verifyOTP(contact, verificationCode, attendeeEmail);
             isValid = result.verified;
           }
         
@@ -122,7 +124,7 @@ export default function SixDigitVerificationModal({
       }
     };
     verifyCode();
-  }, [verificationCode, mode, contact, onVerificationComplete]);
+  }, [verificationCode, mode, contact, onVerificationComplete, attendeeEmail]);
 
   const handleResendCode = async () => {
     setIsResending(true);
