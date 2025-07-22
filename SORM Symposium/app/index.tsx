@@ -189,20 +189,42 @@ export default function Login() {
     // which handles dual registration scenarios
   };
 
-  const handleContactSharingDontShare = async () => {
+  const handleContactSharingDontShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, '');
+      await saveContactSharingPreferences(
+        false,
+        additionalInfo,
+        name,
+        organization,
+        title
+      );
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(
+        true,
+        additionalInfo,
+        name,
+        organization,
+        title
+      );
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
@@ -477,6 +499,7 @@ export default function Login() {
           </Pressable>
           
           <ThemedText style={styles.invalid}>{err}</ThemedText>
+          {footerLogos}
         </ThemedView>
       </SormImageWrapper>
     );
