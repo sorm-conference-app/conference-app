@@ -10,9 +10,9 @@ import migrations from "@/drizzle/migrations";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { sendLogMessage } from "@/services/logging";
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asc, desc } from "drizzle-orm";
@@ -20,7 +20,7 @@ import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform } from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -74,10 +74,10 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .orderBy(desc(schema.announcements.created_at));
 
         return data;
-      }
+      },
     },
     {
-      queryKey: ['announcements', 3], // Limit to 3 announcements
+      queryKey: ["announcements", 3], // Limit to 3 announcements
       queryFn: async function () {
         if (!db) {
           return [];
@@ -90,8 +90,8 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .limit(3);
 
         return data;
-      }
-    }
+      },
+    },
   ];
 
 export default function RootLayout() {
@@ -154,7 +154,7 @@ export default function RootLayout() {
   }
 
   const Screens = (
-    <>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <Stack
         screenOptions={{
           contentStyle: {
@@ -173,7 +173,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </KeyboardAvoidingView>
   );
 
   return (

@@ -4,15 +4,18 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useLoginFlow } from "@/components/LoginFlowProvider";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
 import SormImageWrapper from "@/components/SormImageWrapper";
+import SponsorLogo from "@/components/SponsorLogo";
 import { ThemedText } from "@/components/ThemedText";
 import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
+import { use6DigitVerificationModal } from "@/hooks/use6DigitVerificationModal";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { getAllSponsors } from "@/lib/sponsors";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
 import PhoneInput, { ICountry, isValidPhoneNumber } from "react-native-international-phone-number";
 
@@ -47,7 +50,8 @@ export default function Login() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [showVerificationModal, setShowVerificationModal] = useState<boolean>(false);
-  
+  const sponsors = useMemo(() => getAllSponsors(), []);
+
   // Contact sharing modal hook
   const {
     isVisible: isContactSharingVisible,
@@ -65,6 +69,8 @@ export default function Login() {
     : false;
   const validContact = contactMethod === "email" ? validEmail : validPhone;
   const validPassword = password.length > 0;
+
+  const sixDigitVerificationModal = use6DigitVerificationModal();
 
   useEffect(() => {
     // Only clear login flow and sign out if there's no active session
@@ -183,20 +189,42 @@ export default function Login() {
     // which handles dual registration scenarios
   };
 
-  const handleContactSharingDontShare = async () => {
+  const handleContactSharingDontShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, '');
+      await saveContactSharingPreferences(
+        false,
+        additionalInfo,
+        name,
+        organization,
+        title
+      );
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
     router.push("/(tabs)/home");
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (
+    additionalInfo: string,
+    name?: string,
+    organization?: string,
+    title?: string
+  ) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(
+        true,
+        additionalInfo,
+        name,
+        organization,
+        title
+      );
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
@@ -325,6 +353,24 @@ export default function Login() {
     setErr("");
   };
 
+  const footerLogos = (
+    <>
+      <ThemedView
+        style={{ flexDirection: "column", alignItems: "center", marginTop: 5 }}
+      >
+        <ThemedText
+          type="subtitle"
+          style={{ marginBottom: 5, textAlign: "center", fontStyle: "italic" }}
+        >
+          Thank you to our sponsors for making this event possible
+        </ThemedText>
+        {sponsors.map((sponsor) => (
+          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} />
+        ))}
+      </ThemedView>
+    </>
+  );
+
   // Initial screen - user type selection
   if (!userType) {
     return (
@@ -370,6 +416,7 @@ export default function Login() {
               Symposium Organizer
             </ThemedText>
           </Pressable>
+          {footerLogos}
         </ThemedView>
       </SormImageWrapper>
     );
@@ -452,6 +499,7 @@ export default function Login() {
           </Pressable>
           
           <ThemedText style={styles.invalid}>{err}</ThemedText>
+          {footerLogos}
         </ThemedView>
       </SormImageWrapper>
     );
@@ -645,6 +693,7 @@ export default function Login() {
           </Pressable>
           
           <ThemedText style={styles.invalid}>{err}</ThemedText>
+          {footerLogos}
         </ThemedView>
       </SormImageWrapper>
 
