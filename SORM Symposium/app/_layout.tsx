@@ -1,29 +1,30 @@
 import { useEffect, useRef } from "react";
 
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { enableScreens } from "react-native-screens";
-import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
-import { AuthSessionProvider } from "@/components/AuthSessionProvider";
-import { sendLogMessage } from "@/services/logging";
 import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
+import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
+import { LoginFlowProvider } from "@/components/LoginFlowProvider";
+import getCacheDatabase from "@/db";
+import * as schema from "@/db/schema";
+import migrations from "@/drizzle/migrations";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { sendLogMessage } from "@/services/logging";
+import {
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
+} from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asc, desc } from "drizzle-orm";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import migrations from "@/drizzle/migrations";
-import * as schema from "@/db/schema";
-import getCacheDatabase from "@/db";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { enableScreens } from "react-native-screens";
 
 // Enable screens for better performance
 enableScreens();
@@ -182,17 +183,19 @@ export default function RootLayout() {
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
           <ExpoPushTokenProvider>
-            <AuthSessionProvider>
-              <ActiveUsersProvider>
-                {SQLiteProvider ? (
-                  <SQLiteProvider databaseName={databaseName} useSuspense>
-                    {Screens}
-                  </SQLiteProvider>
-                ) : (
-                  Screens
-                )}
-              </ActiveUsersProvider>
-            </AuthSessionProvider>
+            <LoginFlowProvider>
+              <AuthSessionProvider>
+                <ActiveUsersProvider>
+                  {SQLiteProvider ? (
+                    <SQLiteProvider databaseName={databaseName} useSuspense>
+                      {Screens}
+                    </SQLiteProvider>
+                  ) : (
+                    Screens
+                  )}
+                </ActiveUsersProvider>
+              </AuthSessionProvider>
+            </LoginFlowProvider>
           </ExpoPushTokenProvider>
         </ThemeProvider>
       </GestureHandlerRootView>
