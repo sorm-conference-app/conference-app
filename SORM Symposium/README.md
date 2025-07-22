@@ -25,6 +25,24 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Authentication Flow
+
+### Attendee Login Process
+
+The app uses a two-step authentication process for attendees:
+
+1. **Registration Email Collection**: Attendees first enter the email address they used to register for the symposium. This email is used only for identification purposes and does not need to be verified.
+
+2. **OTP Verification**: After providing their registration email, attendees choose their preferred verification method:
+   - **Phone (Default)**: Enter a phone number to receive an SMS verification code
+   - **Email**: Use the registration email to receive an email verification code
+
+This flow allows attendees to authenticate even if they don't have access to their registration email (e.g., work email when not at work), while still ensuring we can identify which registered attendee is logging in.
+
+### Organizer Login
+
+Organizers use traditional email/password authentication with their registered admin credentials.
+
 ## Get a fresh project
 
 When you're ready, run:
