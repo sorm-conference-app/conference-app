@@ -9,6 +9,7 @@ import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useSurveyLink } from "@/hooks/useSurveyLink";
 
 import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { router } from "expo-router";
@@ -17,6 +18,7 @@ import {
     ActivityIndicator,
     Animated,
     Dimensions,
+    Linking,
     Platform,
     Pressable,
     StyleSheet,
@@ -30,6 +32,19 @@ export default function Home() {
 
   const user = useSupabaseAuth();
   const { clearLoginFlow } = useLoginFlow();
+
+  // Survey link hook
+  const { data: surveyLink, isLoading: surveyLoading } = useSurveyLink();
+
+  /**
+   * Handle survey button press
+   * Opens the survey link for the current date if available
+   */
+  const handleSurveyPress = () => {
+    if (surveyLink) {
+      Linking.openURL(surveyLink);
+    }
+  };
 
   /**
    * Handle logout functionality
@@ -98,6 +113,11 @@ export default function Home() {
   }, [surveyFlashTrigger, surveyAnimation]);
 
   const surveyContainer = () => {
+    // Don't show survey container if no survey link is available
+    if (!surveyLink) {
+      return null;
+    }
+
     return (
       <Animated.View style={[styles.surveyButtonContainer, 
         { position: wideScreen ? "absolute" : "relative",
@@ -109,14 +129,16 @@ export default function Home() {
           Your feedback is important to us! Please take a moment to fill out our survey about the day&apos;s events.
         </ThemedText>
         <Pressable 
-          onPress={() => {}}
+          onPress={handleSurveyPress}
           style={[styles.surveyButton,
             { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].tint },
-          ]}>
+            surveyLoading && { opacity: 0.6 },
+          ]}
+          disabled={surveyLoading}>
           <ThemedText style={[styles.surveyButtonText, 
             { color: Colors[colorScheme].adminButtonText, }]}>
-              Go to Survey</ThemedText>
+              {surveyLoading ? "Loading..." : "Go to Survey"}</ThemedText>
         </Pressable>
       </Animated.View>
     );

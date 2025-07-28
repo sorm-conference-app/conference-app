@@ -270,6 +270,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      survey_links: {
+        Row: {
+          id: number;
+          created_at: string;
+          survey_date: string;
+          survey_link: string;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          survey_date: string;
+          survey_link: string;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          survey_date?: string;
+          survey_link?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never
