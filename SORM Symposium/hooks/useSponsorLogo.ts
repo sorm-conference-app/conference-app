@@ -3,8 +3,8 @@ import { Sponsor } from "@/types/Sponsors.types";
 // Sponsor Logo Imports
 import IHSLogo from "@/assets/images/SponsorLogos/IHSMainLogo.png";
 import BELFORLogo from "@/assets/images/SponsorLogos/BelforPropRest.jpg";
-import GallagherLogo from "@/assets/images/SponsorLogos/GallagherLogo.png";
-import TTPLogo from "@/assets/images/SponsorLogos/TTPLogo.png";
+import Gallagher from "@/assets/images/SponsorLogos/gallagher-logo.jpg";
+import TTP from "@/assets/images/SponsorLogos/ttp-logo.png";
 
 // Function to get the sponsor logo and dimensions
 export function getSponsorLogo(sponsor: Sponsor) {
@@ -14,9 +14,9 @@ export function getSponsorLogo(sponsor: Sponsor) {
     case "BELFOR Property Restoration":
       return { logo: BELFORLogo, width: 180, height: 60 };
     case "Gallagher":
-      return { logo: GallagherLogo, width: 195, height: 80 };
-    case "Tactics, Techniques, and Procedures, LLC":
-      return { logo: TTPLogo, width: 50, height: 60 };
+      return { logo: Gallagher, width: 204, height: 76 };
+    case "TTP":
+      return { logo: TTP, width: 200, height: 100 };
     default:
       return { logo: null, width: 0, height: 0 };
   }

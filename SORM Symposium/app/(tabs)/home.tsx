@@ -1,6 +1,6 @@
 import { Announcement } from "@/components/Announcement";
 import { ExternalLink } from "@/components/ExternalLink";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { useLoginFlow } from "@/components/LoginFlowProvider";
 import SormImageWrapper from "@/components/SormImageWrapper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -8,19 +8,21 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { clearVerifiedEmails } from "@/lib/attendeeStorage";
-import { onSurveyFlash, triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
-import { Image } from "expo-image";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useSurveyLink } from "@/hooks/useSurveyLink";
+
+import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Linking,
+    Platform,
+    Pressable,
+    StyleSheet,
+    View,
 } from "react-native";
 
 export default function Home() {
@@ -28,23 +30,40 @@ export default function Home() {
     router.push("/announcement/announcementList");
   };
 
+  const user = useSupabaseAuth();
+  const { clearLoginFlow } = useLoginFlow();
+
+  // Survey link hook
+  const { data: surveyLink, isLoading: surveyLoading } = useSurveyLink();
+
+  /**
+   * Handle survey button press
+   * Opens the survey link for the current date if available
+   */
+  const handleSurveyPress = () => {
+    if (surveyLink) {
+      Linking.openURL(surveyLink);
+    }
+  };
+
   /**
    * Handle logout functionality
-   * - Log out any users from Supabase
-   * - Clear verified emails from local storage
-   * - Redirect to login page for all users
+   * - Clear login flow tracking
+   * - Log out users from Supabase
+   * - Redirect to login page
    */
   const handleLogout = async () => {
     try {
-      // Clear verified emails from local storage
-      await clearVerifiedEmails();
-      // Log out any admin users from Supabase
+      // Clear login flow tracking first
+      await clearLoginFlow();
+      
+      // Log out from Supabase (handles both admin and attendee sessions)
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Error during logout:", error);
     }
 
-    // Redirect to login page (index.tsx) for all users
+    // Redirect to login page (index.tsx)
     router.replace("/");
   };
 
@@ -94,6 +113,11 @@ export default function Home() {
   }, [surveyFlashTrigger, surveyAnimation]);
 
   const surveyContainer = () => {
+    // Don't show survey container if no survey link is available
+    if (!surveyLink) {
+      return null;
+    }
+
     return (
       <Animated.View style={[styles.surveyButtonContainer, 
         { position: wideScreen ? "absolute" : "relative",
@@ -102,17 +126,19 @@ export default function Home() {
           transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
-          Your feedback is important to us! Please take a moment to fill out our survey about the day's events.
+          Your feedback is important to us! Please take a moment to fill out our survey about the day&apos;s events.
         </ThemedText>
         <Pressable 
-          onPress={() => {}}
+          onPress={handleSurveyPress}
           style={[styles.surveyButton,
             { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].tint },
-          ]}>
+            surveyLoading && { opacity: 0.6 },
+          ]}
+          disabled={surveyLoading}>
           <ThemedText style={[styles.surveyButtonText, 
             { color: Colors[colorScheme].adminButtonText, }]}>
-              Go to Survey</ThemedText>
+              {surveyLoading ? "Loading..." : "Go to Survey"}</ThemedText>
         </Pressable>
       </Animated.View>
     );

@@ -16,7 +16,7 @@ export type Database = {
           first_name: string | null
           id: number
           last_name: string | null
-          phone_number: string | null
+          phone: string | null
         }
         Insert: {
           created_at?: string
@@ -24,7 +24,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone_number?: string | null
+          phone?: string | null
         }
         Update: {
           created_at?: string
@@ -32,7 +32,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone_number?: string | null
+          phone?: string | null
         }
         Relationships: []
       }
@@ -176,6 +176,7 @@ export type Database = {
           id: number;
           created_at: string;
           email: string;
+          phone: string | null;
           name: string | null;
           organization: string | null;
           title: string | null;
@@ -188,6 +189,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -200,6 +202,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email?: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -246,6 +249,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      verification_codes: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Insert: {
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          code?: string;
+          has_been_used?: boolean;
+        };
+        Relationships: [];
+      };
+      survey_links: {
+        Row: {
+          id: number;
+          created_at: string;
+          survey_date: string;
+          survey_link: string;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          survey_date: string;
+          survey_link: string;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          survey_date?: string;
+          survey_link?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never
@@ -253,13 +298,14 @@ export type Database = {
     Functions: {
       update_contact_sharing_info: {
         Args: {
-          user_email: string
+          user_email?: string | null
+          user_phone?: string | null
           share_info_val: boolean
-          name_val: string | null
-          organization_val: string | null
-          title_val: string | null
-          additional_info_val: string
-          seen_popup_val: boolean
+          name_val?: string | null
+          organization_val?: string | null
+          title_val?: string | null
+          additional_info_val?: string
+          seen_popup_val?: boolean
         }
         Returns: undefined
       }

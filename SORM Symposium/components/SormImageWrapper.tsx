@@ -2,7 +2,9 @@ import { ReactNode } from "react";
 import logo from "@/assets/images/sorm-logo.png";
 import ParallaxScrollView from "./ParallaxScrollView";
 import { Colors } from "@/constants/Colors";
-import { Image, Dimensions, StyleSheet } from "react-native";
+import { Image, Dimensions, StyleSheet, Linking } from "react-native";
+
+const SORM_URL = "https://www.sorm.state.tx.us/";
 
 export default function SormImageWrapper({
   children,
@@ -11,6 +13,10 @@ export default function SormImageWrapper({
 }) {
   const width = Math.min(Dimensions.get("window").width, 500);
   const height = (width * 182) / 500;
+
+  function onImagePress() {
+    Linking.openURL(SORM_URL);
+  }
 
   return (
     <ParallaxScrollView
@@ -25,6 +31,7 @@ export default function SormImageWrapper({
           alt="SORM Logo"
         />
       }
+      onImagePress={onImagePress}
     >
       {children}
     </ParallaxScrollView>
