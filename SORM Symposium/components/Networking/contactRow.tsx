@@ -38,32 +38,41 @@ export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: 
     }
   };
 
+  const position = (
+    isSelected ? (
+      <ThemedText style={styles.details}>
+        {attendee.title && <>{attendee.title}</>}
+        {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
+        {attendee.organization && <>{attendee.organization}</>}
+      </ThemedText>
+    ) : (
+      <ThemedText style={styles.rowDetails}>
+        {attendee.title && <>{attendee.title}</>}
+        {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
+        {attendee.organization && <>{attendee.organization}</>}
+      </ThemedText>
+    )
+  )
+
   return (
     <ThemedView style={[styles.container, { 
         backgroundColor: colorScheme === 'light' ? Colors[colorScheme].background : Colors[colorScheme].secondaryBackgroundColor,
       }]}>
       {isSelected ? (
         <Pressable style={styles.contactCard} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.details}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
-          {attendee.email && <ThemedText style={styles.email}>{attendee.email}</ThemedText>}
-          {attendee.additional_info && <ThemedText style={styles.additionalInfo}>{attendee.additional_info}</ThemedText>}
-        </Pressable>
-      ) : isWideScreen ? (
-        <Pressable style={styles.contactRowWide} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.rowDetails}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
+          <>
+            <ThemedText style={styles.name}>{attendee.name}</ThemedText>
+            {position}
+            {attendee.email && <ThemedText style={styles.email}>{attendee.email}</ThemedText>}
+            {attendee.additional_info && attendee.additional_info.length > 0 &&
+              <ThemedText style={styles.additionalInfo}>{attendee.additional_info}</ThemedText>
+            }
+          </>
         </Pressable>
       ) : (
-        <Pressable style={styles.contactRowNarrow} onPress={handlePress}>
+        <Pressable style={isWideScreen ? styles.contactRowWide : styles.contactRowNarrow} onPress={handlePress}>
           <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.rowDetails}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
+          {position}
         </Pressable>
       )}
     </ThemedView>

@@ -1,16 +1,17 @@
 import { getSponsorLogo } from "@/hooks/useSponsorLogo";
 import { showMessage } from "@/lib/alerts";
 import { Sponsor } from "@/types/Sponsors.types";
-import { Image, Linking, Pressable, StyleSheet } from "react-native";
+import { Image, Linking, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
 type SponsorLogoProps = Sponsor & {
   hyperlink?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
-function SponsorLogo({ hyperlink = false, ...props }: SponsorLogoProps) {
+function SponsorLogo({ hyperlink = false, style, ...props }: SponsorLogoProps) {
   const { logo = undefined, width, height } = getSponsorLogo(props);
 
-  const style = [styles.logo, { width, height }];
+  const imageStyle = [styles.logo, { width, height }];
 
   function onNavigate() {
     if (!props.website) {
@@ -22,20 +23,18 @@ function SponsorLogo({ hyperlink = false, ...props }: SponsorLogoProps) {
 
   if (hyperlink) {
     return (
-      <Pressable onPress={onNavigate}>
-        <Image source={logo} style={style} />
+      <Pressable onPress={onNavigate} style={style}>
+        <Image source={logo} style={imageStyle} />
       </Pressable>
     );
   }
 
-  return <Image source={logo} style={style} />;
+  return <Image source={logo} style={imageStyle} />;
 }
 
 const styles = StyleSheet.create({
   logo: {
     resizeMode: "contain",
-    marginVertical: 8,
-    marginHorizontal: 16,
   },
 });
 

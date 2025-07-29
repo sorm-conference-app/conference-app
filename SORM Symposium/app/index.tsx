@@ -365,7 +365,7 @@ export default function Login() {
           Thank you to our sponsors for making this event possible
         </ThemedText>
         {sponsors.map((sponsor) => (
-          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} />
+          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} style={{ marginVertical: 8, marginHorizontal: 16 }} />
         ))}
       </ThemedView>
     </>
@@ -379,7 +379,7 @@ export default function Login() {
           <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
           <ThemedText>{getDescription()}</ThemedText>
 
-          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+          <ThemedText style={{ marginVertical: 5 }}>I am a...</ThemedText>
           <Pressable
             onPress={() => selectUserType("attendee")}
             style={[

@@ -57,7 +57,6 @@ export default function Sponsors() {
 
           {sponsorGroups.map((group) => (
             group.sponsors.length > 0 && (
-            <>
               <View key={group.level} style={styles.groupContainer}>
                 <View
                   style={[
@@ -75,7 +74,6 @@ export default function Sponsors() {
                     <SponsorCard key={sponsor.id} sponsor={sponsor} />
                   ))}
               </View>
-            </>
             )
           ))}
         </ScrollView>

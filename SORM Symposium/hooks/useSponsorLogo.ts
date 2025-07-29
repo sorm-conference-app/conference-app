@@ -14,9 +14,9 @@ export function getSponsorLogo(sponsor: Sponsor) {
     case "BELFOR Property Restoration":
       return { logo: BELFORLogo, width: 180, height: 60 };
     case "Gallagher":
-      return { logo: Gallagher, width: 204, height: 76 };
+      return { logo: Gallagher, width: 279, height: 60 };
     case "TTP":
-      return { logo: TTP, width: 200, height: 100 };
+      return { logo: TTP, width: 100, height: 120 };
     default:
       return { logo: null, width: 0, height: 0 };
   }
