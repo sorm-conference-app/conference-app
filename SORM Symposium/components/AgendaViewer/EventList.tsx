@@ -7,7 +7,7 @@ import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
   SetStateAction,
-  useRef,
+  useState,
 } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
@@ -46,8 +46,8 @@ export function EventList({
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
 
-  const dateRefs = useRef<{ [key: string]: View | null }>({});
-  const dateHeights = useRef<{ [key: string]: number }>({});
+  const [dateRefs, setDateRefs] = useState<{ [key: string]: View | null }>({});
+  const [dateHeights, setDateHeights] = useState<{ [key: string]: number }>({});
 
   // Get current attendee information
   const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
@@ -183,10 +183,10 @@ export function EventList({
                   { borderColor: Colors[colorScheme].text },
                 ]}
                 ref={(ref) => {
-                  dateRefs.current[date] = ref;
+                  setDateRefs((prev) => ({ ...prev, [date]: ref }));
                 }}
                 onLayout={(e) => {
-                  dateHeights.current[date] = e.nativeEvent.layout.height;
+                  setDateHeights((prev) => ({ ...prev, [date]: e.nativeEvent.layout.height }));
                 }}
               >
                 <ThemedText
@@ -209,11 +209,11 @@ export function EventList({
                         key={item.id}
                         style={styles.conflictContent}
                         onLayout={(e) => {
-                          dateRefs.current[date]?.measure((y) => {
+                          dateRefs[date]?.measure((y) => {
                             const previousHeights = sortedDates
                               .filter((d) => d < date)
                               .reduce(
-                                (sum, d) => sum + (dateHeights.current[d] || 0),
+                                (sum, d) => sum + (dateHeights[d] || 0),
                                 0,
                               );
                             onEventPosition(
@@ -240,11 +240,11 @@ export function EventList({
                       style={styles.conflictContent}
                       onLayout={(e) => {
                         // calculate the y position of the event
-                        dateRefs.current[date]?.measure((y) => {
+                        dateRefs[date]?.measure((y) => {
                           const previousHeights = sortedDates
                             .filter((d) => d < date)
                             .reduce(
-                              (sum, d) => sum + (dateHeights.current[d] || 0),
+                              (sum, d) => sum + (dateHeights[d] || 0),
                               0,
                             );
 
