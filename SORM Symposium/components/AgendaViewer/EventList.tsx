@@ -7,7 +7,7 @@ import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
   SetStateAction,
-  useState,
+  useMemo,
 } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
@@ -22,6 +22,7 @@ import {
 import { Pressable } from "react-native-gesture-handler";
 import useEvents from "@/hooks/useEvents";
 import useRSVPEvents from "@/hooks/useRSVPEvents";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
 import { IconSymbol } from "../ui/IconSymbol";
 
@@ -45,9 +46,10 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
+  const isAdmin = useIsAdmin();
 
-  const [dateRefs, setDateRefs] = useState<{ [key: string]: View | null }>({});
-  const [dateHeights, setDateHeights] = useState<{ [key: string]: number }>({});
+  const dateRefs = useMemo(() => ({} as { [key: string]: View | null }), []);
+  const dateHeights = useMemo(() => ({} as { [key: string]: number }), []);
 
   // Get current attendee information
   const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
@@ -132,12 +134,22 @@ export function EventList({
             <ThemedText style={styles.subheader} type="subtitle">
               {Platform.OS === 'web' ? 'Click' : 'Tap'} on an event to view more details
             </ThemedText>
+
+            {!isAdmin && (
             <ThemedText style={styles.subheader} type="subtitle">
               {Platform.OS === 'web' ? 'Click' : 'Tap'} the <IconSymbol 
               name="star" size={20} color={Colors[colorScheme].text}
               /> icon to save an event
             </ThemedText>
+            )}
 
+            {isAdmin && (
+            <ThemedText style={styles.subheader} type="subtitle">
+              Log in as an attendee to save events and view your saved events
+            </ThemedText>
+            )}
+
+            {!isAdmin && (
             <Pressable
               style={[
                 {
@@ -165,6 +177,7 @@ export function EventList({
                 Viewing: {showDeleted === "saved" ? "Saved" : "All"} Events
               </ThemedText>
             </Pressable>
+            )}
           </ThemedView>
         )}
         <View style={styles.content}>
@@ -183,10 +196,10 @@ export function EventList({
                   { borderColor: Colors[colorScheme].text },
                 ]}
                 ref={(ref) => {
-                  setDateRefs((prev) => ({ ...prev, [date]: ref }));
+                  dateRefs[date] = ref;
                 }}
                 onLayout={(e) => {
-                  setDateHeights((prev) => ({ ...prev, [date]: e.nativeEvent.layout.height }));
+                  dateHeights[date] = e.nativeEvent.layout.height;
                 }}
               >
                 <ThemedText
