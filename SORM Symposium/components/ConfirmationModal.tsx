@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { Colors } from '@/constants/Colors';
@@ -30,50 +30,56 @@ export default function ConfirmationModal({
           styles.modalContent,
           { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
         ]}>
-          <ThemedText type="title" style={styles.title}>
-            You Have Organizer Access
-          </ThemedText>
-          
-          <ThemedText style={styles.message}> This email is registered as an organizer. </ThemedText>
-          <ThemedText style={styles.message}> Logging in as an attendee will prevent you from accessing administration tools. </ThemedText>
-          <ThemedText style={styles.message}> Are you sure you want to sign in as an attendee? </ThemedText>
-          
-          <ThemedView style={[
-          styles.buttonContainer,
-          { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-        ]}>
-            <Pressable
-              style={[
-                styles.button,
-                styles.attendeeButton,
-                { backgroundColor: Colors[colorScheme].adminButton }
-              ]}
-              onPress={onProceedAsAttendee}
-            >
-              <ThemedText style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].adminButtonText }
-              ]}>
-                Proceed as Attendee
-              </ThemedText>
-            </Pressable>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <ThemedText type="title" style={styles.title}>
+              You Have Organizer Access
+            </ThemedText>
             
-            <Pressable
-              style={[
-                styles.button,
-                styles.adminButton,
-                { backgroundColor: Colors[colorScheme].tabIconDefault }
-              ]}
-              onPress={onGoToAdminLogin}
-            >
-              <ThemedText style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].adminButtonText }
-              ]}>
-                Go to Admin Login
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
+            <ThemedText style={styles.message}> This email is registered as an organizer. </ThemedText>
+            <ThemedText style={styles.message}> Logging in as an attendee will prevent you from accessing administration tools. </ThemedText>
+            <ThemedText style={styles.message}> Are you sure you want to sign in as an attendee? </ThemedText>
+            
+            <ThemedView style={[
+            styles.buttonContainer,
+            { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
+          ]}>
+              <Pressable
+                style={[
+                  styles.button,
+                  styles.attendeeButton,
+                  { backgroundColor: Colors[colorScheme].adminButton }
+                ]}
+                onPress={onProceedAsAttendee}
+              >
+                <ThemedText style={[
+                  styles.buttonText,
+                  { color: Colors[colorScheme].adminButtonText }
+                ]}>
+                  Proceed as Attendee
+                </ThemedText>
+              </Pressable>
+              
+              <Pressable
+                style={[
+                  styles.button,
+                  styles.adminButton,
+                  { backgroundColor: Colors[colorScheme].tabIconDefault }
+                ]}
+                onPress={onGoToAdminLogin}
+              >
+                <ThemedText style={[
+                  styles.buttonText,
+                  { color: Colors[colorScheme].adminButtonText }
+                ]}>
+                  Go to Admin Login
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          </ScrollView>
         </ThemedView>
       </ThemedView>
     </Modal>
@@ -101,6 +107,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     minWidth: 300,
+    maxHeight: '85%',
+    minHeight: 200,
+  },
+  scrollView: {
+    width: '100%',
+  },
+  scrollContent: {
+    alignItems: 'center',
   },
   title: {
     marginBottom: 25,

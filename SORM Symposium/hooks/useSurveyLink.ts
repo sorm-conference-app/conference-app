@@ -21,7 +21,7 @@ export function useSurveyLink() {
                 .from("survey_links")
                 .select("survey_link")
                 .eq("survey_date", currentDate)
-                .single();
+                .maybeSingle();
 
             if (error) {
                 // If no survey found for today, return null instead of throwing

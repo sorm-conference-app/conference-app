@@ -11,6 +11,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { styles } from './styles';
 import { MapViewerProps } from './types';
 import { calculateBounds, clamp } from './utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps) => {
   const scale = useSharedValue(1);
@@ -22,6 +23,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
   const [isLoading, setIsLoading] = useState(true);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const { right: rightInset, top: topInset } = useSafeAreaInsets();
 
   useEffect(() => {
     if (isVisible) {
@@ -163,7 +165,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
             </View>
           )}
 
-          <View style={[styles.controls, { top: 40 }]}>
+          <View style={[styles.controls, { top: topInset + 10, right: rightInset + 10 }]}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <IconSymbol name="xmark.circle.fill" size={32} color="white" />
             </TouchableOpacity>

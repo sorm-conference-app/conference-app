@@ -113,7 +113,11 @@ export default function ContactSharingModal({
         ]}>
           {step === 'choice' ? (
             // Step 1: Choice between sharing or not
-            <>
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               <ThemedText type="title" style={styles.title}>
                 {attendee.is_admin === true ? "We Share Your Contact Information" : "Share Your Contact Information?"}
               </ThemedText>
@@ -225,7 +229,7 @@ export default function ContactSharingModal({
               {filterError && (
                 <ThemedText style={styles.filterError}>{filterError}</ThemedText>
               )}
-            </>
+            </ScrollView>
           ) : (
             // Step 2: Additional information input
             <ScrollView 
@@ -323,7 +327,8 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: 20,
     padding: 24,
-    maxHeight: '80%',
+    maxHeight: '85%',
+    minHeight: 200,
     width: '100%',
     maxWidth: 500,
     shadowColor: '#000',

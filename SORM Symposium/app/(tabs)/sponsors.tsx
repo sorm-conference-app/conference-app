@@ -6,7 +6,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { getSponsorsByLevel } from "@/lib/sponsors";
 import { Stack } from "expo-router";
 import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Sponsors() {
   const colorScheme = useColorScheme() ?? "light";
@@ -28,9 +28,7 @@ export default function Sponsors() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
           title: "Sponsors",
@@ -78,7 +76,7 @@ export default function Sponsors() {
           ))}
         </ScrollView>
       </ThemedView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 

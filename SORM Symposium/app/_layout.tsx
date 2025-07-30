@@ -100,7 +100,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const { top: topInset } = useSafeAreaInsets();
+  const { top: topInset, bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
   // @ts-ignore
   const { success, error } = useMigrations(db, migrations);
 
@@ -154,11 +154,14 @@ export default function RootLayout() {
   }
 
   const Screens = (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Stack
         screenOptions={{
           contentStyle: {
             paddingTop: topInset,
+            paddingBottom: bottomInset,
+            paddingLeft: leftInset,
+            paddingRight: rightInset,
           },
         }}
       >

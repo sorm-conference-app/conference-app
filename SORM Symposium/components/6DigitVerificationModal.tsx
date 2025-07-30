@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { checkCode } from '@/hooks/use6DigitVerification';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
 import { ThemedView } from './ThemedView';
@@ -187,6 +187,11 @@ export default function SixDigitVerificationModal({
           styles.modalContent,
           { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
         ]}>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
           <ThemedText type="title" style={styles.title}>
             {getTitle()}
           </ThemedText>
@@ -295,6 +300,7 @@ export default function SixDigitVerificationModal({
               </ThemedText>
             </Pressable>
           </ThemedView>
+          </ScrollView>
         </ThemedView>
       </ThemedView>
     </Modal>
@@ -314,6 +320,8 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 500,
+    maxHeight: '85%',
+    minHeight: 200,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -322,6 +330,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  scrollView: {
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   title: {
     marginBottom: 16,
