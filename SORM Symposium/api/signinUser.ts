@@ -1,5 +1,5 @@
 import { supabase } from "@/constants/supabase";
-import { isAdminEmail, isAttendeeContact, isAttendeeEmail, verifyAttendeeContact } from "@/services/attendees";
+import { isAdminEmail, isAttendeeContact, isAttendeeEmail, updateAttendeePhone, verifyAttendeeContact } from "@/services/attendees";
 
 /**
  * Check if an email is registered as an admin/organizer
@@ -194,6 +194,11 @@ export async function verifyOTP(contact: string, token: string, attendeeEmail?: 
     // Get the attendee info - use provided attendeeEmail if available, otherwise use contact
     const attendeeContactForLookup = attendeeEmail || contact;
     const attendee = await verifyAttendeeContact(attendeeContactForLookup);
+    
+    // If this is phone verification and we have an attendeeEmail, save the phone number
+    if (!isEmail && attendeeEmail) {
+      await updateAttendeePhone(attendeeEmail, contact);
+    }
     
     return {
       verified: true,

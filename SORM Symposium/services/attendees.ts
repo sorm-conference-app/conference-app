@@ -234,6 +234,35 @@ export async function updateContactSharingPreferences(
   return updatedAttendee;
 }
 
+/**
+ * Update an attendee's phone number after successful verification
+ * @param email - The attendee's email for identification
+ * @param phone - The verified phone number to save
+ * @returns The updated attendee object
+ */
+export async function updateAttendeePhone(email: string, phone: string): Promise<Attendee> {
+  // Normalize phone number to E.164 format for consistent database storage
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  const { data, error } = await supabase
+    .from('attendee_info')
+    .update({ phone: normalizedPhone })
+    .eq('email', email.toLowerCase())
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating attendee phone:', error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No attendee found with the provided email');
+  }
+
+  return data;
+}
+
 export async function getAttendeeContactList(): Promise<Attendee[]> {
   const { data, error } = await supabase
     .from('attendee_info')
