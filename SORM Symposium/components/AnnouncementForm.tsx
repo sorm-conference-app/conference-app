@@ -2,11 +2,11 @@ import { Colors } from '@/constants/Colors'
 import { supabase } from '@/constants/supabase'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import React from 'react'
-import { Alert, Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from './ThemedText'
 import ThemedTextInput from './ThemedTextInput'
-
 import { ThemedView } from './ThemedView'
+import { showSuccessMessage, showErrorMessage } from '@/lib/alerts'
 
 /**
  * A form component for submitting announcements to the test_announcements table in Supabase.
@@ -29,7 +29,7 @@ export default function AnnouncementForm() {
    */
   async function handleSubmit() {
     if (!title.trim() || !body.trim()) {
-      Alert.alert('Error', 'Both title and body are required')
+      showErrorMessage('Both title and body are required')
       return
     }
     setLoading(true)
@@ -37,9 +37,9 @@ export default function AnnouncementForm() {
     const { error } = await supabase.from('test_announcements').insert({ title, body })
     setLoading(false)
     if (error) {
-      Alert.alert('Error', error.message)
+      showErrorMessage(error.message)
     } else {
-      Alert.alert('Success', 'Announcement posted!')
+      showSuccessMessage('Announcement posted!')
       setTitle('')
       setBody('')
     }

@@ -16,7 +16,7 @@ export type Database = {
           first_name: string | null
           id: number
           last_name: string | null
-          phone_number: string | null
+          phone: string | null
         }
         Insert: {
           created_at?: string
@@ -24,7 +24,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone_number?: string | null
+          phone?: string | null
         }
         Update: {
           created_at?: string
@@ -32,31 +32,34 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone_number?: string | null
+          phone?: string | null
         }
         Relationships: []
       }
       event_attendees: {
         Row: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id: number
           notified: boolean
           rsvp_at: string
+          attendee_id: number
         }
         Insert: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Update: {
-          attendee_device_id?: string
+          attendee_device_id?: string | null
           event_id?: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Relationships: [
           {
@@ -85,10 +88,9 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker: string | null
-          speaker_bio: string | null
           speaker_name: string | null
           speaker_title: string | null
+          speaker_email: string | null
           start_time: string
           title: string
           topic: string | null
@@ -102,10 +104,9 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
+          speaker_email?: string | null
           start_time: string
           title: string
           topic?: string | null
@@ -119,10 +120,9 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
           speaker_name?: string | null
           speaker_title?: string | null
+          speaker_email?: string | null
           start_time?: string
           title?: string
           topic?: string | null
@@ -134,19 +134,22 @@ export type Database = {
           body: string
           created_at: string
           id: number
-          title: string | null
+          title: string
+          type: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: number
-          title?: string | null
+          title?: string
+          type?: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: number
-          title?: string | null
+          title?: string
+          type?: string
         }
         Relationships: []
       }
@@ -173,6 +176,7 @@ export type Database = {
           id: number;
           created_at: string;
           email: string;
+          phone: string | null;
           name: string | null;
           organization: string | null;
           title: string | null;
@@ -185,6 +189,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -197,6 +202,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email?: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -243,12 +249,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      verification_codes: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Insert: {
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          code?: string;
+          has_been_used?: boolean;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_contact_sharing_info: {
+        Args: {
+          user_email?: string | null
+          user_phone?: string | null
+          share_info_val: boolean
+          name_val?: string | null
+          organization_val?: string | null
+          title_val?: string | null
+          additional_info_val?: string
+          seen_popup_val?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -131,14 +131,14 @@ export default function EventDetailScreen() {
               {event.speaker_title && (
                 <ThemedText>{event.speaker_title}</ThemedText>
               )}
-              {event.speaker_bio && (
-                <ThemedText style={styles.bio}>{event.speaker_bio}</ThemedText>
+              {event.speaker_email && (
+                <ThemedText style={styles.bio}>{event.speaker_email}</ThemedText>
               )}
             </ThemedView>
 
             {event.slides_url && (
               <ThemedView style={styles.section}>
-                <ThemedText type="link" onPress={openSlides}>
+                <ThemedText type="link" style={{ color: Colors[colorScheme].link }} onPress={openSlides}>
                   View Presentation Slides
                 </ThemedText>
               </ThemedView>

@@ -1,17 +1,18 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { checkMultipleFields } from '@/lib/wordFilter';
 import type { Attendee } from '@/services/attendees';
 import React, { useEffect, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { ThemedText } from './ThemedText';
-import ThemedTextInput from './ThemedTextInput';
-import { ThemedView } from './ThemedView';
+import { ThemedText } from '../ThemedText';
+import ThemedTextInput from '../ThemedTextInput';
+import { ThemedView } from '../ThemedView';
 
 interface ContactSharingModalProps {
   visible: boolean;
   attendee: Attendee | null;
-  onDontShare: (additionalInfo: string) => void;
-  onShare: (additionalInfo: string) => void;
+  onDontShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
+  onShare: (additionalInfo: string, name?: string, organization?: string, title?: string) => void;
   onClose: () => void;
 }
 
@@ -28,30 +29,72 @@ export default function ContactSharingModal({
 }: ContactSharingModalProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const [step, setStep] = useState<'choice' | 'additional-info'>('choice');
+  const [name, setName] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [title, setTitle] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
+  const [filterError, setFilterError] = useState('');
 
   // Reset state when modal becomes visible
   useEffect(() => {
     if (visible && attendee) {
       setStep('choice');
+      setName(attendee.name || '');
+      setOrganization(attendee.organization || '');
+      setTitle(attendee.title || '');
       setAdditionalInfo(attendee.additional_info || '');
+      setFilterError('');
     }
   }, [visible, attendee]);
 
+  /**
+   * Check all fields for inappropriate content
+   * @returns True if content is appropriate, false if filtered content found
+   */
+  const validateContent = (): boolean => {
+    const fields = {
+      name: name,
+      organization: organization,
+      title: title,
+      'additional information': additionalInfo,
+    };
+
+    const result = checkMultipleFields(fields);
+    
+    if (result.isFiltered) {
+      const fieldNames = result.fieldsWithIssues.join(', ');
+      setFilterError(`Please remove inappropriate content from: ${fieldNames}`);
+      return false;
+    }
+    
+    setFilterError('');
+    return true;
+  };
+
   const handleDontShareClick = () => {
-    onDontShare(additionalInfo);
+    if (!validateContent()) {
+      return;
+    }
+    onDontShare(additionalInfo, name, organization, title);
   };
 
   const handleShareClick = () => {
+    if (!validateContent()) {
+      return;
+    }
     setStep('additional-info');
   };
 
   const handleSaveWithAdditionalInfo = () => {
-    onShare(additionalInfo);
+    if (!validateContent()) {
+      return;
+    }
+    onShare(additionalInfo, name, organization, title);
   };
 
   const handleBackToChoice = () => {
     setStep('choice');
+    setFilterError(''); // Clear error when going back
   };
 
   if (!attendee) return null;
@@ -86,33 +129,50 @@ export default function ContactSharingModal({
                 styles.infoContainer,
                 { backgroundColor: Colors[colorScheme].background }
               ]}>
-                <ThemedText type="subtitle" style={styles.infoHeader}>
-                  Your Information:
-                </ThemedText>
-                
+                <ThemedView style={[styles.infoRow, { flexWrap: 'wrap' }]}>
+                  <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
+                  <ThemedText style={[styles.infoValue, { textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
+                </ThemedView>
+
                 {attendee.name && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Name:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.name}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Enter your name"
+                      accessibilityLabel="Name"
+                      accessibilityHint="Name of the attendee"
+                    />
                   </ThemedView>
                 )}
-                
-                <ThemedView style={styles.infoRow}>
-                  <ThemedText style={styles.infoLabel}>Email:</ThemedText>
-                  <ThemedText style={styles.infoValue}>{attendee.email}</ThemedText>
-                </ThemedView>
                 
                 {attendee.organization && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.organization}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={organization}
+                      onChangeText={setOrganization}
+                      placeholder="Enter your organization"
+                      accessibilityLabel="Organization"
+                      accessibilityHint="Organization of the attendee"
+                    />
                   </ThemedView>
                 )}
                 
                 {attendee.title && (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Title:</ThemedText>
-                    <ThemedText style={styles.infoValue}>{attendee.title}</ThemedText>
+                    <ThemedTextInput 
+                      style={styles.infoInput}
+                      value={title}
+                      onChangeText={setTitle}
+                      placeholder="Enter your title"
+                      accessibilityLabel="Title"
+                      accessibilityHint="Title of the attendee"
+                    />
                   </ThemedView>
                 )}
               </ThemedView>
@@ -160,6 +220,11 @@ export default function ContactSharingModal({
                 </Pressable>
                 }
               </ThemedView>
+
+              {/* Filter error message */}
+              {filterError && (
+                <ThemedText style={styles.filterError}>{filterError}</ThemedText>
+              )}
             </>
           ) : (
             // Step 2: Additional information input
@@ -234,6 +299,11 @@ export default function ContactSharingModal({
                   </ThemedText>
                 </Pressable>
               </ThemedView>
+
+              {/* Filter error message */}
+              {filterError && (
+                <ThemedText style={styles.filterError}>{filterError}</ThemedText>
+              )}
             </ScrollView>
           )}
         </ThemedView>
@@ -301,7 +371,12 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     flex: 1,
+    fontSize: 16,
+  },
+  infoInput: {
+    flex: 1,
     fontSize: 14,
+    padding: 5,
   },
   changeText: {
     textAlign: 'center',
@@ -349,5 +424,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: '600',
     fontSize: 16,
+  },
+  filterError: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 12,
+    fontSize: 14,
   },
 }); 

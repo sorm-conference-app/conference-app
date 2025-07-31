@@ -1,21 +1,24 @@
 import { AgendaEditor } from "@/components/AgendaViewer/AgendaEditor";
 import AnnouncementForm from "@/components/AnnouncementForm";
-import ContactEditForm from "@/components/ContactEditForm";
+import { useLoginFlow } from "@/components/LoginFlowProvider";
+import ContactEditForm from "@/components/Networking/ContactEditForm";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import useActiveUserCount from "@/hooks/useActiveUserCount";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Redirect } from "expo-router";
 import React, { useRef } from "react";
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  TextStyle,
-  View,
-  ViewStyle,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    TextStyle,
+    View,
+    ViewStyle,
 } from "react-native";
 
 function capitalize(s: string) {
@@ -80,10 +83,16 @@ function UserStatsSection({
 export default function Admin() {
   const activeUsers = useActiveUserCount();
   const user = useSupabaseAuth();
+  const isAdmin = useIsAdmin();
+  const { loginFlow } = useLoginFlow();
   const scrollViewRef = useRef<ScrollView>(null);
   const agendaEditorRef = useRef<View>(null);
 
   if (!user) {
+    return <Redirect href="/(tabs)/home" />;
+  }
+
+  if (!isAdmin || loginFlow !== 'organizer' || Platform.OS !== 'web') {
     return <Redirect href="/(tabs)/home" />;
   }
 

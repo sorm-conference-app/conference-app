@@ -1,17 +1,16 @@
-import { StyleSheet, RefreshControl, ScrollView, Pressable, Platform } from "react-native";
+import { Colors } from "@/constants/Colors";
+import { supabase } from "@/constants/supabase";
+import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useContactSharingModal } from "@/hooks/useContactSharingModal";
+import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { Attendee, getAttendeeByContact } from "@/services/attendees";
+import React from "react";
+import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
-import React from "react";
-import { Colors } from "@/constants/Colors";
 import ContactRow from "./contactRow";
-import { getVerifiedEmails } from "@/lib/attendeeStorage";
-import { Attendee, getAttendeeByEmail } from "@/services/attendees";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { useContactSharingModal } from "@/hooks/useContactSharingModal";
-import ContactSharingModal from "../ContactSharingModal";
-import { supabase } from "@/constants/supabase";
+import ContactSharingModal from "./ContactSharingModal";
 
 interface AttendeeContactListProps {
   reloadTrigger?: number;
@@ -39,9 +38,9 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
 
   // Set up real-time subscription for current user's attendee record
   React.useEffect(() => {
-    if (!attendee?.email) return;
+    if (!attendee?.id) return;
 
-    console.log('Setting up real-time subscription for user:', attendee.email);
+    console.log('Setting up real-time subscription for user ID:', attendee.id);
     
     const channel = supabase
       .channel(`user_attendee_${attendee.id}`)
@@ -50,7 +49,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           event: 'UPDATE',
           schema: 'public',
           table: 'attendee_info',
-          filter: `email=eq.${attendee.email}`
+          filter: `id=eq.${attendee.id}`
         }, 
         (payload: any) => {
           console.log('User attendee record updated:', payload);
@@ -67,7 +66,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
       console.log('Cleaning up user attendee subscription');
       supabase.removeChannel(channel);
     };
-  }, [attendee?.email, attendee?.id]);
+  }, [attendee?.id]);
 
   // Refresh contacts when reloadTrigger changes
   React.useEffect(() => {
@@ -79,28 +78,23 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
 
   async function loadUserInfo() {
     try {
-      const verifiedEmails = await getVerifiedEmails();
-      const firstVerifiedEmail = verifiedEmails.length > 0 ? verifiedEmails[0] : null;
+      // Get current user contact from authenticated session
+      const userContact = session?.user?.email || session?.user?.phone;
       
-      // If we have a verified email, fetch the user's share_info preference
-      if (firstVerifiedEmail) {
-        setAttendee(await getAttendeeByEmail(firstVerifiedEmail));
+      if (userContact) {
+        setAttendee(await getAttendeeByContact(userContact));
       } else {
-        // If we don't have a verified email, see if the user is logged in as an admin
-        // If they are, get their email from their authentication info
-        if (session?.user?.email) {
-          setAttendee(await getAttendeeByEmail(session.user.email ?? ""));
-        }
+        setAttendee(null);
       }
     } catch (error) {
       console.error('Error loading user info:', error);
     }
   }
 
-  const handleContactSharingDontShare = async (additionalInfo: string) => {
+  const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(false, additionalInfo);
+      await saveContactSharingPreferences(false, additionalInfo, name, organization, title);
       await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
@@ -108,10 +102,10 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     refresh();
   };
 
-  const handleContactSharingShare = async (additionalInfo: string) => {
+  const handleContactSharingShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
     try {
-      await saveContactSharingPreferences(true, additionalInfo);
+      await saveContactSharingPreferences(true, additionalInfo, name, organization, title);
       await loadUserInfo(); // Reload user's info to update the status text
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
