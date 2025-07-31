@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "YourAppName",
+    "name": "SORM Symposium",
     "slug": "conference-app",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/images/icon.png",
-    "scheme": "yourappname",
+    "icon": "./assets/images/favicon.png",
+    "scheme": "sormsymposium",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/favicon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
