@@ -74,6 +74,8 @@ export async function getAttendeeByPhone(phone: string): Promise<Attendee | null
     .from('attendee_info')
     .select('*')
     .eq('phone', normalizedPhone)
+    .order('id', { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (error) {
@@ -232,6 +234,35 @@ export async function updateContactSharingPreferences(
     throw new Error('Failed to fetch updated attendee');
   }
   return updatedAttendee;
+}
+
+/**
+ * Update an attendee's phone number after successful verification
+ * @param email - The attendee's email for identification
+ * @param phone - The verified phone number to save
+ * @returns The updated attendee object
+ */
+export async function updateAttendeePhone(email: string, phone: string): Promise<Attendee> {
+  // Normalize phone number to E.164 format for consistent database storage
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  const { data, error } = await supabase
+    .from('attendee_info')
+    .update({ phone: normalizedPhone })
+    .eq('email', email.toLowerCase())
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating attendee phone:', error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No attendee found with the provided email');
+  }
+
+  return data;
 }
 
 export async function getAttendeeContactList(): Promise<Attendee[]> {
