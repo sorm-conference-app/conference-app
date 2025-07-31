@@ -3,7 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { formatTimeRange } from "@/lib/dateTime";
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, StyleSheet } from "react-native";
@@ -41,7 +41,7 @@ export default function AgendaItem({
   const tintColor = Colors[colorScheme].tint;
   const topicColor = getTopicColor(topic ?? null);
   const topicName = formatTopicName(topic ?? null);
-  const user = useSupabaseAuth();
+  const isAdmin = useIsAdmin();
   const [containerWidth, setContainerWidth] = useState(0);
 
   return (
@@ -126,7 +126,7 @@ export default function AgendaItem({
             <ThemedText style={styles.location}>{location}</ThemedText>
           </ThemedView>
         )}
-        {!user && (
+        {!isAdmin && (
           <ThemedView style={styles.saveButton}>
             <AgendaItemSaveButton
               eventId={id}

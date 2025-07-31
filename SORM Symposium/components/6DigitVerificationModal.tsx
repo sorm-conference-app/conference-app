@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { checkCode } from '@/hooks/use6DigitVerification';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Platform, Dimensions } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
 import { ThemedView } from './ThemedView';
@@ -192,114 +192,114 @@ export default function SixDigitVerificationModal({
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-          <ThemedText type="title" style={styles.title}>
-            {getTitle()}
-          </ThemedText>
-          
-          <ThemedText style={styles.message}>
-            {getMessage()}
-          </ThemedText>
-
-          <ThemedView style={[
-            styles.emailContainer,
-            { backgroundColor: Colors[colorScheme].background }
-          ]}>
-            <ThemedText type="subtitle" style={styles.emailHeader}>
-              {mode === 'email_verification' ? 'Verification Email Sent To:' : `Code sent to your ${contactMethod}:`}
+            <ThemedText type="title" style={styles.title}>
+              {getTitle()}
             </ThemedText>
-            <ThemedText style={styles.emailAddress}>{getContactDisplay()}</ThemedText>
-            {mode === 'email_verification' && (
-              <ThemedText style={styles.emailSource}>
-                From: sorm.symposium@gmail.com
-              </ThemedText>
-            )}
-          </ThemedView>
-
-          {mode === 'email_verification' && (
+            
             <ThemedText style={styles.message}>
-              Check your spam folder if you don&apos;t see it in your inbox.
+              {getMessage()}
             </ThemedText>
-          )}
 
-          <ThemedView style={[
-            styles.codeContainer,
-            { backgroundColor: Colors[colorScheme].background }
-          ]}>
-            <ThemedText style={styles.codeLabel}>
-              Enter the 6-digit verification code:
-            </ThemedText>
-            <ThemedTextInput
-              value={verificationCode}
-              onChangeText={(text) => {
-                // Only allow digits and limit to 6 characters
-                setVerificationCode((text.replace(/[^0-9]/g, '')).slice(0, 6));
-              }}
-              placeholder="000000"
-              keyboardType="numeric"
-              maxLength={6}
-              style={styles.codeInput}
-              accessibilityLabel="Verification code input field"
-              accessibilityHint="Enter the 6-digit verification code sent to your contact"
-              autoFocus={true}
-            />
-            {isVerifying && (
-              <ThemedText style={styles.verifyingText}>
-                Verifying...
-              </ThemedText>
-            )}
-          </ThemedView>
-
-          {(error !== '') && (
             <ThemedView style={[
-              styles.errorContainer,
+              styles.emailContainer,
               { backgroundColor: Colors[colorScheme].background }
             ]}>
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
+              <ThemedText type="subtitle" style={styles.emailHeader}>
+                {mode === 'email_verification' ? 'Verification Email Sent To:' : `Code sent to your ${contactMethod}:`}
+              </ThemedText>
+              <ThemedText style={styles.emailAddress}>{getContactDisplay()}</ThemedText>
+              {mode === 'email_verification' && (
+                <ThemedText style={styles.emailSource}>
+                  From: sorm.symposium@gmail.com
+                </ThemedText>
+              )}
             </ThemedView>
-          )}
 
-          <ThemedText style={styles.instructionText}>
-            The code will automatically verify when you enter all 6 digits.
-          </ThemedText>
-
-          <ThemedView style={styles.buttonContainer}>
-            <Pressable
-              style={[
-                styles.button,
-                styles.secondaryButton,
-                { backgroundColor: cooldown > 0 ? Colors[colorScheme].tabIconDefault : Colors[colorScheme].adminButton }
-              ]}
-              onPress={handleResendCode}
-              disabled={isResending || cooldown > 0}
-            >
-              <ThemedText style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].adminButtonText }
-              ]}>
-                {isResending 
-                ? 'Resending...' 
-                : cooldown > 0 
-                  ? `Resend Code (${cooldown}s)` 
-                  : 'Resend Code'}
+            {mode === 'email_verification' && (
+              <ThemedText style={styles.message}>
+                Check your spam folder if you don&apos;t see it in your inbox.
               </ThemedText>
-            </Pressable>
+            )}
 
-            <Pressable
-              style={[
-                styles.button,
-                styles.secondaryButton,
-                { backgroundColor: Colors[colorScheme].tabIconDefault }
-              ]}
-              onPress={handleCancel}
-            >
-              <ThemedText style={[
-                styles.buttonText,
-                { color: Colors[colorScheme].background }
-              ]}>
-                Cancel
+            <ThemedView style={[
+              styles.codeContainer,
+              { backgroundColor: Colors[colorScheme].background }
+            ]}>
+              <ThemedText style={styles.codeLabel}>
+                Enter the 6-digit verification code:
               </ThemedText>
-            </Pressable>
-          </ThemedView>
+              <ThemedTextInput
+                value={verificationCode}
+                onChangeText={(text) => {
+                  // Only allow digits and limit to 6 characters
+                  setVerificationCode((text.replace(/[^0-9]/g, '')).slice(0, 6));
+                }}
+                placeholder="000000"
+                keyboardType="numeric"
+                maxLength={6}
+                style={styles.codeInput}
+                accessibilityLabel="Verification code input field"
+                accessibilityHint="Enter the 6-digit verification code sent to your contact"
+                autoFocus={true}
+              />
+              {isVerifying && (
+                <ThemedText style={styles.verifyingText}>
+                  Verifying...
+                </ThemedText>
+              )}
+            </ThemedView>
+
+            {(error !== '') && (
+              <ThemedView style={[
+                styles.errorContainer,
+                { backgroundColor: Colors[colorScheme].background }
+              ]}>
+                <ThemedText style={styles.errorText}>{error}</ThemedText>
+              </ThemedView>
+            )}
+
+            <ThemedText style={styles.instructionText}>
+              The code will automatically verify when you enter all 6 digits.
+            </ThemedText>
+
+            <ThemedView style={styles.buttonContainer}>
+              <Pressable
+                style={[
+                  styles.button,
+                  styles.secondaryButton,
+                  { backgroundColor: cooldown > 0 ? Colors[colorScheme].tabIconDefault : Colors[colorScheme].adminButton }
+                ]}
+                onPress={handleResendCode}
+                disabled={isResending || cooldown > 0}
+              >
+                <ThemedText style={[
+                  styles.buttonText,
+                  { color: Colors[colorScheme].adminButtonText }
+                ]}>
+                  {isResending 
+                  ? 'Resending...' 
+                  : cooldown > 0 
+                    ? `Resend Code (${cooldown}s)` 
+                    : 'Resend Code'}
+                </ThemedText>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.button,
+                  styles.secondaryButton,
+                  { backgroundColor: Colors[colorScheme].tabIconDefault }
+                ]}
+                onPress={handleCancel}
+              >
+                <ThemedText style={[
+                  styles.buttonText,
+                  { color: Colors[colorScheme].background }
+                ]}>
+                  Cancel
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
           </ScrollView>
         </ThemedView>
       </ThemedView>
@@ -314,13 +314,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingHorizontal: 20,
+    position: 'absolute',
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
   },
   modalContent: {
     borderRadius: 20,
     padding: 24,
     width: '100%',
     maxWidth: 500,
-    maxHeight: '85%',
+    maxHeight: 620,
     minHeight: 200,
     shadowColor: '#000',
     shadowOffset: {
