@@ -52,68 +52,37 @@ const sponsors: Sponsor[] = [
   {
     id: "3",
     name: "Gallagher",
-    description: "...",
+    description: "Welcome to Gallagher: A leading global insurance brokerage, risk management, and consulting firm founded in 1927",
     level: "Ultra-Resilient",
     logo: "../assets/images/SponsorLogos/gallagher-logo.jpg",
-    contactInfo: [],
-    website: "http://www.gallagher.com",
+    contactInfo: [
+      {
+        name: "Therese O'Brien",
+        email: "therese_obrien@ajg.com",
+        phone: "",
+      },
+      {
+        name: "Paul Pousson",
+        email: "paul_pousson@ajg.com",
+        phone: "",
+      },
+    ],
+    website: "https://www.ajg.com/insurance/business-continuity-planning",
   },
   {
     id: "4",
     name: "TTP",
-    description: "...",
+    description: " Is your organization ready for the unexpected? At Tactics, Techniques, and Procedures, LLC, (TTP, LLC) we combine decades of cross-functional expertise to fortify your business against today's threats and tomorrow's challenges. Our consultants deliver comprehensive solutions across multiple disciplines. From Business Continuity, Emergency Management, OSHA compliance, Threat and Vulnerability Assessments to Crisis Communications, Risk Management, Information, Personnel, and Industrial Security programs. Whether you're strengthening your workforce, safeguarding sensitive assets, or preparing for crises, TTP, LLC stands as your unwavering partner. We don’t just advise—we empower, protect, and prepare your organization to thrive in uncertainty.",
     level: "Ultra-Resilient",
-    logo: "../assets/images/Spo nsorLogos/ttp-logo.png",
-    contactInfo: [],
+    logo: "../assets/images/SponsorLogos/ttp-logo.png",
+    contactInfo: [
+      {
+        name: "Chris Bygum",
+        email: "cbygum@gmail.com",
+        phone: "805-889-1807",
+      },
+    ],
     website: undefined
-  },
-  {
-    id: "5",
-    name: "DataFlow Systems",
-    description:
-      "Enterprise data management and analytics platform provider, helping organizations make data-driven decisions.",
-    level: "Resilient",
-    logo: null,
-    contactInfo: [
-      {
-        name: "DataFlow Systems",
-        email: "info@dataflow.com",
-        phone: "",
-      },
-    ],
-    website: "https://dataflow.com",
-  },
-  {
-    id: "6",
-    name: "CloudNet Pro",
-    description:
-      "Professional cloud networking services and infrastructure solutions for growing businesses.",
-    level: "Resilient",
-    logo: null,
-    contactInfo: [
-      {
-        name: "CloudNet Pro",
-        email: "support@cloudnetpro.com",
-        phone: "",
-      },
-    ],
-    website: "https://cloudnetpro.com",
-  },
-  {
-    id: "7",
-    name: "SecureTech",
-    description:
-      "Cybersecurity solutions provider specializing in protecting digital assets and ensuring compliance.",
-    level: "TBD",
-    logo: null,
-    contactInfo: [
-      {
-        name: "SecureTech",
-        email: "security@securetech.com",
-        phone: "",
-      },
-    ],
-    website: "https://securetech.com",
   },
 ];
 

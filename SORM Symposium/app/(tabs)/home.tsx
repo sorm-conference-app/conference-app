@@ -126,7 +126,7 @@ export default function Home() {
           transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
-          Your feedback is important to us! Please take a moment to fill out our survey about the day&apos;s events.
+          Your feedback is important! Please complete a survey each day you are at the Symposium. Thank you
         </ThemedText>
         <Pressable 
           onPress={handleSurveyPress}
