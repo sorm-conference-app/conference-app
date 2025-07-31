@@ -74,7 +74,9 @@ export async function getAttendeeByPhone(phone: string): Promise<Attendee | null
     .from('attendee_info')
     .select('*')
     .eq('phone', normalizedPhone)
-    .single();
+    .order('id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     if (error.code === 'PGRST116') {
