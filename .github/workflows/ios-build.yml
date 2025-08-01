@@ -23,12 +23,10 @@ jobs:
           node-version: "18"
 
       - name: Install dependencies
-        run: cd ./'SORM Symposium' && npm install
-      
+        run: cd ./'SORM Symposium' && npm install && npm install -g expo-cli
+
       - name: Prebuild iOS app
         run: |
-          # Ensure the Expo CLI is installed
-          expo install expo-cli
           # Build the iOS app using Expo
           expo build:ios --non-interactive --no-wait --release-channel production
-          ls 
+          ls
