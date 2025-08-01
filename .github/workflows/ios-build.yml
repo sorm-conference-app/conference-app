@@ -3,7 +3,7 @@ name: Publish iOS App
 on:
   push:
     branches:
-      - main
+      - ios-build-pipeline
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
