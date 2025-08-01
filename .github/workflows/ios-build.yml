@@ -28,5 +28,5 @@ jobs:
       - name: Prebuild iOS app
         run: |
           # Build the iOS app using Expo
-          npx expo build:ios --non-interactive --no-wait --release-channel production
+          npx expo prebuild:ios --non-interactive --no-wait --release-channel production
           ls
