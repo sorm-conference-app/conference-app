@@ -30,4 +30,4 @@ jobs:
           # Build the iOS app using Expo
           cd ./'SORM Symposium'
           npx expo prebuild -p ios
-          ls -R /ios
+          ls -R ./ios
