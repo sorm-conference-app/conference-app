@@ -28,5 +28,5 @@ jobs:
       - name: Prebuild iOS app
         run: |
           # Build the iOS app using Expo
-          npx expo prebuild --p ios
+          npx expo prebuild -p ios
           ls
