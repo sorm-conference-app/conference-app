@@ -42,9 +42,10 @@ export const events = sqliteTable("events", {
   start_time: text().notNull(),
   end_time: text().notNull(),
   location: text().notNull(),
-  speaker_name: text(),
-  speaker_title: text(),
-  speaker_email: text(),
+  speaker_name: text(), // Will store array of speaker names
+  speaker_title: text(), // Will store array of speaker titles
+  speaker_bio: text(), // Will store array of speaker bios
+  speaker_company: text(), // Will store array of speaker companies
   topic: text(),
   slides_url: text(),
   is_deleted: int().notNull().default(0),

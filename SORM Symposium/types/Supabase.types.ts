@@ -88,9 +88,10 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker_name: string | null
-          speaker_title: string | null
-          speaker_email: string | null
+          speaker_name: string[] | null
+          speaker_title: string[] | null
+          speaker_bio: string[] | null
+          speaker_company: string[] | null
           start_time: string
           title: string
           topic: string | null
@@ -104,9 +105,10 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
-          speaker_email?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time: string
           title: string
           topic?: string | null
@@ -120,9 +122,10 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
-          speaker_email?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time?: string
           title?: string
           topic?: string | null

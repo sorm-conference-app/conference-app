@@ -26,7 +26,7 @@ export function SpecialEventGroup({
     const longestDuration = convert24HrTimeToSeconds(longest.end_time) - convert24HrTimeToSeconds(longest.start_time);
     return currDuration > longestDuration ? curr : longest;
   }, mainEvent);
-  const [longestEventHeight, setLongestEventHeight] = useState(longestEvent.topic === "Break" ? 50 : 
+  const [longestEventHeight, setLongestEventHeight] = useState(longestEvent.topic === "Break" ? 100 : 
     calculateHeight(longestEvent.start_time, longestEvent.end_time));
 
   // All other events that overlap with the longest event, sorted by start time
@@ -34,15 +34,20 @@ export function SpecialEventGroup({
     .filter(e => e.id !== longestEvent.id && areTimesConflicting(longestEvent.start_time, longestEvent.end_time, e.start_time, e.end_time))
     .sort((a, b) => convert24HrTimeToSeconds(a.start_time) - convert24HrTimeToSeconds(b.start_time));
 
+  // Not sure what exactly the logic is here, but it works for our situation and data
   useEffect(() => {
     setLongestEventHeight(prevHeight => {
-      let totalHeight = longestEvent.topic === "Break" ? 50 : 
+      let totalHeight = longestEvent.topic === "Break" ? 100 : 
         calculateHeight(longestEvent.start_time, longestEvent.end_time);
       
       for (const event of otherEvents) {
         if (event.id !== otherEvents[0].id) {
-          const offset = calculateEventOffset(otherEvents[otherEvents.length - 1].end_time, event.start_time) + 16;
-          totalHeight += offset;
+          const offset = calculateEventOffset(otherEvents[otherEvents.length - 1].end_time, event.start_time);
+          if (event.topic === "Break") {
+            totalHeight += 80;
+          } else {
+            totalHeight += offset;
+          }
         }
       }
       
@@ -97,7 +102,7 @@ export function SpecialEventGroup({
               hasRSVP={rsvpEventIds.has(event.id)}
               setRsvpEventIds={setRsvpEventIds}
               topic={event.topic}
-              height={event.topic === "Break" ? 50 : calculateHeight(event.start_time, event.end_time)}
+              height={event.topic === "Break" ? 100 : calculateHeight(event.start_time, event.end_time)}
               onPress={() => onSelectEvent(event)}
             />
           </View>

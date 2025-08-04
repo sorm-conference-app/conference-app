@@ -3,6 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors, TopicColors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import type { Event } from "@/types/Events.types";
+import { parseSpeakerString, formatSpeakersForDisplay } from "@/lib/speakerUtils";
 import React, { useEffect, useState } from "react";
 import {
   Pressable,
@@ -31,9 +32,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [endTime, setEndTime] = useState(event?.end_time ?? "");
   const [eventDate, setEventDate] = useState(event?.event_date ?? "");
   const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? "");
-  const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? "");
-  const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? "");
-  const [speakerEmail, setSpeakerEmail] = useState(event?.speaker_email ?? "");
+  const [speakerNames, setSpeakerNames] = useState<string[]>([]);
+  const [speakerTitles, setSpeakerTitles] = useState<string[]>([]);
+  const [speakerBios, setSpeakerBios] = useState<string[]>([]);
+  const [speakerCompanies, setSpeakerCompanies] = useState<string[]>([]);
   const [topic, setTopic] = useState(event?.topic ?? "General");
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
@@ -45,9 +47,13 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     setEndTime(event?.end_time ?? "");
     setEventDate(event?.event_date ?? "");
     setSlidesUrl(event?.slides_url ?? "");
-    setSpeakerName(event?.speaker_name ?? "");
-    setSpeakerTitle(event?.speaker_title ?? "");
-    setSpeakerEmail(event?.speaker_email ?? "");
+    
+    // Use speaker data directly as arrays from Supabase
+    setSpeakerNames(event?.speaker_name ?? []);
+    setSpeakerTitles(event?.speaker_title ?? []);
+    setSpeakerBios(event?.speaker_bio ?? []);
+    setSpeakerCompanies(event?.speaker_company ?? []);
+    
     setTopic(event?.topic ?? "General");
     setCanSubmit(event ? true : false);
   }, [event]);
@@ -67,9 +73,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       created_at: event?.created_at ?? new Date().toISOString(),
       slides_url: slidesUrl,
       event_date: eventDate,
-      speaker_name: speakerName,
-      speaker_title: speakerTitle,
-      speaker_email: speakerEmail,
+      speaker_name: speakerNames.length > 0 ? speakerNames : null,
+      speaker_title: speakerTitles.length > 0 ? speakerTitles : null,
+      speaker_bio: speakerBios.length > 0 ? speakerBios : null,
+      speaker_company: speakerCompanies.length > 0 ? speakerCompanies : null,
       is_deleted: event?.is_deleted ?? false,
       topic: topic === "General" ? null : topic,
     });
@@ -319,7 +326,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Name</ThemedText>
+          <ThemedText>Speaker Names</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -329,18 +336,21 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerName}
-            onChangeText={setSpeakerName}
-            placeholder="Full name of the speaker"
+            value={speakerNames.join('; ')}
+            onChangeText={(text) => {
+              const names = text.split(';').map(name => name.trim()).filter(name => name.length > 0);
+              setSpeakerNames(names);
+            }}
+            placeholder="Speaker names separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker name input field"
-            accessibilityHint="Enter the full name of the speaker"
+            accessibilityLabel="Speaker names input field"
+            accessibilityHint="Enter speaker names separated by semicolons"
             accessibilityRole="text"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Title</ThemedText>
+          <ThemedText>Speaker Titles</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -350,18 +360,21 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerTitle}
-            onChangeText={setSpeakerTitle}
-            placeholder="Speaker's title or position"
+            value={speakerTitles.join('; ')}
+            onChangeText={(text) => {
+              const titles = text.split(';').map(title => title.trim()).filter(title => title.length > 0);
+              setSpeakerTitles(titles);
+            }}
+            placeholder="Speaker titles separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker title input field"
-            accessibilityHint="Enter the title or position of the speaker"
+            accessibilityLabel="Speaker titles input field"
+            accessibilityHint="Enter speaker titles separated by semicolons"
             accessibilityRole="text"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Email</ThemedText>
+          <ThemedText>Speaker Companies</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -371,12 +384,39 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerEmail}
-            onChangeText={setSpeakerEmail}
-            placeholder="Speaker's email address"
+            value={speakerCompanies.join('; ')}
+            onChangeText={(text) => {
+              const companies = text.split(';').map(company => company.trim()).filter(company => company.length > 0);
+              setSpeakerCompanies(companies);
+            }}
+            placeholder="Speaker companies separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker email input field"
-            accessibilityHint="Enter the email of the speaker"
+            accessibilityLabel="Speaker companies input field"
+            accessibilityHint="Enter speaker companies separated by semicolons"
+            accessibilityRole="text"
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker Bios</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + "40",
+              },
+            ]}
+            value={speakerBios.join('; ')}
+            onChangeText={(text) => {
+              const bios = text.split(';').map(bio => bio.trim()).filter(bio => bio.length > 0);
+              setSpeakerBios(bios);
+            }}
+            placeholder="Speaker bios separated by semicolons"
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Speaker bios input field"
+            accessibilityHint="Enter speaker bios separated by semicolons"
             accessibilityRole="text"
           />
         </View>

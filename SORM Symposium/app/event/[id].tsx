@@ -10,6 +10,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { formatDate, formatTimeRange } from "@/lib/dateTime";
 import { getEventById } from "@/services/events";
 import type { Event } from "@/types/Events.types";
+import { formatSpeakersForDisplay } from "@/lib/speakerUtils";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Linking, ScrollView, StyleSheet } from "react-native";
@@ -119,30 +120,48 @@ export default function EventDetailScreen() {
           </ThemedText>
         </ThemedView>
 
-        {event.speaker_name ? (
-          <>
-            <ThemedView style={styles.section}>
-              <ThemedText type="subtitle">Speaker</ThemedText>
-              <ThemedText type="defaultSemiBold">
-                {event.speaker_name}
-              </ThemedText>
-              {event.speaker_title ? (
-                <ThemedText>{event.speaker_title}</ThemedText>
-              ) : null}
-              {event.speaker_email ? (
-                <ThemedText style={styles.bio}>{event.speaker_email}</ThemedText>
-              ) : null}
-            </ThemedView>
+        {(() => {
+          const speakerNames = event.speaker_name;
+          const speakerTitles = event.speaker_title;
+          const speakerBios = event.speaker_bio;
+          const speakerCompanies = event.speaker_company;
+          
+          if (speakerNames && speakerNames.length > 0) {
+            return (
+              <>
+                <ThemedView style={styles.section}>
+                  <ThemedText type="subtitle">
+                    {speakerNames.length === 1 ? "Speaker" : "Speakers"}
+                  </ThemedText>
+                  {speakerNames.map((name, index) => (
+                    <ThemedView key={index} style={styles.speakerInfo}>
+                      <ThemedText type="defaultSemiBold">{name}</ThemedText>
+                      {(speakerTitles && speakerTitles[index] && speakerCompanies && speakerCompanies[index] && (
+                        <ThemedText>{speakerTitles[index]} at {speakerCompanies[index]}</ThemedText>
+                      )) || (speakerTitles && speakerTitles[index] ? (
+                        <ThemedText>{speakerTitles[index]}</ThemedText>
+                      ) : null) || (speakerCompanies && speakerCompanies[index] && (
+                        <ThemedText style={styles.company}>{speakerCompanies[index]}</ThemedText>
+                      ))}
+                      {speakerBios && speakerBios[index] && (
+                        <ThemedText style={styles.bio}>{speakerBios[index]}</ThemedText>
+                      )}
+                    </ThemedView>
+                  ))}
+                </ThemedView>
 
-            {event.slides_url ? (
-              <ThemedView style={styles.section}>
-                <ThemedText type="link" style={{ color: Colors[colorScheme].link }} onPress={openSlides}>
-                  View Presentation Slides
-                </ThemedText>
-              </ThemedView>
-            ) : null}
-          </>
-        ) : null}
+                {event.slides_url ? (
+                  <ThemedView style={styles.section}>
+                    <ThemedText type="link" style={{ color: Colors[colorScheme].link }} onPress={openSlides}>
+                      View Presentation Slides
+                    </ThemedText>
+                  </ThemedView>
+                ) : null}
+              </>
+            );
+          }
+          return null;
+        })()}
       </ScrollView>
     </ThemedView>
   );
@@ -194,5 +213,13 @@ const styles = StyleSheet.create({
   },
   bio: {
     marginTop: 4,
+  },
+  company: {
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  speakerInfo: {
+    gap: 4,
+    marginBottom: 12,
   },
 });
