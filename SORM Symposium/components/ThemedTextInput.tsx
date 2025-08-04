@@ -1,5 +1,6 @@
 import { TextInput } from "react-native";
 import type { TextInputProps } from "react-native";
+import { Platform } from "react-native";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
 
@@ -33,8 +34,8 @@ export default function ThemedTextInput({
       placeholder={placeholder}
       placeholderTextColor={Colors[colorScheme].tabIconDefault}
       accessibilityLabel={accessibilityLabel || placeholder}
-      accessibilityHint={accessibilityHint}
       accessibilityRole="text"
+      {...(Platform.OS !== 'web' && accessibilityHint ? { accessibilityHint } : {})}
       {...props}
     />
   );

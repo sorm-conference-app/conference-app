@@ -106,6 +106,10 @@ export default function AgendaItem({
               const timeRange = formatTimeRange(startTime, endTime);
               const parts = timeRange.split(' - ');
               
+              // If start and end times are the same, show just the start time
+              if (parts[0] === parts[1]) {
+                return <ThemedText style={styles.time}>{parts[0]}</ThemedText>;
+              }
               // If container is narrow (less than ~120px), wrap at dash
               // Otherwise, keep on one line
               if (parts.length === 2 && containerWidth < 150) {

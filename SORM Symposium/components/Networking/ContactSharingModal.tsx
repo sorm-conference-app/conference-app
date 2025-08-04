@@ -139,7 +139,7 @@ export default function ContactSharingModal({
                   <ThemedText style={[styles.infoValue, { textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
                 </ThemedView>
 
-                {attendee.name && (
+                {attendee.name ? (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Name:</ThemedText>
                     <ThemedTextInput 
@@ -151,9 +151,9 @@ export default function ContactSharingModal({
                       accessibilityHint="Name of the attendee"
                     />
                   </ThemedView>
-                )}
+                ) : null}
                 
-                {attendee.organization && (
+                {attendee.organization ? (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
                     <ThemedTextInput 
@@ -165,9 +165,9 @@ export default function ContactSharingModal({
                       accessibilityHint="Organization of the attendee"
                     />
                   </ThemedView>
-                )}
+                ) : null}
                 
-                {attendee.title && (
+                {attendee.title ? (
                   <ThemedView style={styles.infoRow}>
                     <ThemedText style={styles.infoLabel}>Title:</ThemedText>
                     <ThemedTextInput 
@@ -179,7 +179,7 @@ export default function ContactSharingModal({
                       accessibilityHint="Title of the attendee"
                     />
                   </ThemedView>
-                )}
+                ) : null}
               </ThemedView>
 
               <ThemedText style={styles.changeText}>
@@ -207,7 +207,7 @@ export default function ContactSharingModal({
                   </ThemedText>
                 </Pressable>
                 
-                {attendee.is_admin === false && 
+                {attendee.is_admin === false ? (
                 <Pressable
                   style={[
                     styles.button,
@@ -223,13 +223,13 @@ export default function ContactSharingModal({
                     Don&apos;t Share My Information
                   </ThemedText>
                 </Pressable>
-                }
+                ) : null}
               </ThemedView>
 
               {/* Filter error message */}
-              {filterError && (
+              {filterError ? (
                 <ThemedText style={styles.filterError}>{filterError}</ThemedText>
-              )}
+              ) : null}
             </ScrollView>
           ) : (
             // Step 2: Additional information input

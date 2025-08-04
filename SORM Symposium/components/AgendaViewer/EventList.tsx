@@ -286,7 +286,7 @@ export function EventList({
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={handleRSVPUpdate}
                               topic={item.topic}
-                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                              height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -314,7 +314,7 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={handleRSVPUpdate}
-                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                              height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -332,7 +332,7 @@ export function EventList({
                             hasRSVP={rsvpEventIds.has(item.id)}
                             setRsvpEventIds={handleRSVPUpdate}
                             topic={item.topic}
-                            height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                            height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>
