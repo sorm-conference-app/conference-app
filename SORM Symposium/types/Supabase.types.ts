@@ -274,19 +274,22 @@ export type Database = {
         Row: {
           id: number;
           created_at: string;
-          survey_date: string;
+          survey_start_time: string;
+          survey_end_time: string | null;
           survey_link: string;
         };
         Insert: {
           id?: number;
           created_at?: string;
-          survey_date: string;
+          survey_start_time: string;
+          survey_end_time?: string | null;
           survey_link: string;
         };
         Update: {
           id?: number;
           created_at?: string;
-          survey_date?: string;
+          survey_start_time?: string;
+          survey_end_time?: string | null;
           survey_link?: string;
         };
         Relationships: [];
