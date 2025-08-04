@@ -66,9 +66,10 @@ export default async function signinAdmin(email: string, password: string, onSuc
  * Request OTP for email or phone with attendee identification
  * @param contact Email address or phone number for verification
  * @param attendeeEmail The email used to register (for attendee identification)
+ * @param bypassAdminCheck Whether to bypass the admin check (for cases where user chooses to proceed as attendee)
  * @returns Object with success status and message
  */
-export async function requestOTP(contact: string, attendeeEmail?: string) {
+export async function requestOTP(contact: string, attendeeEmail?: string, bypassAdminCheck: boolean = false) {
   // If attendeeEmail is provided, validate that it's registered first
   if (attendeeEmail) {
     const attendeeExists = await isAttendeeEmail(attendeeEmail);
@@ -85,14 +86,16 @@ export async function requestOTP(contact: string, attendeeEmail?: string) {
     }
   }
 
-  // Check if this is an admin (only for email)
-  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  if (isEmail) {
-    const isAdmin = await isAdminEmail(contact);
+  // Check if the registered attendee email is an admin (unless bypassing the check)
+  if (attendeeEmail && !bypassAdminCheck) {
+    const isAdmin = await isAdminEmail(attendeeEmail);
     if (isAdmin) {
       throw new Error("This email is registered as an organizer. Please use the 'Symposium Organizer' option instead.");
     }
   }
+
+  // Determine if the contact is email or phone for OTP sending
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
 
   try {
     if (isEmail) {

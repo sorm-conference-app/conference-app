@@ -1,9 +1,9 @@
-import React from 'react';
-import { Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
-import { ThemedView } from './ThemedView';
-import { ThemedText } from './ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import React from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ThemedText } from './ThemedText';
+import { ThemedView } from './ThemedView';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -19,6 +19,7 @@ export default function ConfirmationModal({
   const colorScheme = useColorScheme() ?? 'light';
 
   return (
+    <View>
     <Modal
       visible={visible}
       animationType="fade"
@@ -83,6 +84,7 @@ export default function ConfirmationModal({
         </ThemedView>
       </ThemedView>
     </Modal>
+    </View>
   );
 }
 

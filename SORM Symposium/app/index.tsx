@@ -49,6 +49,7 @@ export default function Login() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [showVerificationModal, setShowVerificationModal] = useState<boolean>(false);
+  const [proceedingAsAttendee, setProceedingAsAttendee] = useState<boolean>(false);
   const sponsors = useMemo(() => getAllSponsors(), []);
 
   // Contact sharing modal hook
@@ -134,7 +135,13 @@ export default function Login() {
         router.push("/(tabs)/home");
       }
     } catch (e) {
-      setErr((e as Error).message);
+      const errorMessage = (e as Error).message;
+      // Check if this is the specific error for organizer trying to login as attendee
+      if (userType === "attendee" && errorMessage.includes("registered as an organizer")) {
+        setShowConfirmationModal(true);
+      } else {
+        setErr(errorMessage);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -142,6 +149,7 @@ export default function Login() {
 
   const handleVerificationComplete = async (result: any) => {
     setShowVerificationModal(false);
+    setProceedingAsAttendee(false);
     
     try {
       // Set login flow to 'attendee' for OTP verification
@@ -166,24 +174,44 @@ export default function Login() {
 
   const handleVerificationCancel = () => {
     setShowVerificationModal(false);
+    setProceedingAsAttendee(false);
     setErr("");
   };
 
   const handleVerificationResend = async () => {
+    const contactToSend = contactMethod === "phone" && selectedCountry
+      ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+      : contact;
+    
+    if (proceedingAsAttendee) {
+      // Use requestOTP with bypassAdminCheck when proceeding as attendendee
+      await requestOTP(contactToSend, attendeeEmail, true);
+    } else {
+      await requestOTP(contactToSend, userType === "attendee" ? attendeeEmail : undefined);
+    }
+    // Don't catch errors here - let the modal handle them
+  };
+
+  const handleProceedAsAttendee = async () => {
+    setShowConfirmationModal(false);
+    setProceedingAsAttendee(true);
+    setIsProcessing(true);
+    setErr("");
+    
     try {
+      // Proceed with attendee login, bypassing the admin check
       const contactToSend = contactMethod === "phone" && selectedCountry
         ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
         : contact;
-      await requestOTP(contactToSend, userType === "attendee" ? attendeeEmail : undefined);
-    } catch (error) {
-      setErr(`Failed to resend code: ${(error as Error).message}`);
+      
+      // Use requestOTP with bypassAdminCheck set to true
+      await requestOTP(contactToSend, attendeeEmail, true);
+      setShowVerificationModal(true);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
-  const handleProceedAsAttendee = () => {
-    setShowConfirmationModal(false);
-    // This logic would be triggered from the confirmation modal
-    // which handles dual registration scenarios
   };
 
   const handleContactSharingDontShare = async (
@@ -235,6 +263,7 @@ export default function Login() {
 
   const handleGoToAdminLogin = () => {
     setShowConfirmationModal(false);
+    setProceedingAsAttendee(false);
     setUserType("organizer");
     setPassword("");
     setErr("");
@@ -249,6 +278,7 @@ export default function Login() {
     setSelectedCountry(null);
     setPassword("");
     setErr("");
+    setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
     await clearLoginFlow();
     await supabase.auth.signOut();
@@ -261,6 +291,7 @@ export default function Login() {
       setContact("");
       setPhoneNumber("");
       setSelectedCountry(null);
+      setProceedingAsAttendee(false);
       setErr("");
     } else {
       // Go back to user type selection
@@ -271,6 +302,7 @@ export default function Login() {
       setPhoneNumber("");
       setSelectedCountry(null);
       setPassword("");
+      setProceedingAsAttendee(false);
       setErr("");
       setContactMethod("email");
     }
