@@ -186,16 +186,16 @@ export default function InfoScreen() {
                 }}
               >
                 <Image
-                  source={require("@/assets/images/VenueFloorplan.png")}
+                  source={require("@/assets/images/Symposium-floor-plan-v3.jpeg")}
                   style={[
                     styles.map,
                     {
                       width: isWideScreen
-                        ? (wideHeight() * 866) / 504
+                        ? (wideHeight() * 1920) / 1080
                         : defaultWidth(),
                       height: isWideScreen
                         ? wideHeight()
-                        : (defaultWidth() * 504) / 866,
+                        : (defaultWidth() * 1080) / 1920,
                     },
                   ]}
                   alt="Les Bunte Complex Map"
@@ -410,7 +410,7 @@ export default function InfoScreen() {
         imageSource={
           selectedMap === "esti"
             ? require("@/assets/images/EstiMap.png")
-            : require("@/assets/images/VenueFloorplan.png")
+            : require("@/assets/images/Symposium-floor-plan-v3.jpeg")
         }
         isVisible={selectedMap !== null}
         onClose={() => {
