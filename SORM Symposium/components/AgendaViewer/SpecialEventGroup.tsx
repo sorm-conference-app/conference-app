@@ -35,15 +35,20 @@ export function SpecialEventGroup({
     .sort((a, b) => convert24HrTimeToSeconds(a.start_time) - convert24HrTimeToSeconds(b.start_time));
 
   useEffect(() => {
-    setLongestEventHeight(longestEvent.topic === "Break" ? 50 : 
-      calculateHeight(longestEvent.start_time, longestEvent.end_time));
+    setLongestEventHeight(prevHeight => {
+      let totalHeight = longestEvent.topic === "Break" ? 50 : 
+        calculateHeight(longestEvent.start_time, longestEvent.end_time);
+      
       for (const event of otherEvents) {
         if (event.id !== otherEvents[0].id) {
           const offset = calculateEventOffset(otherEvents[otherEvents.length - 1].end_time, event.start_time) + 16;
-          setLongestEventHeight(longestEventHeight + offset);
+          totalHeight += offset;
         }
       }
-  }, []);
+      
+      return totalHeight;
+    });
+  }, [longestEvent.end_time, longestEvent.start_time, longestEvent.topic, otherEvents]);
 
   const longEventColumn = (
     <View style={[

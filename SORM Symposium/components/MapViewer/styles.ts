@@ -1,5 +1,4 @@
 import { StyleSheet, Platform } from 'react-native';
-import { Colors } from '@/constants/Colors';
 
 export const styles = StyleSheet.create({
   modal: {

@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Announcement } from "@/hooks/useAnnouncements";
 import useAnnouncements from "@/hooks/useAnnouncements";
 
 export default function AnnouncementDetailScreen() {
@@ -11,7 +10,7 @@ export default function AnnouncementDetailScreen() {
   const { data: announcements } = useAnnouncements();
 
   // Find the announcement by ID (convert string id to number for comparison)
-  const announcement = announcements?.find((a: Announcement) => a.id === parseInt(id as string, 10));
+  const announcement = announcements?.find((a) => a.id === parseInt(id as string, 10));
 
   if (!announcement) {
     return (

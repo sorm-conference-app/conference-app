@@ -59,7 +59,6 @@ export function EventList({
     data: allEvents = [],
     isLoading: eventsLoading,
     error: eventsError,
-    refetch: refetchEvents,
   } = useEvents({
     showDeleted: showDeleted === "all" ? true : showDeleted === "deleted" ? true : false,
   });

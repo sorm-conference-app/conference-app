@@ -5,7 +5,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Attendee, getAttendeeByContact } from "@/services/attendees";
-import React from "react";
+import React, { useCallback } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
@@ -18,7 +18,7 @@ interface AttendeeContactListProps {
 
 export default function AttendeeContactList({ reloadTrigger }: AttendeeContactListProps) {
   const colorScheme = useColorScheme() ?? 'light';
-  const { contacts, loading, error, refresh } = useAttendeeContacts();
+  const { contacts, error, refresh } = useAttendeeContacts();
   const [attendee, setAttendee] = React.useState<Attendee | null>(null);
   const [expandedRowId, setExpandedRowId] = React.useState<number | null>(null);
   const session = useSupabaseAuth();
@@ -31,10 +31,25 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
   
+  const loadUserInfo = useCallback(async () => {
+    try {
+      // Get current user contact from authenticated session
+      const userContact = session?.user?.email || session?.user?.phone;
+      
+      if (userContact) {
+        setAttendee(await getAttendeeByContact(userContact));
+      } else {
+        setAttendee(null);
+      }
+    } catch (error) {
+      console.error('Error loading user info:', error);
+    }
+  }, [session]);
+
   // Load user's verified email and share_info preference on component mount
   React.useEffect(() => {
     loadUserInfo();
-  }, [session]);
+  }, [loadUserInfo]);
 
   // Set up real-time subscription for current user's attendee record
   React.useEffect(() => {
@@ -66,7 +81,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
       console.log('Cleaning up user attendee subscription');
       supabase.removeChannel(channel);
     };
-  }, [attendee?.id]);
+  }, [attendee?.id, loadUserInfo]);
 
   // Refresh contacts when reloadTrigger changes
   React.useEffect(() => {
@@ -74,22 +89,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
       refresh();
       loadUserInfo(); // Also reload the current user's info
     }
-  }, [reloadTrigger, refresh]);
-
-  async function loadUserInfo() {
-    try {
-      // Get current user contact from authenticated session
-      const userContact = session?.user?.email || session?.user?.phone;
-      
-      if (userContact) {
-        setAttendee(await getAttendeeByContact(userContact));
-      } else {
-        setAttendee(null);
-      }
-    } catch (error) {
-      console.error('Error loading user info:', error);
-    }
-  }
+  }, [reloadTrigger, refresh, loadUserInfo]);
 
   const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();

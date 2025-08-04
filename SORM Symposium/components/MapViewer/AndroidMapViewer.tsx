@@ -32,7 +32,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       translateY.value = withSpring(0);
       setIsLoading(true);
     }
-  }, [isVisible]);
+  }, [isVisible, scale, translateX, translateY]);
 
   // Android-specific gesture configuration
   const pinchGesture = Gesture.Pinch()
@@ -46,7 +46,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       try {
         // Calculate new scale based on the base scale and gesture scale
         scale.value = clamp(baseScale.value * e.scale, 1, 4); // Clamp the value between 1 and 4
-      } catch (error) {
+      } catch {
         scale.value = baseScale.value;
       }
     })
@@ -75,7 +75,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
           const bounds = calculateBounds(scale.value, imageSize, containerSize);
           translateX.value = clamp(baseTranslateX.value + (e.translationX / scale.value), bounds.minX, bounds.maxX);
           translateY.value = clamp(baseTranslateY.value + (e.translationY / scale.value), bounds.minY, bounds.maxY);
-        } catch (error) {
+        } catch {
           // Reset to safe values if something goes wrong
           translateX.value = withSpring(baseTranslateX.value);
           translateY.value = withSpring(baseTranslateY.value);

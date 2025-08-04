@@ -2,7 +2,6 @@ import { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { router } from "expo-router";
@@ -73,7 +72,7 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
 
       try {
         await AsyncStorage.setItem("created-expo-token", "true");
-      } catch (e) {
+      } catch {
         console.error("Failed to set `created-expo-token` in storage...");
       }
     }

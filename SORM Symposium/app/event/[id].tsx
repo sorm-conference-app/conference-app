@@ -100,7 +100,7 @@ export default function EventDetailScreen() {
             </ThemedText>
           </ThemedView>
 
-          {event.title !== "Break" && (
+          {!event.title.includes("Break") ? (
             <ThemedView style={styles.infoRow}>
               <IconSymbol
                 name="mappin.circle.fill"
@@ -109,42 +109,40 @@ export default function EventDetailScreen() {
               />
               <ThemedText style={styles.infoText}>{event.location}</ThemedText>
             </ThemedView>
-          )}
+          ) : null}
         </ThemedView>
 
-        {event.title !== "Break" && (
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle">About</ThemedText>
-            <ThemedText style={styles.description}>
-              {event.description || "No description available."}
-            </ThemedText>
-          </ThemedView>
-        )}
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle">About</ThemedText>
+          <ThemedText style={styles.description}>
+            {event.description || "No description available."}
+          </ThemedText>
+        </ThemedView>
 
-        {event.speaker_name && (
+        {event.speaker_name ? (
           <>
             <ThemedView style={styles.section}>
               <ThemedText type="subtitle">Speaker</ThemedText>
               <ThemedText type="defaultSemiBold">
                 {event.speaker_name}
               </ThemedText>
-              {event.speaker_title && (
+              {event.speaker_title ? (
                 <ThemedText>{event.speaker_title}</ThemedText>
-              )}
-              {event.speaker_email && (
+              ) : null}
+              {event.speaker_email ? (
                 <ThemedText style={styles.bio}>{event.speaker_email}</ThemedText>
-              )}
+              ) : null}
             </ThemedView>
 
-            {event.slides_url && (
+            {event.slides_url ? (
               <ThemedView style={styles.section}>
                 <ThemedText type="link" style={{ color: Colors[colorScheme].link }} onPress={openSlides}>
                   View Presentation Slides
                 </ThemedText>
               </ThemedView>
-            )}
+            ) : null}
           </>
-        )}
+        ) : null}
       </ScrollView>
     </ThemedView>
   );

@@ -35,7 +35,6 @@ export default function ContactEditForm() {
   const [attendeeName, setAttendeeName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
-  const [disabled, setDisabled] = useState(true);
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -85,6 +84,18 @@ export default function ContactEditForm() {
 
   // When a contact is selected, always prefill the form fields
   useEffect(() => {
+    // Reset selectedId when switching between contact/attendee editing modes
+    if (selectedId !== "" && typeof selectedId === "number") {
+      // Check if the selected ID is valid for the current mode
+      const isValidForCurrentMode = editingAttendee 
+        ? attendees.some(a => a.id === selectedId)
+        : contacts.some(c => c.id === selectedId);
+      
+      if (!isValidForCurrentMode) {
+        setSelectedId("");
+      }
+    }
+
     if (editingAttendee) {
       if (selectedId !== "" && typeof selectedId === "number") {
         const attendee = attendees.find(a => a.id === selectedId);
@@ -113,11 +124,7 @@ export default function ContactEditForm() {
         setEmail("");
       }
     }
-  }, [selectedId, contacts, attendees]);
-
-  useEffect(() => {
-    setSelectedId("");
-  }, [editingAttendee]);
+  }, [selectedId, contacts, attendees, editingAttendee]);
 
   /**
    * Handle updating the selected contact in Supabase

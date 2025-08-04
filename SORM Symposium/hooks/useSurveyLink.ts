@@ -15,8 +15,6 @@ export function useSurveyLink() {
                 String(today.getMonth() + 1).padStart(2, '0') + '-' +
                 String(today.getDate()).padStart(2, '0');
 
-            console.log("currentDate", currentDate);
-
             const { data, error } = await supabase
                 .from("survey_links")
                 .select("survey_link")

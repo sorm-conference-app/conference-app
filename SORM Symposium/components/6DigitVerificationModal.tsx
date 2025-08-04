@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { checkCode } from '@/hooks/use6DigitVerification';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Platform, Dimensions } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { ThemedText } from './ThemedText';
 import ThemedTextInput from './ThemedTextInput';
 import { ThemedView } from './ThemedView';

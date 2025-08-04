@@ -34,11 +34,11 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
     message: string;
-    buttons: Array<{
+    buttons: {
       text: string;
       onPress: () => void;
       style?: "default" | "cancel" | "destructive";
-    }>;
+    }[];
   }>({
     title: "",
     message: "",

@@ -16,7 +16,7 @@ export type Database = {
           first_name: string | null
           id: number
           last_name: string | null
-          phone: string | null
+          phone_number: string | null
         }
         Insert: {
           created_at?: string
@@ -24,7 +24,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone?: string | null
+          phone_number?: string | null
         }
         Update: {
           created_at?: string
@@ -32,7 +32,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone?: string | null
+          phone_number?: string | null
         }
         Relationships: []
       }
@@ -288,6 +288,26 @@ export type Database = {
           created_at?: string;
           survey_date?: string;
           survey_link?: string;
+        };
+        Relationships: [];
+      };
+      dev_event_logs: {
+        Row: {
+          id: number;
+          created_at: string;
+          event_type: string;
+          message: string | null;
+          OS: string;
+        };
+        Insert: {
+          event_type: string;
+          message?: string | null;
+          OS: string;
+        };
+        Update: {
+          event_type?: string;
+          message?: string | null;
+          OS?: string;
         };
         Relationships: [];
       };

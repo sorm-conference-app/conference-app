@@ -1,7 +1,7 @@
 import { Attendee } from "@/services/attendees";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
-import { Dimensions, Pressable, StyleSheet, Platform } from "react-native";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";

@@ -10,7 +10,6 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
-import { use6DigitVerificationModal } from "@/hooks/use6DigitVerificationModal";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -69,8 +68,6 @@ export default function Login() {
     : false;
   const validContact = contactMethod === "email" ? validEmail : validPhone;
   const validPassword = password.length > 0;
-
-  const sixDigitVerificationModal = use6DigitVerificationModal();
 
   useEffect(() => {
     // Only clear login flow and sign out if there's no active session

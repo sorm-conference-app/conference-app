@@ -8,7 +8,6 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { useSurveyLink } from "@/hooks/useSurveyLink";
 
 import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
@@ -30,7 +29,6 @@ export default function Home() {
     router.push("/announcement/announcementList");
   };
 
-  const user = useSupabaseAuth();
   const { clearLoginFlow } = useLoginFlow();
 
   // Survey link hook

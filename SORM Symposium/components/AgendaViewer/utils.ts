@@ -22,25 +22,6 @@ export function convert24HrTimeToSeconds(time: string): number {
   return hours * 3600 + (minutes || 0) * 60;
 }
 
-function convert12HrTimeToSeconds(time: string): number {
-  // Only try to handle 12-hour format if it includes AM/PM
-  if (time.includes("AM") || time.includes("PM")) {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
-
-    if (modifier.toUpperCase() === "PM" && hours < 12) {
-      hours += 12;
-    } else if (modifier.toUpperCase() === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return hours * 3600 + minutes * 60;
-  }
-
-  // If no AM/PM, treat as 24-hour format
-  return convert24HrTimeToSeconds(time);
-}
-
 /**
  * Determine if two time intervals conflict.
  * @param startTimeA Start time for first event.

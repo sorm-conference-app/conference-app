@@ -61,14 +61,14 @@ export default function ConfirmEditEmailModal({
               </ThemedText>
 
               <ThemedText style={styles.infoText}>
-                Change {attendeeName}'s email to "{attendeeEmail}"?
+                Change {attendeeName}&apos;s email to &quot;{attendeeEmail}&quot;?
               </ThemedText>
               
               <ThemedText style={styles.message}>
-                You are about to edit an attendee's email address.
+                You are about to edit an attendee&apos;s email address.
               </ThemedText>
               <ThemedText style={styles.message}>
-                This action will affect the attendee's ability to log in to the app.
+                This action will affect the attendee&apos;s ability to log in to the app.
               </ThemedText>
               <ThemedText style={styles.message}>
                 Are you sure you want to proceed?
@@ -137,11 +137,11 @@ export default function ConfirmEditEmailModal({
               </ThemedText>
 
               <ThemedText style={styles.infoText}>
-                Change {attendeeName}'s email to "{attendeeEmail}"?
+                Change {attendeeName}&apos;s email to &quot;{attendeeEmail}&quot;?
               </ThemedText>
               
               <ThemedText style={styles.message}>
-                This user's email address will be permanently updated in the system.
+                This user&apos;s email address will be permanently updated in the system.
               </ThemedText>
               <ThemedText style={styles.message}>
                 This action cannot be undone.
