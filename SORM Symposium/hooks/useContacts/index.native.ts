@@ -59,7 +59,7 @@ export default function useContacts() {
         ...row,
         first_name: row.first_name || '', // Handle null values
         last_name: row.last_name || '', // Handle null values
-        phone_number: row.phone || '', // Handle null values
+        phone_number: row.phone_number || '', // Handle null values
         email: row.email || '', // Handle null values
         created_at: new Date(row.created_at), // Supabase returns created_at as a string; to store in SQLite, convert it to a Date object
       }));
@@ -84,7 +84,7 @@ export default function useContacts() {
       
       return data!.map<ContactInfo>((row) => ({
         name: `${row.first_name || ''} ${row.last_name || ''}`.trim(),
-        phone: row.phone || '',
+        phone: row.phone_number || '',
         email: row.email || '',
       }));
     },

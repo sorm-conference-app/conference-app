@@ -12,6 +12,7 @@ type Announcement = {
   title: string;
   body: string;
   created_at: string;
+  type: string;
 };
 
 /**
@@ -22,7 +23,7 @@ type Announcement = {
 export default function useAnnouncements(limit?: number) {
   // Create a stable channel name using a ref
   const channelName = useRef(
-    `test_announcements_changes_${Math.random().toString(36).substr(2, 9)}`,
+    `announcements_changes_${Math.random().toString(36).substr(2, 9)}`,
   );
   const hookId = useRef(`hook_${Math.random().toString(36).substr(2, 6)}`);
   const cache = useCacheDatabase();
@@ -62,7 +63,7 @@ export default function useAnnouncements(limit?: number) {
       }
 
       let query = supabase
-        .from("test_announcements")
+        .from("announcements")
         .select("*")
         .eq("type", "general")
         .order("created_at", { ascending: false });
@@ -113,7 +114,7 @@ export default function useAnnouncements(limit?: number) {
       channelName.current,
     );
 
-    // Subscribe to changes in the test_announcements table
+    // Subscribe to changes in the announcements table
     const channel = supabase
       .channel(channelName.current)
       .on(
@@ -121,7 +122,7 @@ export default function useAnnouncements(limit?: number) {
         {
           event: "*", // Listen to all events
           schema: "public",
-          table: "test_announcements",
+          table: "announcements",
         },
         (payload) => {
           console.log(

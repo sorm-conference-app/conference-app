@@ -132,6 +132,30 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          id: number
+          created_at: string
+          title: string
+          body: string
+          type: string
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
+        }
+        Update: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
+        }
+        Relationships: []
+      }
       test_announcements: {
         Row: {
           body: string

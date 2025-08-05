@@ -11,13 +11,14 @@ import { int, sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
  * `npm exec drizzle-kit generate`
  */
 
-export const announcements = sqliteTable("test_announcements", {
+export const announcements = sqliteTable("announcements", {
   id: int().primaryKey({ autoIncrement: true }),
   created_at: int({ mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
   body: text().notNull(),
   title: text().notNull(),
+  type: text(),
 });
 
 export const contact_info = sqliteTable("contact_info", {

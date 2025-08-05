@@ -26,7 +26,7 @@ export default function useContacts() {
 
       return data!.map<ContactInfo>((row) => ({
         name: `${row.first_name} ${row.last_name}`,
-        phone: row.phone || '',
+        phone: row.phone_number || '',
         email: row.email || '',
       }));
     },
