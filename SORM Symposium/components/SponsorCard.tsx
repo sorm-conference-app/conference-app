@@ -66,7 +66,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         <ThemedView
           style={[styles.titleContainer, { backgroundColor: "transparent" }]}
         >
-          <ThemedText style={[styles.name, { color: colors.text }]}>
+          <ThemedText type="subtitle" style={[{ color: colors.text }]}>
             {sponsor.name}
           </ThemedText>
           <ThemedView
@@ -80,7 +80,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedView>
       </ThemedView>
 
-      <ThemedText style={[styles.description, { color: colors.text }]}>
+      <ThemedText type="default" style={[{ color: colors.text }]}>
         {sponsor.description}
       </ThemedText>
 
@@ -102,7 +102,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
                 key={contact.name}
                 style={[styles.contactRow, { backgroundColor: "transparent" }]}
               >
-                <ThemedText style={[styles.contactInfo]}>
+                <ThemedText type="default">
                   {contact.name}
                   {contact.phone ? `: ${contact.phone}` : ""}
                 </ThemedText>
@@ -143,7 +143,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
           <ThemedView
             style={[styles.contactRow, { backgroundColor: "transparent" }]}
           >
-            <ThemedText style={[styles.contactInfo, { color: colors.text }]}>
+            <ThemedText type="default" style={[{ color: colors.text }]}>
               Coming soon
             </ThemedText>
           </ThemedView>

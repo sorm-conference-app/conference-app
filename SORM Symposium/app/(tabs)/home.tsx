@@ -65,7 +65,7 @@ export default function Home() {
     router.replace("/");
   };
 
-  const WIDE_SCREEN_WIDTH = 950;
+  const WIDE_SCREEN_WIDTH = 960;
   const [wideScreen, setWideScreen] = useState(false);
   const [surveyFlashTrigger, setSurveyFlashTrigger] = useState(0);
   const surveyAnimation = useRef(new Animated.Value(1)).current;
@@ -124,7 +124,7 @@ export default function Home() {
           transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
-          Your feedback is important! Please complete a survey each day you are at the Symposium. Thank you
+          Your feedback is important! Please complete a survey each day you are at the Symposium. Thank you!
         </ThemedText>
         <Pressable 
           onPress={handleSurveyPress}
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     position: "relative",
     flexDirection: "column",
     right: 5,
-    maxWidth: 350,
+    maxWidth: 360,
     borderWidth: 1,
     borderRadius: 12,
     padding: 8,

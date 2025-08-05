@@ -121,8 +121,8 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   const disclosureArea = () => {
     return (
       <ThemedView style={{ backgroundColor: "transparent", margin: 5, marginBottom: 0 }}>
-        <ThemedText style={styles.subtitle}>These individuals have agreed to share their contact information.</ThemedText>
-        <ThemedText style={styles.subtitle}>
+        <ThemedText type="default" style={styles.subtitle}>These individuals have agreed to share their contact information.</ThemedText>
+        <ThemedText type="default" style={styles.subtitle}>
           {attendee?.share_info === true ? <ThemedText style={{ fontWeight: "bold" }}>Your contact information is being shared. </ThemedText> 
           : attendee?.share_info === false ? <ThemedText style={{ fontWeight: "bold" }}>Your contact information is not being shared. </ThemedText>
           : "Loading your contact sharing preference... "}
@@ -136,17 +136,17 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
             }]}
           >
             {attendee !== null && attendee.share_info !== null && (
-              <ThemedText style={styles.buttonText}>
+              <ThemedText type="defaultSemiBold" style={styles.buttonText}>
                 {Platform.OS === "web" ? "Click here" 
                 : "Tap here"}
               </ThemedText>
             )}
           </Pressable>
-          <ThemedText style={[styles.subtitle, { flexShrink: 1, marginLeft: 5, backgroundColor: "transparent", alignSelf: "flex-start" }]}>
+          <ThemedText type="default" style={[styles.subtitle, { flexShrink: 1, marginLeft: 5, backgroundColor: "transparent", alignSelf: "flex-start" }]}>
             to manage your contact sharing preferences.
           </ThemedText>
         </ThemedView>}
-        <ThemedText style={[styles.subtitle, { fontStyle: "italic" }]}>
+        <ThemedText type="default" style={[styles.subtitle, { fontStyle: "italic" }]}>
           {Platform.OS === "web" ? "Click on an attendee to view more contact information." 
           : "Tap on an attendee to view more contact information."}
         </ThemedText>
@@ -185,7 +185,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
         }]}
       >
         <Pressable onPress={closeAllExpandedRows} style={{ flex: 1 }}>
-          <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
+          <ThemedText type="title" style={styles.title}>Attendee Contact List</ThemedText>
           {disclosureArea()}
           {contacts.map((contact) => (
             <ContactRow 
@@ -237,13 +237,10 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontSize: 30,
-    fontWeight: "bold",
     margin: 15,
   },
   subtitle: {
     textAlign: "center",
-    fontSize: 16,
     marginBottom: 10,
   },
   button: {
@@ -257,8 +254,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
     marginLeft: 5,
     marginRight: 5,
     lineHeight: 20,

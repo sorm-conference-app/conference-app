@@ -56,8 +56,7 @@ export default function ConfirmationModal({
                 ]}
                 onPress={onProceedAsAttendee}
               >
-                <ThemedText style={[
-                  styles.buttonText,
+                <ThemedText type="subtitle" style={[
                   { color: Colors[colorScheme].adminButtonText }
                 ]}>
                   Proceed as Attendee
@@ -68,12 +67,11 @@ export default function ConfirmationModal({
                 style={[
                   styles.button,
                   styles.adminButton,
-                  { backgroundColor: Colors[colorScheme].tabIconDefault }
+                  { backgroundColor: Colors[colorScheme].adminButton }
                 ]}
                 onPress={onGoToAdminLogin}
               >
-                <ThemedText style={[
-                  styles.buttonText,
+                <ThemedText type="subtitle" style={[
                   { color: Colors[colorScheme].adminButtonText }
                 ]}>
                   Go to Admin Login
@@ -144,9 +142,5 @@ const styles = StyleSheet.create({
   },
   adminButton: {
     marginTop: 5,
-  },
-  buttonText: {
-    fontWeight: 'bold',
-    fontSize: 18,
   },
 }); 

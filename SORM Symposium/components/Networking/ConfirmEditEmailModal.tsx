@@ -86,8 +86,7 @@ export default function ConfirmEditEmailModal({
                   ]}
                   onPress={handleFirstConfirm}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="subtitle" style={[
                     { color: Colors[colorScheme].adminButtonText }
                   ]}>
                     Yes, Continue
@@ -102,8 +101,7 @@ export default function ConfirmEditEmailModal({
                   ]}
                   onPress={handleCancel}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="subtitle" style={[
                     { color: Colors[colorScheme].adminButtonText }
                   ]}>
                     Cancel
@@ -162,8 +160,7 @@ export default function ConfirmEditEmailModal({
                   ]}
                   onPress={handleSecondConfirm}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="subtitle" style={[
                     { color: Colors[colorScheme].adminButtonText }
                   ]}>
                     Yes, Update Email
@@ -178,8 +175,7 @@ export default function ConfirmEditEmailModal({
                   ]}
                   onPress={handleCancel}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="subtitle" style={[
                     { color: Colors[colorScheme].adminButtonText }
                   ]}>
                     Cancel

@@ -222,7 +222,7 @@ export default function SixDigitVerificationModal({
                     ? "Verification Email Sent To:"
                     : `Code sent to your ${contactMethod}:`}
                 </ThemedText>
-                <ThemedText style={styles.emailAddress}>
+                <ThemedText type="defaultSemiBold" style={{ marginBottom: 4 }}>
                   {getContactDisplay()}
                 </ThemedText>
                 {mode === "email_verification" && (
@@ -244,7 +244,7 @@ export default function SixDigitVerificationModal({
                   { backgroundColor: Colors[colorScheme].background },
                 ]}
               >
-                <ThemedText style={styles.codeLabel}>
+                <ThemedText type="defaultSemiBold" style={{ marginBottom: 12 }}>
                   Enter the 6-digit verification code:
                 </ThemedText>
                 <ThemedTextInput
@@ -293,12 +293,7 @@ export default function SixDigitVerificationModal({
                   onPress={handleResendCode}
                   disabled={isResending || cooldown > 0}
                 >
-                  <ThemedText
-                    style={[
-                      styles.buttonText,
-                      { color: Colors[colorScheme].adminButtonText },
-                    ]}
-                  >
+                  <ThemedText type="subtitle" style={{ color: Colors[colorScheme].adminButtonText }}>
                     {isResending
                       ? "Resending..."
                       : cooldown > 0
@@ -315,12 +310,7 @@ export default function SixDigitVerificationModal({
                   ]}
                   onPress={handleCancel}
                 >
-                  <ThemedText
-                    style={[
-                      styles.buttonText,
-                      { color: Colors[colorScheme].background },
-                    ]}
-                  >
+                  <ThemedText type="subtitle" style={{ color: Colors[colorScheme].background }}>
                     Cancel
                   </ThemedText>
                 </Pressable>
@@ -382,11 +372,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontSize: 16,
   },
-  emailAddress: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
   emailSource: {
     fontSize: 14,
     opacity: 0.7,
@@ -396,11 +381,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
-  },
-  codeLabel: {
-    fontWeight: "600",
-    marginBottom: 12,
-    fontSize: 16,
   },
   codeInput: {
     fontSize: 24,

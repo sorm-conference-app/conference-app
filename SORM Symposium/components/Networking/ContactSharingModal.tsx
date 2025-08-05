@@ -136,7 +136,7 @@ export default function ContactSharingModal({
               ]}>
                 <ThemedView style={[styles.infoRow, { flexWrap: 'wrap' }]}>
                   <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
-                  <ThemedText style={[styles.infoValue, { textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
+                  <ThemedText type="default" style={[{ textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
                 </ThemedView>
 
                 {attendee.name ? (
@@ -197,8 +197,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleShareClick}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     {attendee.is_admin === true 
@@ -216,8 +215,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleDontShareClick}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Don&apos;t Share My Information
@@ -280,8 +278,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleSaveWithAdditionalInfo}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Save and Continue
@@ -296,8 +293,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleBackToChoice}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Back
@@ -306,9 +302,9 @@ export default function ContactSharingModal({
               </ThemedView>
 
               {/* Filter error message */}
-              {filterError && (
+              {filterError ? (
                 <ThemedText style={styles.filterError}>{filterError}</ThemedText>
-              )}
+              ) : null}
             </ScrollView>
           )}
         </ThemedView>
@@ -376,10 +372,6 @@ const styles = StyleSheet.create({
     width: 100,
     fontSize: 14,
   },
-  infoValue: {
-    flex: 1,
-    fontSize: 16,
-  },
   infoInput: {
     flex: 1,
     fontSize: 14,
@@ -427,10 +419,6 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     // Secondary button styles already applied via backgroundColor
-  },
-  buttonText: {
-    fontWeight: '600',
-    fontSize: 16,
   },
   filterError: {
     color: 'red',

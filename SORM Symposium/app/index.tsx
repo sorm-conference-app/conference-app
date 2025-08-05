@@ -419,8 +419,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -437,8 +437,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -499,8 +499,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -518,8 +518,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -548,7 +548,7 @@ export default function Login() {
             <>
               <ThemedView style={styles.registeredEmailContainer}>
                 <ThemedText style={styles.registeredEmailLabel}>Registered Email:</ThemedText>
-                <ThemedText style={styles.registeredEmailText}>{attendeeEmail}</ThemedText>
+                <ThemedText type="defaultSemiBold">{attendeeEmail}</ThemedText>
               </ThemedView>
 
               <ThemedView style={styles.contactMethodContainer}>
@@ -567,8 +567,8 @@ export default function Login() {
                     ]}
                   >
                     <ThemedText
+                      type="subtitle"
                       style={[
-                        styles.segmentText,
                         { color: contactMethod === "phone" 
                             ? Colors[colorScheme].adminButtonText 
                             : Colors[colorScheme].text 
@@ -591,8 +591,8 @@ export default function Login() {
                     ]}
                   >
                     <ThemedText
+                      type="subtitle"
                       style={[
-                        styles.segmentText,
                         { color: contactMethod === "email" 
                             ? Colors[colorScheme].adminButtonText 
                             : Colors[colorScheme].text 
@@ -693,8 +693,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -712,8 +712,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -790,10 +790,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  registeredEmailText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   contactMethodContainer: {
     width: "100%",
     marginBottom: 20,
@@ -811,10 +807,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  segmentText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   inputContainer: {
     width: "100%",
     marginBottom: 15,
@@ -829,10 +821,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 10,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
   },
   invalid: {
     color: "red",

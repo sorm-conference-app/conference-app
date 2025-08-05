@@ -40,13 +40,13 @@ export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: 
 
   const position = (
     isSelected ? (
-      <ThemedText style={styles.details}>
+      <ThemedText type="default" style={[]}>
         {attendee.title && <>{attendee.title}</>}
         {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
         {attendee.organization && <>{attendee.organization}</>}
       </ThemedText>
     ) : (
-      <ThemedText style={styles.rowDetails}>
+      <ThemedText type="default" style={[]}>
         {attendee.title && <>{attendee.title}</>}
         {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
         {attendee.organization && <>{attendee.organization}</>}
@@ -61,7 +61,7 @@ export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: 
       {isSelected ? (
         <Pressable style={styles.contactCard} onPress={handlePress}>
           <>
-            <ThemedText style={styles.name}>{attendee.name}</ThemedText>
+            <ThemedText type="defaultSemiBold" style={[]}>{attendee.name}</ThemedText>
             {position}
             {attendee.email && <ThemedText style={styles.email}>{attendee.email}</ThemedText>}
             {attendee.additional_info && attendee.additional_info.length > 0 &&
@@ -71,7 +71,7 @@ export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: 
         </Pressable>
       ) : (
         <Pressable style={isWideScreen ? styles.contactRowWide : styles.contactRowNarrow} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
+          <ThemedText type="defaultSemiBold" style={[]}>{attendee.name}</ThemedText>
           {position}
         </Pressable>
       )}
@@ -106,21 +106,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     padding: 15,
     minHeight: "auto",
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  details: {
-    fontSize: 14,
-    marginBottom: 2,
-    flexWrap: "wrap",
-  },
-  rowDetails: {
-    fontSize: 14,
-    marginBottom: 2,
-    textAlign: "right",
   },
   email: {
     fontSize: 12,
