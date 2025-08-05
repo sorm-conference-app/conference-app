@@ -250,7 +250,7 @@ export default function InfoScreen() {
                 Event Rooms
               </ThemedText>
               <ThemedText style={styles.roomInfo}>
-                • B101A {"\n"}• B102C&D{"\n"}• B102A&B
+                • Room 1 {"\n"}• Room 2 {"\n"}• Room 3 {"\n"}• Room 4
               </ThemedText>
             </ThemedView>
 
