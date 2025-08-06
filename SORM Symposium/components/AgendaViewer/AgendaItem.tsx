@@ -163,9 +163,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "transparent",
+    flex: 1,
+    flexWrap: "wrap",
   },
   title: {
     marginBottom: 3,
+    flex: 1,
+    flexShrink: 1,
   },
   deletedTitle: {
     color: "red",

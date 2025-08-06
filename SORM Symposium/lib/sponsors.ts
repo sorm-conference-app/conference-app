@@ -72,7 +72,7 @@ const sponsors: Sponsor[] = [
   {
     id: "4",
     name: "TTP",
-    description: " Is your organization ready for the unexpected? At Tactics, Techniques, and Procedures, LLC, (TTP, LLC) we combine decades of cross-functional expertise to fortify your business against today's threats and tomorrow's challenges. Our consultants deliver comprehensive solutions across multiple disciplines. From Business Continuity, Emergency Management, OSHA compliance, Threat and Vulnerability Assessments to Crisis Communications, Risk Management, Information, Personnel, and Industrial Security programs. Whether you're strengthening your workforce, safeguarding sensitive assets, or preparing for crises, TTP, LLC stands as your unwavering partner. We don’t just advise—we empower, protect, and prepare your organization to thrive in uncertainty.",
+    description: "Is your organization ready for the unexpected? At Tactics, Techniques, and Procedures, LLC, (TTP, LLC) we combine decades of cross-functional expertise to fortify your business against today's threats and tomorrow's challenges. Our consultants deliver comprehensive solutions across multiple disciplines. From Business Continuity, Emergency Management, OSHA compliance, Threat and Vulnerability Assessments to Crisis Communications, Risk Management, Information, Personnel, and Industrial Security programs. Whether you're strengthening your workforce, safeguarding sensitive assets, or preparing for crises, TTP, LLC stands as your unwavering partner. We don’t just advise—we empower, protect, and prepare your organization to thrive in uncertainty.",
     level: "Ultra-Resilient",
     logo: "../assets/images/SponsorLogos/ttp-logo.png",
     contactInfo: [

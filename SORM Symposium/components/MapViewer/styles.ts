@@ -2,6 +2,7 @@ import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   modal: {
+    marginVertical: 55,
     ...Platform.select({
       web: {
         position: 'fixed',
@@ -39,7 +40,7 @@ export const styles = StyleSheet.create({
   },
   controls: {
     position: 'absolute',
-    top: Platform.OS === 'android' ? 40 : 20,
+    top: Platform.OS === 'android' ? 40 : 80,
     right: 20,
     zIndex: 1001,
     flexDirection: 'row',

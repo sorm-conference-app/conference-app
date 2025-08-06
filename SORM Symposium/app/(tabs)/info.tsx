@@ -6,6 +6,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import useContacts, { ContactInfo } from "@/hooks/useContacts";
 import { Image } from "expo-image";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -112,6 +113,7 @@ export default function InfoScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ title: "Info", headerShown: true }} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
@@ -250,7 +252,7 @@ export default function InfoScreen() {
                 Event Rooms
               </ThemedText>
               <ThemedText style={styles.roomInfo}>
-                • Room 1 {"\n"}• Room 2 {"\n"}• Room 3 {"\n"}• Room 4
+                • Room 1 {"\n"}• Room 2 {"\n"}• Room 3
               </ThemedText>
             </ThemedView>
 
