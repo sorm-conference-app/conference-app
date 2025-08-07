@@ -65,7 +65,6 @@ export function SpecialEventGroup({
       setLongestEventExtraHeight(longestEventExtraHeightAdjusted - otherEventsExtraHeightAdjusted);
       setOtherEventsExtraHeight(0);
     }
-    console.log("Event: ", longestEvent.title, "Extra Height: ", longestEventExtraHeight, "Other Events: ", otherEventsExtraHeight);
   }, [longestEvent.end_time, longestEvent.start_time, longestEvent.topic, otherEvents, columnWidth]);
 
   const longEventColumn = (

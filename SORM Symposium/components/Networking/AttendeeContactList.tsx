@@ -55,7 +55,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   React.useEffect(() => {
     if (!attendee?.id) return;
 
-    console.log('Setting up real-time subscription for user ID:', attendee.id);
+    //console.log('Setting up real-time subscription for user ID:', attendee.id);
     
     const channel = supabase
       .channel(`user_attendee_${attendee.id}`)
@@ -67,18 +67,18 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           filter: `id=eq.${attendee.id}`
         }, 
         (payload: any) => {
-          console.log('User attendee record updated:', payload);
+          //console.log('User attendee record updated:', payload);
           // Reload user's info when their record changes
           loadUserInfo();
         }
       )
       .subscribe((status: any) => {
-        console.log('User attendee subscription status:', status);
+        //console.log('User attendee subscription status:', status);
       });
     
     // Cleanup function
     return () => {
-      console.log('Cleaning up user attendee subscription');
+      //console.log('Cleaning up user attendee subscription');
       supabase.removeChannel(channel);
     };
   }, [attendee?.id, loadUserInfo]);

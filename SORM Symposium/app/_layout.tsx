@@ -17,6 +17,14 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asc, desc } from "drizzle-orm";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
+
+// Custom hook to handle migrations with platform-specific logic
+function usePlatformMigrations(db: any, migrations: any) {
+  if (Platform.OS === "web") {
+    return { success: true, error: null };
+  }
+  return useMigrations(db, migrations);
+}
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -102,7 +110,7 @@ export default function RootLayout() {
   });
   const { top: topInset, bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
   // @ts-ignore
-  const { success, error } = useMigrations(db, migrations);
+  const { success, error } = usePlatformMigrations(db, migrations);
 
   useEffect(() => {
     // Send a log message on initial load to signal that a user has opened the app.
@@ -124,7 +132,6 @@ export default function RootLayout() {
     // If on web, the prefetch queries will be ignored.
     async function prefetchCache() {
       if (Platform.OS === "web") {
-        console.warn("Skipping prefetching cache on web platform.");
         return;
       }
       try {
@@ -141,6 +148,9 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      return;
+    }
     if (success) {
       console.log("Database migrations completed successfully.");
     } else if (error) {

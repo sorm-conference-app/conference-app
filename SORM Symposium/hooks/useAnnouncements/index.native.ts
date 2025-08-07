@@ -33,14 +33,18 @@ export default function useAnnouncements(limit?: number) {
   const { refetch, ...rest } = useQuery<Announcement[]>({
     queryKey,
     queryFn: async function () {
-      console.log(
-        `[${hookId.current}] Querying announcements with limit:`,
-        limit,
-      );
+      //console.log(
+      //  `[${hookId.current}] Querying announcements with limit:`,
+      //  limit,
+      //);
 
       // Cache-only mode for testing
       if (CACHE_ONLY) {
-        console.log(`[${hookId.current}] 🔄 Using cache-only mode for announcements`);
+        //console.log(`[${hookId.current}] 🔄 Using cache-only mode for announcements`);
+        if (!cache) {
+          //console.warn(`[${hookId.current}] Cache not available, returning empty array`);
+          return [];
+        }
         try {
           let cachedAnnouncements = await cache.select().from(announcements);
           
@@ -49,7 +53,7 @@ export default function useAnnouncements(limit?: number) {
             cachedAnnouncements = cachedAnnouncements.slice(0, limit);
           }
           
-          console.log(`[${hookId.current}] Retrieved ${cachedAnnouncements.length} announcements from cache`);
+          //console.log(`[${hookId.current}] Retrieved ${cachedAnnouncements.length} announcements from cache`);
           
           // Convert cached data to match Announcement type
           return cachedAnnouncements.map(announcement => ({
@@ -86,17 +90,19 @@ export default function useAnnouncements(limit?: number) {
       // Insert the fetched data into the cache.
       // Note: Using onConflictDoNothing since we are not updating existing records.
       // However, if we plan to 'edit' announcements in the future, we should use onConflictDoUpdate.
-      try {
-        await cache
-          .insert(announcements)
-          .values(insertData)
-          .onConflictDoNothing({ target: announcements.id });
-      } catch (cacheError) {
-        console.warn(`[${hookId.current}] Failed to cache announcements:`, cacheError);
-        // Continue without caching - the data is still returned from Supabase
+      if (cache) {
+        try {
+          await cache
+            .insert(announcements)
+            .values(insertData)
+            .onConflictDoNothing({ target: announcements.id });
+        } catch (cacheError) {
+          console.warn(`[${hookId.current}] Failed to cache announcements:`, cacheError);
+          // Continue without caching - the data is still returned from Supabase
+        }
       }
 
-      console.log(`[${hookId.current}] Queried ${data.length} announcements`);
+      //console.log(`[${hookId.current}] Queried ${data.length} announcements`);
       return data as Announcement[];
     },
     refetchOnWindowFocus: false,
@@ -105,14 +111,14 @@ export default function useAnnouncements(limit?: number) {
   // Set up real-time subscription (only if not in cache-only mode)
   useEffect(() => {
     if (CACHE_ONLY) {
-      console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
+      //console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
       return;
     }
 
-    console.log(
-      `[${hookId.current}] Setting up real-time subscription with channel:`,
-      channelName.current,
-    );
+    //console.log(
+    //  `[${hookId.current}] Setting up real-time subscription with channel:`,
+    //  channelName.current,
+    //);
 
     // Subscribe to changes in the announcements table
     const channel = supabase
@@ -125,25 +131,25 @@ export default function useAnnouncements(limit?: number) {
           table: "announcements",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time update received:`,
-            payload,
-          );
+          //console.log(
+          //  `[${hookId.current}] Real-time update received:`,
+          //  payload,
+          //);
 
           // Refresh the announcements when a change occurs
           refetch();
         },
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
 
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(
-        `[${hookId.current}] Cleaning up subscription:`,
-        channelName.current,
-      );
+      //console.log(
+      //  `[${hookId.current}] Cleaning up subscription:`,
+      //  channelName.current,
+      //);
       supabase.removeChannel(channel);
     };
   }, [refetch]);

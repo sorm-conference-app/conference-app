@@ -19,9 +19,9 @@ export function useAttendeeContacts() {
     setLoading(true);
     setError(null);
     try {
-      console.log(`[${hookId.current}] Fetching attendee contacts`);
+      //console.log(`[${hookId.current}] Fetching attendee contacts`);
       const contacts = await getAttendeeContactList();
-      console.log(`[${hookId.current}] Fetched ${contacts.length} contacts`);
+      //console.log(`[${hookId.current}] Fetched ${contacts.length} contacts`);
       setContacts(contacts);
     } catch (err) {
       console.error(`[${hookId.current}] Error fetching contacts:`, err);
@@ -34,7 +34,7 @@ export function useAttendeeContacts() {
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log(`[${hookId.current}] Setting up real-time subscription with channel:`, channelName.current);
+    //console.log(`[${hookId.current}] Setting up real-time subscription with channel:`, channelName.current);
     fetchContacts();
 
     // Subscribe to changes in the attendee_info table
@@ -47,19 +47,19 @@ export function useAttendeeContacts() {
           table: 'attendee_info' 
         }, 
         (payload) => {
-          console.log(`[${hookId.current}] Real-time update received:`, payload);
+          //console.log(`[${hookId.current}] Real-time update received:`, payload);
           
           // Refresh the contacts when a change occurs
           fetchContacts();
         }
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
     
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(`[${hookId.current}] Cleaning up subscription:`, channelName.current);
+      //console.log(`[${hookId.current}] Cleaning up subscription:`, channelName.current);
       supabase.removeChannel(channel);
     };
   }, [fetchContacts]);

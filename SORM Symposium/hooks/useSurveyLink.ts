@@ -15,7 +15,7 @@ export function useSurveyLink() {
             // Get current timestamp in ISO format
             const now = new Date().toISOString();
 
-            console.log("Checking surveys at:", now);
+            //console.log("Checking surveys at:", now);
 
             // Get all surveys that have started, ordered by start time descending (most recent first)
             const { data: surveys, error } = await supabase
@@ -30,7 +30,7 @@ export function useSurveyLink() {
             }
 
             if (!surveys || surveys.length === 0) {
-                console.log("No surveys have started yet");
+                //console.log("No surveys have started yet");
                 return null;
             }
 
@@ -38,22 +38,22 @@ export function useSurveyLink() {
             for (const survey of surveys) {
                 // If no end time, show indefinitely
                 if (!survey.survey_end_time) {
-                    console.log("Found active survey with no end time:", survey.id);
+                    //console.log("Found active survey with no end time:", survey.id);
                     return survey.survey_link;
                 }
 
                 // If there's an end time, check if we're still within the timeframe
                 if (survey.survey_end_time && now <= survey.survey_end_time) {
-                    console.log("Found active survey within timeframe:", survey.id);
+                    //console.log("Found active survey within timeframe:", survey.id);
                     return survey.survey_link;
                 }
 
                 // If this survey has ended, check if it's the most recent one that started
                 // If so, it means no newer survey has started yet, so we don't show any survey
-                console.log("Survey has ended:", survey.id, "ended at:", survey.survey_end_time);
+                //console.log("Survey has ended:", survey.id, "ended at:", survey.survey_end_time);
             }
 
-            console.log("No active surveys found");
+            //console.log("No active surveys found");
             return null;
         },
         // Refetch every 2 minutes to check for new surveys or time changes

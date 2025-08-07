@@ -29,10 +29,14 @@ export default function useContacts() {
     queryFn: async function () {
       // Cache-only mode for testing
       if (CACHE_ONLY) {
-        console.log("🔄 Using cache-only mode for contacts");
+        //console.log("🔄 Using cache-only mode for contacts");
+        if (!cache) {
+          //console.warn("Cache not available, returning empty array");
+          return [];
+        }
         try {
           const cachedContacts = await cache.select().from(contact_info);
-          console.log(`Retrieved ${cachedContacts.length} contacts from cache`);
+          //console.log(`Retrieved ${cachedContacts.length} contacts from cache`);
           
           // Convert cached data to ContactInfo type
           return cachedContacts.map(contact => ({
@@ -65,21 +69,23 @@ export default function useContacts() {
       }));
 
       // Populate the cache with the fetched data
-      try {
-        await cache
-          .insert(contact_info)
-          .values(insertData)
-          .onConflictDoUpdate({
-            target: contact_info.id,
-            set: {
-              first_name: sql.raw(`excluded.${contact_info.first_name.name}`),
-              last_name: sql.raw(`excluded.${contact_info.last_name.name}`),
-              phone_number: sql.raw(`excluded.${contact_info.phone_number.name}`),
-            },
-          });
-      } catch (cacheError) {
-        console.warn("Failed to cache contacts:", cacheError);
-        // Continue without caching - the data is still returned from Supabase
+      if (cache) {
+        try {
+          await cache
+            .insert(contact_info)
+            .values(insertData)
+            .onConflictDoUpdate({
+              target: contact_info.id,
+              set: {
+                first_name: sql.raw(`excluded.${contact_info.first_name.name}`),
+                last_name: sql.raw(`excluded.${contact_info.last_name.name}`),
+                phone_number: sql.raw(`excluded.${contact_info.phone_number.name}`),
+              },
+            });
+        } catch (cacheError) {
+          console.warn("Failed to cache contacts:", cacheError);
+          // Continue without caching - the data is still returned from Supabase
+        }
       }
       
       return data!.map<ContactInfo>((row) => ({

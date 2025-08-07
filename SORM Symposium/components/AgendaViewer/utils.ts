@@ -295,7 +295,7 @@ function getExtraWrapHeight(event: Event, containerWidth: number): number {
   if (timeString.length * FontSizeDPIs.other > containerWidth - 66.5) {
     extraHeight += 24; // 24px extra height for time wrap
   }
-  console.log("Event: ", event.title, "Extra Height: ", extraHeight, "Container Width: ", containerWidth);
+  
   return extraHeight;
 }
 
