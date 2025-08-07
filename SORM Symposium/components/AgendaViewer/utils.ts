@@ -271,3 +271,40 @@ export function formatTopicName(topic: string | null): string {
   if (!topic) return 'General';
   return topic;
 }
+
+/**
+ * Get the extra height of an event caused by wrapping text
+ * @param event - The event
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the event
+ */
+function getExtraWrapHeight(event: Event, containerWidth: number): number {
+  const FontSizeDPIs = {
+    "topic": 5.5800,
+    "other": 6.9325,
+  }
+
+  let extraHeight = 0;
+  if (event.topic && event.topic.length * FontSizeDPIs.topic > containerWidth - 59.5) {
+    extraHeight += 20; // 20px extra height for topic wrap
+  } 
+  if (event.title.length * FontSizeDPIs.other > containerWidth - 42.5) {
+    extraHeight += 24; // 24px extra height for title wrap
+  }
+  const timeString = `${event.start_time} - ${event.end_time}`;
+  if (timeString.length * FontSizeDPIs.other > containerWidth - 66.5) {
+    extraHeight += 24; // 24px extra height for time wrap
+  }
+  console.log("Event: ", event.title, "Extra Height: ", extraHeight, "Container Width: ", containerWidth);
+  return extraHeight;
+}
+
+/**
+ * Get the extra height of a column caused by wrapping text
+ * @param events - The events in the column
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the events
+ */
+export function getColumnExtraHeight(events: Event[], containerWidth: number): number {
+  return events.reduce((acc, event) => acc + getExtraWrapHeight(event, containerWidth), 0);
+}

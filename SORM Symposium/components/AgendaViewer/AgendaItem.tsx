@@ -191,7 +191,9 @@ const styles = StyleSheet.create({
   },
   topicText: {
     color: "black",
+    paddingVertical: 2,
     fontSize: 12,
+    lineHeight: 20,
     fontWeight: "600",
   },
   agendaItem: {
@@ -204,6 +206,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "stretch",
     userSelect: "none",
+    flex: 1,
   },
   agendaItemPressed: {
     opacity: 0.7,

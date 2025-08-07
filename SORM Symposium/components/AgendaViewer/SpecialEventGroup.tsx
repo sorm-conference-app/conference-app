@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { Event } from '@/types/Events.types';
 import AgendaItem from './AgendaItem';
-import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset, calculateHeight, isCol1Location, isCol2Location } from './utils';
+import { convert24HrTimeToSeconds, areTimesConflicting, calculateEventOffset, calculateHeight, isCol1Location, isCol2Location, getColumnExtraHeight } from './utils';
 
 type SpecialEventGroupProps = {
   mainEvent: Event;
@@ -28,13 +28,16 @@ export function SpecialEventGroup({
   }, mainEvent);
   const [longestEventHeight, setLongestEventHeight] = useState(longestEvent.topic === "Break" ? 100 : 
     calculateHeight(longestEvent.start_time, longestEvent.end_time));
+  const [columnWidth, setColumnWidth] = useState(0.0);
+  const [longestEventExtraHeight, setLongestEventExtraHeight] = useState(0.0);
+  const [otherEventsExtraHeight, setOtherEventsExtraHeight] = useState(0.0);
 
   // All other events that overlap with the longest event, sorted by start time
   const otherEvents = allEvents
     .filter(e => e.id !== longestEvent.id && areTimesConflicting(longestEvent.start_time, longestEvent.end_time, e.start_time, e.end_time))
     .sort((a, b) => convert24HrTimeToSeconds(a.start_time) - convert24HrTimeToSeconds(b.start_time));
 
-  // Not sure what exactly the logic is here, but it works for our situation and data
+  // Calculate heights for longest event, offsets, and wrapping text
   useEffect(() => {
     setLongestEventHeight(prevHeight => {
       let totalHeight = longestEvent.topic === "Break" ? 100 : 
@@ -50,13 +53,25 @@ export function SpecialEventGroup({
           }
         }
       }
-      
       return totalHeight;
     });
-  }, [longestEvent.end_time, longestEvent.start_time, longestEvent.topic, otherEvents]);
+    // Calculate the extra height needed to account for wrapping text in the events
+    let longestEventExtraHeightAdjusted = getColumnExtraHeight(otherEvents, columnWidth);
+    let otherEventsExtraHeightAdjusted = getColumnExtraHeight([longestEvent], columnWidth);
+    if (longestEventExtraHeightAdjusted < otherEventsExtraHeightAdjusted) {
+      setLongestEventExtraHeight(0);
+      setOtherEventsExtraHeight(otherEventsExtraHeightAdjusted - longestEventExtraHeightAdjusted);
+    } else {
+      setLongestEventExtraHeight(longestEventExtraHeightAdjusted - otherEventsExtraHeightAdjusted);
+      setOtherEventsExtraHeight(0);
+    }
+    console.log("Event: ", longestEvent.title, "Extra Height: ", longestEventExtraHeight, "Other Events: ", otherEventsExtraHeight);
+  }, [longestEvent.end_time, longestEvent.start_time, longestEvent.topic, otherEvents, columnWidth]);
 
   const longEventColumn = (
-    <View style={[
+    <View 
+      onLayout={e => setColumnWidth(e.nativeEvent.layout.width)}
+      style={[
         styles.eventWrapper,
         {
           marginTop: otherEvents.length > 0 ? calculateEventOffset(
@@ -75,7 +90,7 @@ export function SpecialEventGroup({
           hasRSVP={rsvpEventIds.has(longestEvent.id)}
           setRsvpEventIds={setRsvpEventIds}
           topic={longestEvent.topic}
-          height={longestEventHeight}
+          height={longestEventHeight + longestEventExtraHeight}
           onPress={() => onSelectEvent(longestEvent)}
         />
       </View>
@@ -102,7 +117,8 @@ export function SpecialEventGroup({
               hasRSVP={rsvpEventIds.has(event.id)}
               setRsvpEventIds={setRsvpEventIds}
               topic={event.topic}
-              height={event.topic === "Break" ? 100 : calculateHeight(event.start_time, event.end_time)}
+              height={event.topic === "Break" ? 100 
+                : calculateHeight(event.start_time, event.end_time) + otherEventsExtraHeight / otherEvents.length}
               onPress={() => onSelectEvent(event)}
             />
           </View>
