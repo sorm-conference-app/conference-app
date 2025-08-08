@@ -20,10 +20,10 @@ export default function useRSVPEvents(attendeeId: number) {
   const { refetch, ...rest } = useQuery<Event[]>({
     queryKey,
     queryFn: async function () {
-      console.log(
-        `[${hookId.current}] Querying RSVPed events for attendee:`,
-        attendeeId,
-      );
+      //console.log(
+      //  `[${hookId.current}] Querying RSVPed events for attendee:`,
+      //  attendeeId,
+      //);
 
       // First, get the event IDs that the user has RSVPed for
       const { data: rsvpData, error: rsvpError } = await supabase
@@ -36,7 +36,7 @@ export default function useRSVPEvents(attendeeId: number) {
       }
 
       if (!rsvpData || rsvpData.length === 0) {
-        console.log(`[${hookId.current}] No RSVPed events found`);
+        //console.log(`[${hookId.current}] No RSVPed events found`);
         return [];
       }
 
@@ -55,7 +55,7 @@ export default function useRSVPEvents(attendeeId: number) {
         throw new Error(eventsError.message);
       }
 
-      console.log(`[${hookId.current}] Queried ${eventsData.length} RSVPed events`);
+      //console.log(`[${hookId.current}] Queried ${eventsData.length} RSVPed events`);
       return eventsData as Event[];
     },
     refetchOnWindowFocus: false,
@@ -63,10 +63,6 @@ export default function useRSVPEvents(attendeeId: number) {
 
   // Set up real-time subscription for both events and event_attendees tables
   useEffect(() => {
-    console.log(
-      `[${hookId.current}] Setting up real-time subscription with channel:`,
-      channelName.current,
-    );
 
     // Subscribe to changes in both the events and event_attendees tables
     const channel = supabase
@@ -79,11 +75,6 @@ export default function useRSVPEvents(attendeeId: number) {
           table: "events",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time events update received:`,
-            payload,
-          );
-
           // Refresh the RSVPed events when events change
           refetch();
         },
@@ -96,25 +87,16 @@ export default function useRSVPEvents(attendeeId: number) {
           table: "event_attendees",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time event_attendees update received:`,
-            payload,
-          );
-
           // Refresh the RSVPed events when RSVP status changes
           refetch();
         },
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
 
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(
-        `[${hookId.current}] Cleaning up subscription:`,
-        channelName.current,
-      );
       supabase.removeChannel(channel);
     };
   }, [refetch]);

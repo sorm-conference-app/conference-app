@@ -1,6 +1,7 @@
 import useSupabaseAuth from '@/hooks/useSupabaseAuth';
 import {
   getAttendeeByContact,
+  getAttendeeByEmail,
   shouldShowContactSharingPopup,
   updateContactSharingPreferences,
   type Attendee
@@ -26,15 +27,15 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
   const session = useSupabaseAuth();
 
   /**
-   * Get the current user's contact info (email or phone)
+   * Get the current user's primary identifier for attendee lookups
+   * Prefer the registration email stored in auth session or metadata; fall back to phone only if no email
    */
-  const getCurrentUserContact = useCallback((): string | null => {
-    if (session?.user?.email) {
-      return session.user.email;
-    } else if (session?.user?.phone) {
-      return session.user.phone;
-    }
-    return null;
+  const getCurrentUserIdentifier = useCallback((): { email?: string; phone?: string } | null => {
+    if (!session?.user) return null;
+    const metaEmail = (session.user.user_metadata as any)?.attendee_email as string | undefined;
+    const email = metaEmail || session.user.email || undefined;
+    const phone = session.user.phone || undefined;
+    return { email, phone };
   }, [session]);
 
   /**
@@ -44,17 +45,21 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
    */
   const showModal = useCallback(async (contact?: string): Promise<boolean> => {
     try {
-      const userContact = contact || getCurrentUserContact();
+      const identifier = getCurrentUserIdentifier();
+      const userContact = contact || identifier?.email || identifier?.phone;
       if (!userContact) {
         console.warn('No contact available for showing contact sharing modal');
         return false;
       }
 
-      // Check if popup should be shown for both email and phone users
-      const shouldShow = await shouldShowContactSharingPopup(userContact);
+      // Prefer to check by email if available
+      const lookupKey = identifier?.email || userContact;
+      const shouldShow = await shouldShowContactSharingPopup(lookupKey);
       
       if (shouldShow) {
-        const attendeeData = await getAttendeeByContact(userContact);
+        const attendeeData = identifier?.email
+          ? await getAttendeeByEmail(identifier.email)
+          : await getAttendeeByContact(userContact);
         if (attendeeData) {
           setAttendee(attendeeData);
           setIsVisible(true);
@@ -66,7 +71,7 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
       console.error('Error checking if contact sharing modal should be shown:', error);
       return false;
     }
-  }, [getCurrentUserContact]);
+  }, [getCurrentUserIdentifier]);
 
   /**
    * Force show the modal for the given contact (even if they've seen it before)
@@ -75,12 +80,15 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
    */
   const showModalForce = useCallback(async (contact?: string): Promise<void> => {
     try {
-      const userContact = contact || getCurrentUserContact();
+      const identifier = getCurrentUserIdentifier();
+      const userContact = contact || identifier?.email || identifier?.phone;
       if (!userContact) {
         throw new Error('No contact available for showing contact sharing modal');
       }
 
-      const attendeeData = await getAttendeeByContact(userContact);
+      const attendeeData = identifier?.email
+        ? await getAttendeeByEmail(identifier.email)
+        : await getAttendeeByContact(userContact);
       if (attendeeData) {
         setAttendee(attendeeData);
         setIsVisible(true);
@@ -89,7 +97,7 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
       console.error('Error forcing contact sharing modal to show:', error);
       throw error;
     }
-  }, [getCurrentUserContact]);
+  }, [getCurrentUserIdentifier]);
 
   /**
    * Hide the modal and reset state
@@ -108,7 +116,8 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
    * @param title - Updated title value
    */
   const savePreferences = useCallback(async (shareInfo: boolean, additionalInfo: string, name?: string, organization?: string, title?: string) => {
-    const userContact = getCurrentUserContact();
+    const identifier = getCurrentUserIdentifier();
+    const userContact = identifier?.email || identifier?.phone || null;
     if (!userContact) {
       throw new Error('No user contact available for saving preferences');
     }
@@ -119,7 +128,7 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
       console.error('Error saving contact sharing preferences:', error);
       throw error;
     }
-  }, [getCurrentUserContact]);
+  }, [getCurrentUserIdentifier]);
 
   return {
     isVisible,
@@ -146,7 +155,7 @@ export async function triggerContactSharingModal(contact: string): Promise<void>
     
     // This would need to be integrated with a global modal system
     // For now, this is just a helper that other developers can use
-    console.log('Contact sharing modal should be triggered for:', contact);
+    // console.log('Contact sharing modal should be triggered for:', contact);
     
     // The actual implementation would depend on how the other team member
     // wants to integrate this into their feature

@@ -4,8 +4,8 @@ import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { Attendee, getAttendeeByContact } from "@/services/attendees";
-import React from "react";
+import { Attendee, getAttendeeByContact, getAttendeeByEmail } from "@/services/attendees";
+import React, { useCallback } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
@@ -18,7 +18,7 @@ interface AttendeeContactListProps {
 
 export default function AttendeeContactList({ reloadTrigger }: AttendeeContactListProps) {
   const colorScheme = useColorScheme() ?? 'light';
-  const { contacts, loading, error, refresh } = useAttendeeContacts();
+  const { contacts, error, refresh } = useAttendeeContacts();
   const [attendee, setAttendee] = React.useState<Attendee | null>(null);
   const [expandedRowId, setExpandedRowId] = React.useState<number | null>(null);
   const session = useSupabaseAuth();
@@ -31,16 +31,35 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
   
+  const loadUserInfo = useCallback(async () => {
+    try {
+      // Prefer to resolve attendee by email (session email or persisted attendee_email metadata)
+      const metaEmail = (session?.user?.user_metadata as any)?.attendee_email as string | undefined;
+      const email = metaEmail || session?.user?.email;
+      const phone = session?.user?.phone;
+
+      if (email) {
+        setAttendee(await getAttendeeByEmail(email));
+      } else if (phone) {
+        setAttendee(await getAttendeeByContact(phone));
+      } else {
+        setAttendee(null);
+      }
+    } catch (error) {
+      console.error('Error loading user info:', error);
+    }
+  }, [session]);
+
   // Load user's verified email and share_info preference on component mount
   React.useEffect(() => {
     loadUserInfo();
-  }, [session]);
+  }, [loadUserInfo]);
 
   // Set up real-time subscription for current user's attendee record
   React.useEffect(() => {
     if (!attendee?.id) return;
 
-    console.log('Setting up real-time subscription for user ID:', attendee.id);
+    //console.log('Setting up real-time subscription for user ID:', attendee.id);
     
     const channel = supabase
       .channel(`user_attendee_${attendee.id}`)
@@ -52,21 +71,21 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
           filter: `id=eq.${attendee.id}`
         }, 
         (payload: any) => {
-          console.log('User attendee record updated:', payload);
+          //console.log('User attendee record updated:', payload);
           // Reload user's info when their record changes
           loadUserInfo();
         }
       )
       .subscribe((status: any) => {
-        console.log('User attendee subscription status:', status);
+        //console.log('User attendee subscription status:', status);
       });
     
     // Cleanup function
     return () => {
-      console.log('Cleaning up user attendee subscription');
+      //console.log('Cleaning up user attendee subscription');
       supabase.removeChannel(channel);
     };
-  }, [attendee?.id]);
+  }, [attendee?.id, loadUserInfo]);
 
   // Refresh contacts when reloadTrigger changes
   React.useEffect(() => {
@@ -74,22 +93,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
       refresh();
       loadUserInfo(); // Also reload the current user's info
     }
-  }, [reloadTrigger, refresh]);
-
-  async function loadUserInfo() {
-    try {
-      // Get current user contact from authenticated session
-      const userContact = session?.user?.email || session?.user?.phone;
-      
-      if (userContact) {
-        setAttendee(await getAttendeeByContact(userContact));
-      } else {
-        setAttendee(null);
-      }
-    } catch (error) {
-      console.error('Error loading user info:', error);
-    }
-  }
+  }, [reloadTrigger, refresh, loadUserInfo]);
 
   const handleContactSharingDontShare = async (additionalInfo: string, name?: string, organization?: string, title?: string) => {
     hideContactSharingModal();
@@ -121,8 +125,8 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   const disclosureArea = () => {
     return (
       <ThemedView style={{ backgroundColor: "transparent", margin: 5, marginBottom: 0 }}>
-        <ThemedText style={styles.subtitle}>These individuals have agreed to share their contact information.</ThemedText>
-        <ThemedText style={styles.subtitle}>
+        <ThemedText type="default" style={styles.subtitle}>These individuals have agreed to share their contact information.</ThemedText>
+        <ThemedText type="default" style={styles.subtitle}>
           {attendee?.share_info === true ? <ThemedText style={{ fontWeight: "bold" }}>Your contact information is being shared. </ThemedText> 
           : attendee?.share_info === false ? <ThemedText style={{ fontWeight: "bold" }}>Your contact information is not being shared. </ThemedText>
           : "Loading your contact sharing preference... "}
@@ -136,17 +140,17 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
             }]}
           >
             {attendee !== null && attendee.share_info !== null && (
-              <ThemedText style={styles.buttonText}>
+              <ThemedText type="defaultSemiBold" style={styles.buttonText}>
                 {Platform.OS === "web" ? "Click here" 
                 : "Tap here"}
               </ThemedText>
             )}
           </Pressable>
-          <ThemedText style={[styles.subtitle, { flexShrink: 1, marginLeft: 5, backgroundColor: "transparent", alignSelf: "flex-start" }]}>
+          <ThemedText type="default" style={[styles.subtitle, { flexShrink: 1, marginLeft: 5, backgroundColor: "transparent", alignSelf: "flex-start" }]}>
             to manage your contact sharing preferences.
           </ThemedText>
         </ThemedView>}
-        <ThemedText style={[styles.subtitle, { fontStyle: "italic" }]}>
+        <ThemedText type="default" style={[styles.subtitle, { fontStyle: "italic" }]}>
           {Platform.OS === "web" ? "Click on an attendee to view more contact information." 
           : "Tap on an attendee to view more contact information."}
         </ThemedText>
@@ -185,7 +189,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
         }]}
       >
         <Pressable onPress={closeAllExpandedRows} style={{ flex: 1 }}>
-          <ThemedText style={styles.title}>Attendee Contact List</ThemedText>
+          <ThemedText type="title" style={styles.title}>Attendee Contact List</ThemedText>
           {disclosureArea()}
           {contacts.map((contact) => (
             <ContactRow 
@@ -237,13 +241,10 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontSize: 30,
-    fontWeight: "bold",
     margin: 15,
   },
   subtitle: {
     textAlign: "center",
-    fontSize: 16,
     marginBottom: 10,
   },
   button: {
@@ -257,8 +258,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
     marginLeft: 5,
     marginRight: 5,
     lineHeight: 20,

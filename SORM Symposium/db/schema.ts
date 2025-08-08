@@ -11,13 +11,14 @@ import { int, sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
  * `npm exec drizzle-kit generate`
  */
 
-export const announcements = sqliteTable("test_announcements", {
+export const announcements = sqliteTable("announcements", {
   id: int().primaryKey({ autoIncrement: true }),
   created_at: int({ mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
   body: text().notNull(),
   title: text().notNull(),
+  type: text(),
 });
 
 export const contact_info = sqliteTable("contact_info", {
@@ -42,9 +43,10 @@ export const events = sqliteTable("events", {
   start_time: text().notNull(),
   end_time: text().notNull(),
   location: text().notNull(),
-  speaker_name: text(),
-  speaker_title: text(),
-  speaker_email: text(),
+  speaker_name: text(), // Will store array of speaker names
+  speaker_title: text(), // Will store array of speaker titles
+  speaker_bio: text(), // Will store array of speaker bios
+  speaker_company: text(), // Will store array of speaker companies
   topic: text(),
   slides_url: text(),
   is_deleted: int().notNull().default(0),

@@ -10,7 +10,6 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
-import { use6DigitVerificationModal } from "@/hooks/use6DigitVerificationModal";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -50,6 +49,7 @@ export default function Login() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [showVerificationModal, setShowVerificationModal] = useState<boolean>(false);
+  const [proceedingAsAttendee, setProceedingAsAttendee] = useState<boolean>(false);
   const sponsors = useMemo(() => getAllSponsors(), []);
 
   // Contact sharing modal hook
@@ -69,8 +69,6 @@ export default function Login() {
     : false;
   const validContact = contactMethod === "email" ? validEmail : validPhone;
   const validPassword = password.length > 0;
-
-  const sixDigitVerificationModal = use6DigitVerificationModal();
 
   useEffect(() => {
     // Only clear login flow and sign out if there's no active session
@@ -137,7 +135,13 @@ export default function Login() {
         router.push("/(tabs)/home");
       }
     } catch (e) {
-      setErr((e as Error).message);
+      const errorMessage = (e as Error).message;
+      // Check if this is the specific error for organizer trying to login as attendee
+      if (userType === "attendee" && errorMessage.includes("registered as an organizer")) {
+        setShowConfirmationModal(true);
+      } else {
+        setErr(errorMessage);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -145,18 +149,16 @@ export default function Login() {
 
   const handleVerificationComplete = async (result: any) => {
     setShowVerificationModal(false);
+    setProceedingAsAttendee(false);
     
     try {
-      // Set login flow to 'attendee' for OTP verification
+      // Set login flow to 'attendee' for OTP verification and show modal keyed by email to avoid phone collisions
       await setLoginFlow('attendee');
-      
-      // Use cleaned formatted phone number for contact sharing
-      const contactForSharing = contactMethod === "phone" && selectedCountry
-        ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
-        : contact;
-      
-      // Check if we should show the contact sharing modal
-      const modalShown = await showContactSharingModal(contactForSharing);
+
+      // Always try to show by the attendee's registration email which we already collected
+      const identifierForModal = attendeeEmail || (contactMethod === "email" ? contact : undefined) || undefined;
+
+      const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
         router.push("/(tabs)/home");
@@ -169,24 +171,44 @@ export default function Login() {
 
   const handleVerificationCancel = () => {
     setShowVerificationModal(false);
+    setProceedingAsAttendee(false);
     setErr("");
   };
 
   const handleVerificationResend = async () => {
+    const contactToSend = contactMethod === "phone" && selectedCountry
+      ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
+      : contact;
+    
+    if (proceedingAsAttendee) {
+      // Use requestOTP with bypassAdminCheck when proceeding as attendendee
+      await requestOTP(contactToSend, attendeeEmail, true);
+    } else {
+      await requestOTP(contactToSend, userType === "attendee" ? attendeeEmail : undefined);
+    }
+    // Don't catch errors here - let the modal handle them
+  };
+
+  const handleProceedAsAttendee = async () => {
+    setShowConfirmationModal(false);
+    setProceedingAsAttendee(true);
+    setIsProcessing(true);
+    setErr("");
+    
     try {
+      // Proceed with attendee login, bypassing the admin check
       const contactToSend = contactMethod === "phone" && selectedCountry
         ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
         : contact;
-      await requestOTP(contactToSend, userType === "attendee" ? attendeeEmail : undefined);
-    } catch (error) {
-      setErr(`Failed to resend code: ${(error as Error).message}`);
+      
+      // Use requestOTP with bypassAdminCheck set to true
+      await requestOTP(contactToSend, attendeeEmail, true);
+      setShowVerificationModal(true);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
-  const handleProceedAsAttendee = () => {
-    setShowConfirmationModal(false);
-    // This logic would be triggered from the confirmation modal
-    // which handles dual registration scenarios
   };
 
   const handleContactSharingDontShare = async (
@@ -238,6 +260,7 @@ export default function Login() {
 
   const handleGoToAdminLogin = () => {
     setShowConfirmationModal(false);
+    setProceedingAsAttendee(false);
     setUserType("organizer");
     setPassword("");
     setErr("");
@@ -252,6 +275,7 @@ export default function Login() {
     setSelectedCountry(null);
     setPassword("");
     setErr("");
+    setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
     await clearLoginFlow();
     await supabase.auth.signOut();
@@ -264,6 +288,7 @@ export default function Login() {
       setContact("");
       setPhoneNumber("");
       setSelectedCountry(null);
+      setProceedingAsAttendee(false);
       setErr("");
     } else {
       // Go back to user type selection
@@ -274,6 +299,7 @@ export default function Login() {
       setPhoneNumber("");
       setSelectedCountry(null);
       setPassword("");
+      setProceedingAsAttendee(false);
       setErr("");
       setContactMethod("email");
     }
@@ -365,7 +391,7 @@ export default function Login() {
           Thank you to our sponsors for making this event possible
         </ThemedText>
         {sponsors.map((sponsor) => (
-          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} />
+          <SponsorLogo {...sponsor} hyperlink key={sponsor.id} style={{ marginVertical: 8, marginHorizontal: 16 }} />
         ))}
       </ThemedView>
     </>
@@ -379,7 +405,7 @@ export default function Login() {
           <ThemedText type="title" style={{ marginBottom: 10 }}>{getTitle()}</ThemedText>
           <ThemedText>{getDescription()}</ThemedText>
 
-          <ThemedText style={{ marginTop: 5 }}>I am a...</ThemedText>
+          <ThemedText style={{ marginVertical: 5 }}>I am a...</ThemedText>
           <Pressable
             onPress={() => selectUserType("attendee")}
             style={[
@@ -390,8 +416,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -408,8 +434,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -447,7 +473,6 @@ export default function Login() {
               onChangeText={setAttendeeEmail}
               placeholder="Enter your registration email"
               accessibilityLabel="Registration email input field"
-              accessibilityHint="Enter the email you used to register"
               accessibilityRole="text"
             />
             {attendeeEmail.length > 0 && !validAttendeeEmail && (
@@ -470,8 +495,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -489,8 +514,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -519,7 +544,7 @@ export default function Login() {
             <>
               <ThemedView style={styles.registeredEmailContainer}>
                 <ThemedText style={styles.registeredEmailLabel}>Registered Email:</ThemedText>
-                <ThemedText style={styles.registeredEmailText}>{attendeeEmail}</ThemedText>
+                <ThemedText type="defaultSemiBold">{attendeeEmail}</ThemedText>
               </ThemedView>
 
               <ThemedView style={styles.contactMethodContainer}>
@@ -538,8 +563,8 @@ export default function Login() {
                     ]}
                   >
                     <ThemedText
+                      type="subtitle"
                       style={[
-                        styles.segmentText,
                         { color: contactMethod === "phone" 
                             ? Colors[colorScheme].adminButtonText 
                             : Colors[colorScheme].text 
@@ -562,8 +587,8 @@ export default function Login() {
                     ]}
                   >
                     <ThemedText
+                      type="subtitle"
                       style={[
-                        styles.segmentText,
                         { color: contactMethod === "email" 
                             ? Colors[colorScheme].adminButtonText 
                             : Colors[colorScheme].text 
@@ -589,7 +614,6 @@ export default function Login() {
                 onChangeText={setContact}
                 placeholder="Enter your email"
                 accessibilityLabel="Email input field"
-                accessibilityHint="Enter your email"
                 accessibilityRole="text"
                 editable={userType === "organizer"} // Only editable for organizers
                 style={userType === "attendee" ? styles.readOnlyInput : undefined}
@@ -645,7 +669,6 @@ export default function Login() {
                 onChangeText={setPassword}
                 placeholder="Enter your password"
                 accessibilityLabel="Password input field"
-                accessibilityHint="Enter your password"
                 accessibilityRole="text"
               />
             </ThemedView>
@@ -664,8 +687,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -683,8 +706,8 @@ export default function Login() {
             ]}
           >
             <ThemedText
+              type="subtitle"
               style={[
-                styles.buttonText,
                 { color: Colors[colorScheme].adminButtonText },
               ]}
             >
@@ -761,10 +784,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  registeredEmailText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   contactMethodContainer: {
     width: "100%",
     marginBottom: 20,
@@ -782,10 +801,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  segmentText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   inputContainer: {
     width: "100%",
     marginBottom: 15,
@@ -800,10 +815,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 10,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
   },
   invalid: {
     color: "red",

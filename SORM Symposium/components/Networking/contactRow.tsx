@@ -1,7 +1,7 @@
 import { Attendee } from "@/services/attendees";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
-import { Dimensions, Pressable, StyleSheet, Platform } from "react-native";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
@@ -38,32 +38,41 @@ export default function ContactRow({ attendee, expandedRowId, setExpandedRow }: 
     }
   };
 
+  const position = (
+    isSelected ? (
+      <ThemedText type="default" style={[]}>
+        {attendee.title && <>{attendee.title}</>}
+        {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
+        {attendee.organization && <>{attendee.organization}</>}
+      </ThemedText>
+    ) : (
+      <ThemedText type="default" style={[]}>
+        {attendee.title && <>{attendee.title}</>}
+        {attendee.title && attendee.organization && <ThemedText style={styles.italicText}> at </ThemedText>}
+        {attendee.organization && <>{attendee.organization}</>}
+      </ThemedText>
+    )
+  )
+
   return (
     <ThemedView style={[styles.container, { 
         backgroundColor: colorScheme === 'light' ? Colors[colorScheme].background : Colors[colorScheme].secondaryBackgroundColor,
       }]}>
       {isSelected ? (
         <Pressable style={styles.contactCard} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.details}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
-          {attendee.email && <ThemedText style={styles.email}>{attendee.email}</ThemedText>}
-          {attendee.additional_info && <ThemedText style={styles.additionalInfo}>{attendee.additional_info}</ThemedText>}
-        </Pressable>
-      ) : isWideScreen ? (
-        <Pressable style={styles.contactRowWide} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.rowDetails}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
+          <>
+            <ThemedText type="defaultSemiBold" style={[]}>{attendee.name}</ThemedText>
+            {position}
+            {attendee.email && <ThemedText style={styles.email}>{attendee.email}</ThemedText>}
+            {attendee.additional_info && attendee.additional_info.length > 0 &&
+              <ThemedText style={styles.additionalInfo}>{attendee.additional_info}</ThemedText>
+            }
+          </>
         </Pressable>
       ) : (
-        <Pressable style={styles.contactRowNarrow} onPress={handlePress}>
-          <ThemedText style={styles.name}>{attendee.name}</ThemedText>
-          <ThemedText style={styles.rowDetails}>
-            {attendee.title} <ThemedText style={styles.italicText}>at</ThemedText> {attendee.organization}
-          </ThemedText>
+        <Pressable style={isWideScreen ? styles.contactRowWide : styles.contactRowNarrow} onPress={handlePress}>
+          <ThemedText type="defaultSemiBold" style={[]}>{attendee.name}</ThemedText>
+          {position}
         </Pressable>
       )}
     </ThemedView>
@@ -97,21 +106,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     padding: 15,
     minHeight: "auto",
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  details: {
-    fontSize: 14,
-    marginBottom: 2,
-    flexWrap: "wrap",
-  },
-  rowDetails: {
-    fontSize: 14,
-    marginBottom: 2,
-    textAlign: "right",
   },
   email: {
     fontSize: 12,

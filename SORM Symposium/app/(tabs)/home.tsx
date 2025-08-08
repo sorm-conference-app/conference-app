@@ -8,7 +8,7 @@ import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useSurveyLink } from "@/hooks/useSurveyLink";
 
 import { onSurveyFlash } from "@/lib/surveyFlashEmitter";
 import { router } from "expo-router";
@@ -17,6 +17,7 @@ import {
     ActivityIndicator,
     Animated,
     Dimensions,
+    Linking,
     Platform,
     Pressable,
     StyleSheet,
@@ -28,8 +29,20 @@ export default function Home() {
     router.push("/announcement/announcementList");
   };
 
-  const user = useSupabaseAuth();
   const { clearLoginFlow } = useLoginFlow();
+
+  // Survey link hook
+  const { data: surveyLink, isLoading: surveyLoading } = useSurveyLink();
+
+  /**
+   * Handle survey button press
+   * Opens the survey link for the current date if available
+   */
+  const handleSurveyPress = () => {
+    if (surveyLink) {
+      Linking.openURL(surveyLink);
+    }
+  };
 
   /**
    * Handle logout functionality
@@ -52,7 +65,7 @@ export default function Home() {
     router.replace("/");
   };
 
-  const WIDE_SCREEN_WIDTH = 950;
+  const WIDE_SCREEN_WIDTH = 960;
   const [wideScreen, setWideScreen] = useState(false);
   const [surveyFlashTrigger, setSurveyFlashTrigger] = useState(0);
   const surveyAnimation = useRef(new Animated.Value(1)).current;
@@ -98,6 +111,11 @@ export default function Home() {
   }, [surveyFlashTrigger, surveyAnimation]);
 
   const surveyContainer = () => {
+    // Don't show survey container if no survey link is available
+    if (!surveyLink) {
+      return null;
+    }
+
     return (
       <Animated.View style={[styles.surveyButtonContainer, 
         { position: wideScreen ? "absolute" : "relative",
@@ -106,17 +124,19 @@ export default function Home() {
           transform: [{ scale: surveyAnimation }],
         }]}>
         <ThemedText style={{ marginRight: 90, color: Colors[colorScheme].text }}>
-          Your feedback is important to us! Please take a moment to fill out our survey about the day&apos;s events.
+          Your feedback is important! Please complete a survey each day you are at the Symposium. Thank you!
         </ThemedText>
         <Pressable 
-          onPress={() => {}}
+          onPress={handleSurveyPress}
           style={[styles.surveyButton,
             { backgroundColor: Colors[colorScheme].adminButton },
             { borderColor: Colors[colorScheme].tint },
-          ]}>
+            surveyLoading && { opacity: 0.6 },
+          ]}
+          disabled={surveyLoading}>
           <ThemedText style={[styles.surveyButtonText, 
             { color: Colors[colorScheme].adminButtonText, }]}>
-              Go to Survey</ThemedText>
+              {surveyLoading ? "Loading..." : "Go to Survey"}</ThemedText>
         </Pressable>
       </Animated.View>
     );
@@ -320,7 +340,7 @@ const styles = StyleSheet.create({
     position: "relative",
     flexDirection: "column",
     right: 5,
-    maxWidth: 350,
+    maxWidth: 360,
     borderWidth: 1,
     borderRadius: 12,
     padding: 8,

@@ -6,15 +6,18 @@ import { Colors } from "@/constants/Colors";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { Tabs } from "expo-router";
-import { Platform, useColorScheme } from "react-native";
+import { Platform, useColorScheme, useWindowDimensions } from "react-native";
 
 export default function TabLayout() {
   const user = useSupabaseAuth();
   const isAdmin = useIsAdmin();
   const { loginFlow } = useLoginFlow();
+  const windowWidth = useWindowDimensions().width;
   
   // Only show admin tab if user is authenticated, has admin role, came through organizer login flow, AND is on web platform
   const shouldShowAdminTab = user && isAdmin && loginFlow === 'organizer' && Platform.OS === 'web';
+
+  const WIDTH_THRESHOLD = shouldShowAdminTab ? 420 : 350;
 
   return (
     <Tabs
@@ -34,7 +37,8 @@ export default function TabLayout() {
         tabBarStyle: {
           ...Platform.select({
             ios: { position: "absolute", bottom: 0 },
-            default: {},
+            android: { paddingBottom: 0, height: 60 },
+            default: { height: windowWidth > WIDTH_THRESHOLD ? 55 : 55, paddingTop: windowWidth > WIDTH_THRESHOLD ? 0 : 8 },
           }),
         },
       }}
@@ -43,6 +47,7 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Home",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Home" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="house.fill" color={color} size={28} />
           ),
@@ -52,6 +57,7 @@ export default function TabLayout() {
         name="agenda"
         options={{
           title: "Agenda",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Agenda" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="calendar" color={color} size={28} />
           ),
@@ -61,6 +67,7 @@ export default function TabLayout() {
         name="info"
         options={{
           title: "Info",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Info" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="info.circle.fill" color={color} size={28} />
           ),
@@ -70,6 +77,7 @@ export default function TabLayout() {
         name="connect"
         options={{
           title: "Connect",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Connect" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="person.2.fill" color={color} size={28} />
           ),
@@ -79,6 +87,7 @@ export default function TabLayout() {
         name="sponsors"
         options={{
           title: "Sponsors",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Sponsors" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="star.fill" color={color} size={28} />
           ),
@@ -89,6 +98,7 @@ export default function TabLayout() {
         options={{
           href: shouldShowAdminTab ? "/(tabs)/admin" : null,
           title: "Admin",
+          tabBarLabel: windowWidth > WIDTH_THRESHOLD ? "Admin" : "",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="person.fill" color={color} size={28} />
           ),

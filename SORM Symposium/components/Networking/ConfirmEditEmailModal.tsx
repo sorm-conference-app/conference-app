@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { Colors } from '@/constants/Colors';
@@ -51,60 +51,64 @@ export default function ConfirmEditEmailModal({
             styles.modalContent,
             { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
           ]}>
-            <ThemedText type="title" style={styles.title}>
-              Confirm Email Edit
-            </ThemedText>
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <ThemedText type="title" style={styles.title}>
+                Confirm Email Edit
+              </ThemedText>
 
-            <ThemedText style={styles.infoText}>
-              Change {attendeeName}'s email to "{attendeeEmail}"?
-            </ThemedText>
-            
-            <ThemedText style={styles.message}>
-              You are about to edit an attendee's email address.
-            </ThemedText>
-            <ThemedText style={styles.message}>
-              This action will affect the attendee's ability to log in to the app.
-            </ThemedText>
-            <ThemedText style={styles.message}>
-              Are you sure you want to proceed?
-            </ThemedText>
-            
-            <ThemedView style={[
-              styles.buttonContainer,
-              { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-            ]}>
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.confirmButton,
-                  { backgroundColor: Colors[colorScheme].adminButton }
-                ]}
-                onPress={handleFirstConfirm}
-              >
-                <ThemedText style={[
-                  styles.buttonText,
-                  { color: Colors[colorScheme].adminButtonText }
-                ]}>
-                  Yes, Continue
-                </ThemedText>
-              </Pressable>
+              <ThemedText style={styles.infoText}>
+                Change {attendeeName}&apos;s email to &quot;{attendeeEmail}&quot;?
+              </ThemedText>
               
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.cancelButton,
-                  { backgroundColor: Colors[colorScheme].tabIconDefault }
-                ]}
-                onPress={handleCancel}
-              >
-                <ThemedText style={[
-                  styles.buttonText,
-                  { color: Colors[colorScheme].adminButtonText }
-                ]}>
-                  Cancel
-                </ThemedText>
-              </Pressable>
-            </ThemedView>
+              <ThemedText style={styles.message}>
+                You are about to edit an attendee&apos;s email address.
+              </ThemedText>
+              <ThemedText style={styles.message}>
+                This action will affect the attendee&apos;s ability to log in to the app.
+              </ThemedText>
+              <ThemedText style={styles.message}>
+                Are you sure you want to proceed?
+              </ThemedText>
+              
+              <ThemedView style={[
+                styles.buttonContainer,
+                { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
+              ]}>
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    { backgroundColor: Colors[colorScheme].adminButton }
+                  ]}
+                  onPress={handleFirstConfirm}
+                >
+                  <ThemedText type="subtitle" style={[
+                    { color: Colors[colorScheme].adminButtonText }
+                  ]}>
+                    Yes, Continue
+                  </ThemedText>
+                </Pressable>
+                
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.cancelButton,
+                    { backgroundColor: Colors[colorScheme].tabIconDefault }
+                  ]}
+                  onPress={handleCancel}
+                >
+                  <ThemedText type="subtitle" style={[
+                    { color: Colors[colorScheme].adminButtonText }
+                  ]}>
+                    Cancel
+                  </ThemedText>
+                </Pressable>
+              </ThemedView>
+            </ScrollView>
           </ThemedView>
         </ThemedView>
       </Modal>
@@ -121,60 +125,64 @@ export default function ConfirmEditEmailModal({
             styles.modalContent,
             { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
           ]}>
-            <ThemedText type="title" style={styles.title}>
-              Final Confirmation
-            </ThemedText>
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <ThemedText type="title" style={styles.title}>
+                Final Confirmation
+              </ThemedText>
 
-            <ThemedText style={styles.infoText}>
-              Change {attendeeName}'s email to "{attendeeEmail}"?
-            </ThemedText>
-            
-            <ThemedText style={styles.message}>
-              This user's email address will be permanently updated in the system.
-            </ThemedText>
-            <ThemedText style={styles.message}>
-              This action cannot be undone.
-            </ThemedText>
-            <ThemedText style={styles.message}>
-              Do you want to proceed with the update?
-            </ThemedText>
-            
-            <ThemedView style={[
-              styles.buttonContainer,
-              { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
-            ]}>
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.confirmButton,
-                  { backgroundColor: '#dc3545' } // Red color for final confirmation
-                ]}
-                onPress={handleSecondConfirm}
-              >
-                <ThemedText style={[
-                  styles.buttonText,
-                  { color: Colors[colorScheme].adminButtonText }
-                ]}>
-                  Yes, Update Email
-                </ThemedText>
-              </Pressable>
+              <ThemedText style={styles.infoText}>
+                Change {attendeeName}&apos;s email to &quot;{attendeeEmail}&quot;?
+              </ThemedText>
               
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.cancelButton,
-                  { backgroundColor: Colors[colorScheme].tabIconDefault }
-                ]}
-                onPress={handleCancel}
-              >
-                <ThemedText style={[
-                  styles.buttonText,
-                  { color: Colors[colorScheme].adminButtonText }
-                ]}>
-                  Cancel
-                </ThemedText>
-              </Pressable>
-            </ThemedView>
+              <ThemedText style={styles.message}>
+                This user&apos;s email address will be permanently updated in the system.
+              </ThemedText>
+              <ThemedText style={styles.message}>
+                This action cannot be undone.
+              </ThemedText>
+              <ThemedText style={styles.message}>
+                Do you want to proceed with the update?
+              </ThemedText>
+              
+              <ThemedView style={[
+                styles.buttonContainer,
+                { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }
+              ]}>
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    { backgroundColor: '#dc3545' } // Red color for final confirmation
+                  ]}
+                  onPress={handleSecondConfirm}
+                >
+                  <ThemedText type="subtitle" style={[
+                    { color: Colors[colorScheme].adminButtonText }
+                  ]}>
+                    Yes, Update Email
+                  </ThemedText>
+                </Pressable>
+                
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.cancelButton,
+                    { backgroundColor: Colors[colorScheme].tabIconDefault }
+                  ]}
+                  onPress={handleCancel}
+                >
+                  <ThemedText type="subtitle" style={[
+                    { color: Colors[colorScheme].adminButtonText }
+                  ]}>
+                    Cancel
+                  </ThemedText>
+                </Pressable>
+              </ThemedView>
+            </ScrollView>
           </ThemedView>
         </ThemedView>
       </Modal>
@@ -203,6 +211,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     minWidth: 300,
+    maxHeight: '85%',
+    minHeight: 200,
+  },
+  scrollView: {
+    width: '100%',
+  },
+  scrollContent: {
+    alignItems: 'center',
   },
   title: {
     textAlign: 'center',

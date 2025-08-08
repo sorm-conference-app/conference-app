@@ -1,5 +1,5 @@
 import { supabase } from "@/constants/supabase";
-import { isAdminEmail, isAttendeeContact, isAttendeeEmail, verifyAttendeeContact } from "@/services/attendees";
+import { isAdminEmail, isAttendeeContact, isAttendeeEmail, updateAttendeePhone, verifyAttendeeContact } from "@/services/attendees";
 
 /**
  * Check if an email is registered as an admin/organizer
@@ -66,9 +66,10 @@ export default async function signinAdmin(email: string, password: string, onSuc
  * Request OTP for email or phone with attendee identification
  * @param contact Email address or phone number for verification
  * @param attendeeEmail The email used to register (for attendee identification)
+ * @param bypassAdminCheck Whether to bypass the admin check (for cases where user chooses to proceed as attendee)
  * @returns Object with success status and message
  */
-export async function requestOTP(contact: string, attendeeEmail?: string) {
+export async function requestOTP(contact: string, attendeeEmail?: string, bypassAdminCheck: boolean = false) {
   // If attendeeEmail is provided, validate that it's registered first
   if (attendeeEmail) {
     const attendeeExists = await isAttendeeEmail(attendeeEmail);
@@ -85,19 +86,21 @@ export async function requestOTP(contact: string, attendeeEmail?: string) {
     }
   }
 
-  // Check if this is an admin (only for email)
-  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  if (isEmail) {
-    const isAdmin = await isAdminEmail(contact);
+  // Check if the registered attendee email is an admin (unless bypassing the check)
+  if (attendeeEmail && !bypassAdminCheck) {
+    const isAdmin = await isAdminEmail(attendeeEmail);
     if (isAdmin) {
       throw new Error("This email is registered as an organizer. Please use the 'Symposium Organizer' option instead.");
     }
   }
 
+  // Determine if the contact is email or phone for OTP sending
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+
   try {
     if (isEmail) {
       // Send email OTP
-      console.log("Sending email OTP to", contact);
+      // console.log("Sending email OTP to", contact);
       const { error } = await supabase.auth.signInWithOtp({
         email: contact,
         options: {
@@ -120,7 +123,7 @@ export async function requestOTP(contact: string, attendeeEmail?: string) {
       };
     } else {
       // Send phone OTP
-      console.log("Sending phone OTP to", contact);
+      // console.log("Sending phone OTP to", contact);
       const { error } = await supabase.auth.signInWithOtp({
         phone: contact,
         options: {
@@ -191,9 +194,25 @@ export async function verifyOTP(contact: string, token: string, attendeeEmail?: 
       throw new Error("Authentication failed. Please try again.");
     }
     
-    // Get the attendee info - use provided attendeeEmail if available, otherwise use contact
+    // Get the attendee info - prefer the registered attendeeEmail for lookup to avoid phone collisions
+    // Falls back to the contact only if no email was provided
     const attendeeContactForLookup = attendeeEmail || contact;
     const attendee = await verifyAttendeeContact(attendeeContactForLookup);
+
+    // If this is phone verification and we have an attendeeEmail, save the verified phone against the email
+    if (!isEmail && attendeeEmail) {
+      await updateAttendeePhone(attendeeEmail, contact);
+    }
+
+    // Persist the attendee email on the auth user for future lookups across the app
+    // This ensures other screens can resolve the attendee by email even after phone-only auth
+    if (attendeeEmail) {
+      try {
+        await supabase.auth.updateUser({ data: { attendee_email: attendeeEmail } });
+      } catch (metaError) {
+        console.error('Failed to persist attendee_email to user metadata', metaError);
+      }
+    }
     
     return {
       verified: true,

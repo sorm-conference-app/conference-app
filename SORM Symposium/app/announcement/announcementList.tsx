@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -15,7 +16,6 @@ import { Stack } from "expo-router";
 
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useCallback } from "react";
-import { Platform } from "react-native";
 
 export default function AnnouncementsScreen() {
   const colorScheme = useColorScheme() ?? "light";
@@ -76,7 +76,7 @@ export default function AnnouncementsScreen() {
     ));
   }, [announcements, loading, error, refetchAnnouncements, colorScheme]);
 
-  console.log(announcements);
+  // console.log(announcements);
 
   return (
     <ThemedView

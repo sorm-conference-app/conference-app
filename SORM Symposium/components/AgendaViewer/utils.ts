@@ -22,25 +22,6 @@ export function convert24HrTimeToSeconds(time: string): number {
   return hours * 3600 + (minutes || 0) * 60;
 }
 
-function convert12HrTimeToSeconds(time: string): number {
-  // Only try to handle 12-hour format if it includes AM/PM
-  if (time.includes("AM") || time.includes("PM")) {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
-
-    if (modifier.toUpperCase() === "PM" && hours < 12) {
-      hours += 12;
-    } else if (modifier.toUpperCase() === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return hours * 3600 + minutes * 60;
-  }
-
-  // If no AM/PM, treat as 24-hour format
-  return convert24HrTimeToSeconds(time);
-}
-
 /**
  * Determine if two time intervals conflict.
  * @param startTimeA Start time for first event.
@@ -289,4 +270,41 @@ export function getTopicColor(topic: string | null): string {
 export function formatTopicName(topic: string | null): string {
   if (!topic) return 'General';
   return topic;
+}
+
+/**
+ * Get the extra height of an event caused by wrapping text
+ * @param event - The event
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the event
+ */
+function getExtraWrapHeight(event: Event, containerWidth: number): number {
+  const FontSizeDPIs = {
+    "topic": 5.5800,
+    "other": 6.9325,
+  }
+
+  let extraHeight = 0;
+  if (event.topic && event.topic.length * FontSizeDPIs.topic > containerWidth - 59.5) {
+    extraHeight += 20; // 20px extra height for topic wrap
+  } 
+  if (event.title.length * FontSizeDPIs.other > containerWidth - 42.5) {
+    extraHeight += 24; // 24px extra height for title wrap
+  }
+  const timeString = `${event.start_time} - ${event.end_time}`;
+  if (timeString.length * FontSizeDPIs.other > containerWidth - 66.5) {
+    extraHeight += 24; // 24px extra height for time wrap
+  }
+  
+  return extraHeight;
+}
+
+/**
+ * Get the extra height of a column caused by wrapping text
+ * @param events - The events in the column
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the events
+ */
+export function getColumnExtraHeight(events: Event[], containerWidth: number): number {
+  return events.reduce((acc, event) => acc + getExtraWrapHeight(event, containerWidth), 0);
 }

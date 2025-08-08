@@ -7,7 +7,7 @@ import type { Event } from "@/types/Events.types";
 import React, {
   Dispatch,
   SetStateAction,
-  useRef,
+  useMemo,
 } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
@@ -22,6 +22,7 @@ import {
 import { Pressable } from "react-native-gesture-handler";
 import useEvents from "@/hooks/useEvents";
 import useRSVPEvents from "@/hooks/useRSVPEvents";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCurrentAttendee } from "@/hooks/useCurrentAttendee";
 import { IconSymbol } from "../ui/IconSymbol";
 
@@ -45,9 +46,10 @@ export function EventList({
   reloadTrigger = 0,
 }: EventListProps) {
   const colorScheme = useColorScheme() ?? "light";
+  const isAdmin = useIsAdmin();
 
-  const dateRefs = useRef<{ [key: string]: View | null }>({});
-  const dateHeights = useRef<{ [key: string]: number }>({});
+  const dateRefs = useMemo(() => ({} as { [key: string]: View | null }), []);
+  const dateHeights = useMemo(() => ({} as { [key: string]: number }), []);
 
   // Get current attendee information
   const { attendee, loading: attendeeLoading, error: attendeeError } = useCurrentAttendee();
@@ -57,7 +59,6 @@ export function EventList({
     data: allEvents = [],
     isLoading: eventsLoading,
     error: eventsError,
-    refetch: refetchEvents,
   } = useEvents({
     showDeleted: showDeleted === "all" ? true : showDeleted === "deleted" ? true : false,
   });
@@ -116,7 +117,7 @@ export function EventList({
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {showHeader && (
+        {showHeader ? (
           <ThemedView
             style={{
               flexWrap: "wrap",
@@ -132,12 +133,22 @@ export function EventList({
             <ThemedText style={styles.subheader} type="subtitle">
               {Platform.OS === 'web' ? 'Click' : 'Tap'} on an event to view more details
             </ThemedText>
+
+            {!isAdmin ? (
             <ThemedText style={styles.subheader} type="subtitle">
               {Platform.OS === 'web' ? 'Click' : 'Tap'} the <IconSymbol 
               name="star" size={20} color={Colors[colorScheme].text}
               /> icon to save an event
             </ThemedText>
+            ) : null}
 
+            {isAdmin ? (
+            <ThemedText style={styles.subheader} type="subtitle">
+              Log in as an attendee to save events and view your saved events
+            </ThemedText>
+            ) : null}
+
+            {!isAdmin ? (
             <Pressable
               style={[
                 {
@@ -165,8 +176,9 @@ export function EventList({
                 Viewing: {showDeleted === "saved" ? "Saved" : "All"} Events
               </ThemedText>
             </Pressable>
+            ) : null}
           </ThemedView>
-        )}
+        ) : null}
         <View style={styles.content}>
           {sortedDates.length === 0 ? (
             <ThemedText style={styles.noEventsText}>No events found</ThemedText>
@@ -183,10 +195,10 @@ export function EventList({
                   { borderColor: Colors[colorScheme].text },
                 ]}
                 ref={(ref) => {
-                  dateRefs.current[date] = ref;
+                  dateRefs[date] = ref;
                 }}
                 onLayout={(e) => {
-                  dateHeights.current[date] = e.nativeEvent.layout.height;
+                  dateHeights[date] = e.nativeEvent.layout.height;
                 }}
               >
                 <ThemedText
@@ -209,11 +221,11 @@ export function EventList({
                         key={item.id}
                         style={styles.conflictContent}
                         onLayout={(e) => {
-                          dateRefs.current[date]?.measure((y) => {
+                          dateRefs[date]?.measure((y) => {
                             const previousHeights = sortedDates
                               .filter((d) => d < date)
                               .reduce(
-                                (sum, d) => sum + (dateHeights.current[d] || 0),
+                                (sum, d) => sum + (dateHeights[d] || 0),
                                 0,
                               );
                             onEventPosition(
@@ -240,11 +252,11 @@ export function EventList({
                       style={styles.conflictContent}
                       onLayout={(e) => {
                         // calculate the y position of the event
-                        dateRefs.current[date]?.measure((y) => {
+                        dateRefs[date]?.measure((y) => {
                           const previousHeights = sortedDates
                             .filter((d) => d < date)
                             .reduce(
-                              (sum, d) => sum + (dateHeights.current[d] || 0),
+                              (sum, d) => sum + (dateHeights[d] || 0),
                               0,
                             );
 
@@ -274,7 +286,7 @@ export function EventList({
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={handleRSVPUpdate}
                               topic={item.topic}
-                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                              height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -302,7 +314,8 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={handleRSVPUpdate}
-                              height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                              topic={item.topic}
+                              height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />
                           </View>
@@ -320,7 +333,7 @@ export function EventList({
                             hasRSVP={rsvpEventIds.has(item.id)}
                             setRsvpEventIds={handleRSVPUpdate}
                             topic={item.topic}
-                            height={item.topic === "Break" ? 50 : calculateHeight(item.start_time, item.end_time)}
+                            height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                             onPress={() => onSelectEvent(item)}
                           />
                         </View>

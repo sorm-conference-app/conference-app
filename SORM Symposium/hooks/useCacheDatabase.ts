@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import * as schema from "@/db/schema";
 
 /**
- * A hook that returns a Drizzle Database instance for the SQLite database.
+ * Native-specific version of useCacheDatabase that returns a Drizzle Database instance for the SQLite database.
  * @returns A Drizzle Database instance.
  */
 function useCacheDatabase() {

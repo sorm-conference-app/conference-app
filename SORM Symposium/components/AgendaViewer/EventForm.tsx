@@ -3,6 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors, TopicColors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import type { Event } from "@/types/Events.types";
+import { parseSpeakerString, formatSpeakersForDisplay } from "@/lib/speakerUtils";
 import React, { useEffect, useState } from "react";
 import {
   Pressable,
@@ -31,9 +32,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const [endTime, setEndTime] = useState(event?.end_time ?? "");
   const [eventDate, setEventDate] = useState(event?.event_date ?? "");
   const [slidesUrl, setSlidesUrl] = useState(event?.slides_url ?? "");
-  const [speakerName, setSpeakerName] = useState(event?.speaker_name ?? "");
-  const [speakerTitle, setSpeakerTitle] = useState(event?.speaker_title ?? "");
-  const [speakerEmail, setSpeakerEmail] = useState(event?.speaker_email ?? "");
+  const [speakerNames, setSpeakerNames] = useState<string[]>([]);
+  const [speakerTitles, setSpeakerTitles] = useState<string[]>([]);
+  const [speakerBios, setSpeakerBios] = useState<string[]>([]);
+  const [speakerCompanies, setSpeakerCompanies] = useState<string[]>([]);
   const [topic, setTopic] = useState(event?.topic ?? "General");
   const [canSubmit, setCanSubmit] = useState(event ? true : false);
 
@@ -45,9 +47,13 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     setEndTime(event?.end_time ?? "");
     setEventDate(event?.event_date ?? "");
     setSlidesUrl(event?.slides_url ?? "");
-    setSpeakerName(event?.speaker_name ?? "");
-    setSpeakerTitle(event?.speaker_title ?? "");
-    setSpeakerEmail(event?.speaker_email ?? "");
+    
+    // Use speaker data directly as arrays from Supabase
+    setSpeakerNames(event?.speaker_name ?? []);
+    setSpeakerTitles(event?.speaker_title ?? []);
+    setSpeakerBios(event?.speaker_bio ?? []);
+    setSpeakerCompanies(event?.speaker_company ?? []);
+    
     setTopic(event?.topic ?? "General");
     setCanSubmit(event ? true : false);
   }, [event]);
@@ -67,9 +73,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       created_at: event?.created_at ?? new Date().toISOString(),
       slides_url: slidesUrl,
       event_date: eventDate,
-      speaker_name: speakerName,
-      speaker_title: speakerTitle,
-      speaker_email: speakerEmail,
+      speaker_name: speakerNames.length > 0 ? speakerNames : null,
+      speaker_title: speakerTitles.length > 0 ? speakerTitles : null,
+      speaker_bio: speakerBios.length > 0 ? speakerBios : null,
+      speaker_company: speakerCompanies.length > 0 ? speakerCompanies : null,
       is_deleted: event?.is_deleted ?? false,
       topic: topic === "General" ? null : topic,
     });
@@ -114,7 +121,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event title input field (required)"
-            accessibilityHint="Enter the title of the event"
             accessibilityRole="text"
           />
         </View>
@@ -177,7 +183,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             multiline
             numberOfLines={4}
             accessibilityLabel="Event description input field"
-            accessibilityHint="Enter the description of the event"
             accessibilityRole="text"
           />
         </View>
@@ -211,7 +216,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Event location"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event location input field (required unless title is Break)"
-            accessibilityHint="Enter the location of the event"
             accessibilityRole="text"
           />
         </View>
@@ -243,7 +247,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="MM-DD"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event date input field (required)"
-            accessibilityHint="Enter the event date in MM-DD format"
             accessibilityRole="text"
           />
         </View>
@@ -275,7 +278,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Start time input field (required)"
-            accessibilityHint="Enter the start time of the event in 24-hour format (seconds not required)"
             accessibilityRole="text"
           />
         </View>
@@ -307,7 +309,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="End time input field (required)"
-            accessibilityHint="Enter the end time of the event in 24-hour format (seconds not required)"
             accessibilityRole="text"
           />
         </View>
@@ -319,7 +320,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Name</ThemedText>
+          <ThemedText>Speaker Names</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -329,18 +330,20 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerName}
-            onChangeText={setSpeakerName}
-            placeholder="Full name of the speaker"
+            value={speakerNames.join('; ')}
+            onChangeText={(text) => {
+              const names = text.split(';').map(name => name.trim()).filter(name => name.length > 0);
+              setSpeakerNames(names);
+            }}
+            placeholder="Speaker names separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker name input field"
-            accessibilityHint="Enter the full name of the speaker"
+            accessibilityLabel="Speaker names input field"
             accessibilityRole="text"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Title</ThemedText>
+          <ThemedText>Speaker Titles</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -350,18 +353,20 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerTitle}
-            onChangeText={setSpeakerTitle}
-            placeholder="Speaker's title or position"
+            value={speakerTitles.join('; ')}
+            onChangeText={(text) => {
+              const titles = text.split(';').map(title => title.trim()).filter(title => title.length > 0);
+              setSpeakerTitles(titles);
+            }}
+            placeholder="Speaker titles separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker title input field"
-            accessibilityHint="Enter the title or position of the speaker"
+            accessibilityLabel="Speaker titles input field"
             accessibilityRole="text"
           />
         </View>
 
         <View style={styles.formGroup}>
-          <ThemedText>Speaker Email</ThemedText>
+          <ThemedText>Speaker Companies</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -371,12 +376,37 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                 borderColor: Colors[colorScheme].text + "40",
               },
             ]}
-            value={speakerEmail}
-            onChangeText={setSpeakerEmail}
-            placeholder="Speaker's email address"
+            value={speakerCompanies.join('; ')}
+            onChangeText={(text) => {
+              const companies = text.split(';').map(company => company.trim()).filter(company => company.length > 0);
+              setSpeakerCompanies(companies);
+            }}
+            placeholder="Speaker companies separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
-            accessibilityLabel="Speaker email input field"
-            accessibilityHint="Enter the email of the speaker"
+            accessibilityLabel="Speaker companies input field"
+            accessibilityRole="text"
+          />
+        </View>
+
+        <View style={styles.formGroup}>
+          <ThemedText>Speaker Bios</ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: Colors[colorScheme].background,
+                color: Colors[colorScheme].text,
+                borderColor: Colors[colorScheme].text + "40",
+              },
+            ]}
+            value={speakerBios.join('; ')}
+            onChangeText={(text) => {
+              const bios = text.split(';').map(bio => bio.trim()).filter(bio => bio.length > 0);
+              setSpeakerBios(bios);
+            }}
+            placeholder="Speaker bios separated by semicolons"
+            placeholderTextColor={Colors[colorScheme].tabIconDefault}
+            accessibilityLabel="Speaker bios input field"
             accessibilityRole="text"
           />
         </View>
@@ -397,7 +427,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="URL to presentation slides"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Slides URL input field"
-            accessibilityHint="Enter the URL to the presentation slides"
             accessibilityRole="text"
           />
         </View>
@@ -416,7 +445,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             onPress={handleSubmit}
             disabled={!canSubmit}
             accessibilityLabel="Submit event button"
-            accessibilityHint="Press to submit the event edit or creation"
             accessibilityRole="button"
             accessibilityState={{ disabled: !canSubmit }}
           >
@@ -448,7 +476,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             ]}
             onPress={onCancel}
             accessibilityLabel="Cancel event button"
-            accessibilityHint="Press to cancel the event edit or creation"
             accessibilityRole="button"
           >
             <ThemedText
