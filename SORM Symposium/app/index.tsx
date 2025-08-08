@@ -152,16 +152,13 @@ export default function Login() {
     setProceedingAsAttendee(false);
     
     try {
-      // Set login flow to 'attendee' for OTP verification
+      // Set login flow to 'attendee' for OTP verification and show modal keyed by email to avoid phone collisions
       await setLoginFlow('attendee');
-      
-      // Use cleaned formatted phone number for contact sharing
-      const contactForSharing = contactMethod === "phone" && selectedCountry
-        ? `${selectedCountry.idd.root}${cleanPhoneNumber(phoneNumber)}`
-        : contact;
-      
-      // Check if we should show the contact sharing modal
-      const modalShown = await showContactSharingModal(contactForSharing);
+
+      // Always try to show by the attendee's registration email which we already collected
+      const identifierForModal = attendeeEmail || (contactMethod === "email" ? contact : undefined) || undefined;
+
+      const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
         router.push("/(tabs)/home");

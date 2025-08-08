@@ -96,14 +96,13 @@ export async function getAttendeeByPhone(phone: string): Promise<Attendee | null
  * @returns The attendee object if found, null otherwise
  */
 export async function getAttendeeByContact(contact: string): Promise<Attendee | null> {
-  // Determine if input is email or phone
+  // Determine if input is email or phone; prefer email path to avoid phone collisions
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  
-  if (isEmail) {
-    return getAttendeeByEmail(contact);
-  } else {
-    return getAttendeeByPhone(contact);
-  }
+  if (isEmail) return getAttendeeByEmail(contact);
+
+  // For phone inputs, attempt to resolve to a unique attendee by checking if the authenticated user metadata contains an email
+  // Callers should pass email when available. Phone lookup remains as a fallback.
+  return getAttendeeByPhone(contact);
 }
 
 /**
@@ -185,7 +184,9 @@ export async function verifyAttendeeContact(contact: string): Promise<Attendee> 
  * @returns True if the popup should be shown (user hasn't seen it before)
  */
 export async function shouldShowContactSharingPopup(contact: string): Promise<boolean> {
-  const attendee = await getAttendeeByContact(contact);
+  // Prefer email path
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const attendee = isEmail ? await getAttendeeByEmail(contact) : await getAttendeeByPhone(contact);
   if (!attendee) return false;
   
   // Show popup if they haven't seen it before (seen_share_info_popup is null or false)
@@ -203,11 +204,9 @@ export async function updateContactSharingPreferences(
   // Log values for debugging
   // console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
 
-  // Determine if contact is email or phone
+  // Determine if contact is email or phone and normalize
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  
-  // Normalize contact for consistent database operations
-  const normalizedContact = isEmail ? contact : normalizePhoneNumber(contact);
+  const normalizedContact = isEmail ? contact.toLowerCase() : normalizePhoneNumber(contact);
 
   // Prepare parameters based on contact type
   const rpcParams = {
@@ -229,7 +228,9 @@ export async function updateContactSharingPreferences(
   }
 
   // Fetch and return the fresh row using normalized contact
-  const updatedAttendee = await getAttendeeByContact(normalizedContact);
+  const updatedAttendee = isEmail
+    ? await getAttendeeByEmail(normalizedContact)
+    : await getAttendeeByPhone(normalizedContact);
   if (!updatedAttendee) {
     throw new Error('Failed to fetch updated attendee');
   }

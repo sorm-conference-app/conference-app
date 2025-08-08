@@ -194,13 +194,24 @@ export async function verifyOTP(contact: string, token: string, attendeeEmail?: 
       throw new Error("Authentication failed. Please try again.");
     }
     
-    // Get the attendee info - use provided attendeeEmail if available, otherwise use contact
+    // Get the attendee info - prefer the registered attendeeEmail for lookup to avoid phone collisions
+    // Falls back to the contact only if no email was provided
     const attendeeContactForLookup = attendeeEmail || contact;
     const attendee = await verifyAttendeeContact(attendeeContactForLookup);
-    
-    // If this is phone verification and we have an attendeeEmail, save the phone number
+
+    // If this is phone verification and we have an attendeeEmail, save the verified phone against the email
     if (!isEmail && attendeeEmail) {
       await updateAttendeePhone(attendeeEmail, contact);
+    }
+
+    // Persist the attendee email on the auth user for future lookups across the app
+    // This ensures other screens can resolve the attendee by email even after phone-only auth
+    if (attendeeEmail) {
+      try {
+        await supabase.auth.updateUser({ data: { attendee_email: attendeeEmail } });
+      } catch (metaError) {
+        console.error('Failed to persist attendee_email to user metadata', metaError);
+      }
     }
     
     return {
