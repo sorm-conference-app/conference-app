@@ -121,7 +121,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Event title"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event title input field (required)"
-            accessibilityHint="Enter the title of the event"
             accessibilityRole="text"
           />
         </View>
@@ -184,7 +183,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             multiline
             numberOfLines={4}
             accessibilityLabel="Event description input field"
-            accessibilityHint="Enter the description of the event"
             accessibilityRole="text"
           />
         </View>
@@ -218,7 +216,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Event location"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event location input field (required unless title is Break)"
-            accessibilityHint="Enter the location of the event"
             accessibilityRole="text"
           />
         </View>
@@ -250,7 +247,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="MM-DD"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Event date input field (required)"
-            accessibilityHint="Enter the event date in MM-DD format"
             accessibilityRole="text"
           />
         </View>
@@ -282,7 +278,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="e.g. 9:00 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Start time input field (required)"
-            accessibilityHint="Enter the start time of the event in 24-hour format (seconds not required)"
             accessibilityRole="text"
           />
         </View>
@@ -314,7 +309,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="e.g. 10:30 AM"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="End time input field (required)"
-            accessibilityHint="Enter the end time of the event in 24-hour format (seconds not required)"
             accessibilityRole="text"
           />
         </View>
@@ -344,7 +338,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Speaker names separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Speaker names input field"
-            accessibilityHint="Enter speaker names separated by semicolons"
             accessibilityRole="text"
           />
         </View>
@@ -368,7 +361,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Speaker titles separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Speaker titles input field"
-            accessibilityHint="Enter speaker titles separated by semicolons"
             accessibilityRole="text"
           />
         </View>
@@ -392,7 +384,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Speaker companies separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Speaker companies input field"
-            accessibilityHint="Enter speaker companies separated by semicolons"
             accessibilityRole="text"
           />
         </View>
@@ -416,7 +407,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="Speaker bios separated by semicolons"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Speaker bios input field"
-            accessibilityHint="Enter speaker bios separated by semicolons"
             accessibilityRole="text"
           />
         </View>
@@ -437,7 +427,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             placeholder="URL to presentation slides"
             placeholderTextColor={Colors[colorScheme].tabIconDefault}
             accessibilityLabel="Slides URL input field"
-            accessibilityHint="Enter the URL to the presentation slides"
             accessibilityRole="text"
           />
         </View>
@@ -456,7 +445,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             onPress={handleSubmit}
             disabled={!canSubmit}
             accessibilityLabel="Submit event button"
-            accessibilityHint="Press to submit the event edit or creation"
             accessibilityRole="button"
             accessibilityState={{ disabled: !canSubmit }}
           >
@@ -488,7 +476,6 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
             ]}
             onPress={onCancel}
             accessibilityLabel="Cancel event button"
-            accessibilityHint="Press to cancel the event edit or creation"
             accessibilityRole="button"
           >
             <ThemedText

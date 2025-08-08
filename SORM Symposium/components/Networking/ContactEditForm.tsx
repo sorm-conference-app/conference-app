@@ -270,7 +270,6 @@ export default function ContactEditForm() {
             dropdownIconColor={Colors[colorScheme].tint}
             itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
             accessibilityLabel="Contact selection dropdown"
-            accessibilityHint="Select a contact to edit their information"
             accessibilityRole="combobox"
           >
             <Picker.Item 
@@ -305,7 +304,6 @@ export default function ContactEditForm() {
             placeholder="First Name"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="First name input field"
-            accessibilityHint="Enter the contact's first name"
           />
           <ThemedTextInput
             value={lastName}
@@ -313,7 +311,6 @@ export default function ContactEditForm() {
             placeholder="Last Name"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="Last name input field"
-            accessibilityHint="Enter the contact's last name"
           />
           <ThemedTextInput
             value={phoneNumber}
@@ -322,7 +319,6 @@ export default function ContactEditForm() {
             keyboardType="phone-pad"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="Phone number input field"
-            accessibilityHint="Enter the contact's phone number"
           />
         </>
         )}
@@ -333,7 +329,6 @@ export default function ContactEditForm() {
           keyboardType="email-address"
           editable={selectedId !== "" && typeof selectedId === "number"}
           accessibilityLabel="Email input field"
-          accessibilityHint="Enter the contact's email address"
         />
         <Pressable
           onPress={editingAttendee ? () => setShowConfirmEditEmailModal(true) : handleUpdate}
@@ -345,7 +340,6 @@ export default function ContactEditForm() {
             { borderColor: Colors[colorScheme].adminButtonText },
           ]}
           accessibilityLabel="Update button"
-          accessibilityHint="Press to save changes to the selected information"
           accessibilityRole="button"
           accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
         >

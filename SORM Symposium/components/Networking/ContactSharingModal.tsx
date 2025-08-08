@@ -148,7 +148,6 @@ export default function ContactSharingModal({
                       onChangeText={setName}
                       placeholder="Enter your name"
                       accessibilityLabel="Name"
-                      accessibilityHint="Name of the attendee"
                     />
                   </ThemedView>
                 ) : null}
@@ -162,7 +161,6 @@ export default function ContactSharingModal({
                       onChangeText={setOrganization}
                       placeholder="Enter your organization"
                       accessibilityLabel="Organization"
-                      accessibilityHint="Organization of the attendee"
                     />
                   </ThemedView>
                 ) : null}
@@ -176,7 +174,6 @@ export default function ContactSharingModal({
                       onChangeText={setTitle}
                       placeholder="Enter your title"
                       accessibilityLabel="Title"
-                      accessibilityHint="Title of the attendee"
                     />
                   </ThemedView>
                 ) : null}
@@ -264,7 +261,6 @@ export default function ContactSharingModal({
                   numberOfLines={4}
                   style={styles.textInput}
                   accessibilityLabel="Additional information input field"
-                  accessibilityHint="Enter additional information you'd like to share with other attendees"
                 />
               </ThemedView>
 

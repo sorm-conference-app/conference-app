@@ -476,7 +476,6 @@ export default function Login() {
               onChangeText={setAttendeeEmail}
               placeholder="Enter your registration email"
               accessibilityLabel="Registration email input field"
-              accessibilityHint="Enter the email you used to register"
               accessibilityRole="text"
             />
             {attendeeEmail.length > 0 && !validAttendeeEmail && (
@@ -618,7 +617,6 @@ export default function Login() {
                 onChangeText={setContact}
                 placeholder="Enter your email"
                 accessibilityLabel="Email input field"
-                accessibilityHint="Enter your email"
                 accessibilityRole="text"
                 editable={userType === "organizer"} // Only editable for organizers
                 style={userType === "attendee" ? styles.readOnlyInput : undefined}
@@ -674,7 +672,6 @@ export default function Login() {
                 onChangeText={setPassword}
                 placeholder="Enter your password"
                 accessibilityLabel="Password input field"
-                accessibilityHint="Enter your password"
                 accessibilityRole="text"
               />
             </ThemedView>

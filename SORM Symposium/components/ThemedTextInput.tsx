@@ -6,13 +6,11 @@ import { Colors } from "@/constants/Colors";
 
 type ThemedTextInputProps = TextInputProps & {
   accessibilityLabel?: string;
-  accessibilityHint?: string;
 };
 
 export default function ThemedTextInput({
   style,
   accessibilityLabel,
-  accessibilityHint,
   placeholder,
   ...props
 }: ThemedTextInputProps) {
@@ -35,7 +33,6 @@ export default function ThemedTextInput({
       placeholderTextColor={Colors[colorScheme].tabIconDefault}
       accessibilityLabel={accessibilityLabel || placeholder}
       accessibilityRole="text"
-      {...(Platform.OS !== 'web' && accessibilityHint ? { accessibilityHint } : {})}
       {...props}
     />
   );

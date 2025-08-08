@@ -260,7 +260,6 @@ export default function SixDigitVerificationModal({
                   maxLength={6}
                   style={styles.codeInput}
                   accessibilityLabel="Verification code input field"
-                  accessibilityHint="Enter the 6-digit verification code sent to your contact"
                   autoFocus={true}
                 />
                 {isVerifying && (

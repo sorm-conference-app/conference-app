@@ -83,7 +83,6 @@ export default function AnnouncementForm() {
         onPress={handleSubmit}
         disabled={loading}
         accessibilityLabel="Post announcement button"
-        accessibilityHint="Press to post the announcement"
         accessibilityRole="button"
         accessibilityState={{ disabled: loading }}
       >
