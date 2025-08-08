@@ -201,7 +201,7 @@ export async function updateContactSharingPreferences(
   title?: string
 ): Promise<Attendee> {
   // Log values for debugging
-  console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
+  // console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
 
   // Determine if contact is email or phone
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);

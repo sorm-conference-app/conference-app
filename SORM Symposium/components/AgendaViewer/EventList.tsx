@@ -117,7 +117,7 @@ export function EventList({
   return (
     <ThemedView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {showHeader && (
+        {showHeader ? (
           <ThemedView
             style={{
               flexWrap: "wrap",
@@ -134,21 +134,21 @@ export function EventList({
               {Platform.OS === 'web' ? 'Click' : 'Tap'} on an event to view more details
             </ThemedText>
 
-            {!isAdmin && (
+            {!isAdmin ? (
             <ThemedText style={styles.subheader} type="subtitle">
               {Platform.OS === 'web' ? 'Click' : 'Tap'} the <IconSymbol 
               name="star" size={20} color={Colors[colorScheme].text}
               /> icon to save an event
             </ThemedText>
-            )}
+            ) : null}
 
-            {isAdmin && (
+            {isAdmin ? (
             <ThemedText style={styles.subheader} type="subtitle">
               Log in as an attendee to save events and view your saved events
             </ThemedText>
-            )}
+            ) : null}
 
-            {!isAdmin && (
+            {!isAdmin ? (
             <Pressable
               style={[
                 {
@@ -176,9 +176,9 @@ export function EventList({
                 Viewing: {showDeleted === "saved" ? "Saved" : "All"} Events
               </ThemedText>
             </Pressable>
-            )}
+            ) : null}
           </ThemedView>
-        )}
+        ) : null}
         <View style={styles.content}>
           {sortedDates.length === 0 ? (
             <ThemedText style={styles.noEventsText}>No events found</ThemedText>
@@ -314,6 +314,7 @@ export function EventList({
                               isDeleted={item.is_deleted}
                               hasRSVP={rsvpEventIds.has(item.id)}
                               setRsvpEventIds={handleRSVPUpdate}
+                              topic={item.topic}
                               height={item.topic === "Break" ? 100 : calculateHeight(item.start_time, item.end_time)}
                               onPress={() => onSelectEvent(item)}
                             />

@@ -70,7 +70,7 @@ export async function toggleRSVPStatus(
       return;
     }
 
-    console.log("Creating new RSVP: ", eventId, attendeeId, deviceId);
+    // console.log("Creating new RSVP: ", eventId, attendeeId, deviceId);
     
     // Prepare insert data
     const insertData: any = {

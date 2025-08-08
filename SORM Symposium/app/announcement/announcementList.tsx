@@ -76,7 +76,7 @@ export default function AnnouncementsScreen() {
     ));
   }, [announcements, loading, error, refetchAnnouncements, colorScheme]);
 
-  console.log(announcements);
+  // console.log(announcements);
 
   return (
     <ThemedView

@@ -152,7 +152,7 @@ export default function RootLayout() {
       return;
     }
     if (success) {
-      console.log("Database migrations completed successfully.");
+      // console.log("Database migrations completed successfully.");
     } else if (error) {
       console.error("Database migrations failed:", error);
     }

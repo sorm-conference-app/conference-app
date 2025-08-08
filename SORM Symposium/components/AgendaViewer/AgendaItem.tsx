@@ -78,22 +78,22 @@ export default function AgendaItem({
             >
               {title}
             </ThemedText>
-            {isDeleted && (
+            {isDeleted ? (
               <ThemedText style={styles.deletedTitle} type="defaultSemiBold">
                 {" "}
                 - Deleted
               </ThemedText>
-            )}
+            ) : null}
           </ThemedView>
         </ThemedView>
         {/* Topic Badge */}
-        {topicName !== "Break" && (
+        {topicName !== "Break" ? (
           <ThemedView
             style={[styles.topicBadge, { backgroundColor: topicColor }]}
           >
             <ThemedText style={styles.topicText}>{topicName}</ThemedText>
           </ThemedView>
-        )}
+        ) : null}
         <ThemedView style={styles.infoRow}>
           <IconSymbol name="clock.fill" size={16} color={tintColor} />
           <ThemedView 
@@ -124,13 +124,13 @@ export default function AgendaItem({
             })()}
           </ThemedView>
         </ThemedView>
-        {topicName !== "Break" && (
+        {topicName !== "Break" ? (
           <ThemedView style={styles.infoRow}>
             <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
             <ThemedText style={styles.location}>{location}</ThemedText>
           </ThemedView>
-        )}
-        {!isAdmin && (
+        ) : null}
+        {!isAdmin ? (
           <ThemedView style={styles.saveButton}>
             <AgendaItemSaveButton
               eventId={id}
@@ -138,7 +138,7 @@ export default function AgendaItem({
               setRsvpEventIds={setRsvpEventIds}
             />
           </ThemedView>
-          )}
+        ) : null}
       </ThemedView>
     </Pressable>
   );

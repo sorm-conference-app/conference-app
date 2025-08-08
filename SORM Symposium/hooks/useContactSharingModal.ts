@@ -146,7 +146,7 @@ export async function triggerContactSharingModal(contact: string): Promise<void>
     
     // This would need to be integrated with a global modal system
     // For now, this is just a helper that other developers can use
-    console.log('Contact sharing modal should be triggered for:', contact);
+    // console.log('Contact sharing modal should be triggered for:', contact);
     
     // The actual implementation would depend on how the other team member
     // wants to integrate this into their feature

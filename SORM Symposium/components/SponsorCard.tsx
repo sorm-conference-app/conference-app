@@ -129,12 +129,14 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedText>
         {sponsor.website ? (
           <ThemedView
-            style={[styles.contactRow, { backgroundColor: "transparent" }]}
+            style={[styles.contactRow, { backgroundColor: "transparent", flex: 1 }]}
           >
             <ThemedText
               style={[styles.contactInfo, { color: colors.link }]}
               onPress={() => handleWebsite(sponsor.website)}
               type="link"
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {sponsor.website}
             </ThemedText>
@@ -203,6 +205,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 4,
+    marginTop: 4,
     borderRadius: 12,
   },
   levelText: {

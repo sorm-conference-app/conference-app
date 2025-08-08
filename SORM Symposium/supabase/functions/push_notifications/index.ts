@@ -6,8 +6,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js";
 
-console.log("Hello from Functions!");
-
 // https://supabase.com/docs/guides/functions/examples/push-notifications?queryGroups=platform&platform=expo
 
 type Announcement = {

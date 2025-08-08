@@ -139,49 +139,43 @@ export default function ContactSharingModal({
                   <ThemedText type="default" style={[{ textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
                 </ThemedView>
 
-                {attendee.name ? (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Name:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="Enter your name"
-                      accessibilityLabel="Name"
-                    />
-                  </ThemedView>
-                ) : null}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Name:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Enter your name"
+                    accessibilityLabel="Name"
+                  />
+                </ThemedView>
                 
-                {attendee.organization ? (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={organization}
-                      onChangeText={setOrganization}
-                      placeholder="Enter your organization"
-                      accessibilityLabel="Organization"
-                    />
-                  </ThemedView>
-                ) : null}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={organization}
+                    onChangeText={setOrganization}
+                    placeholder="Enter your organization"
+                    accessibilityLabel="Organization"
+                  />
+                </ThemedView>
                 
-                {attendee.title ? (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Title:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={title}
-                      onChangeText={setTitle}
-                      placeholder="Enter your title"
-                      accessibilityLabel="Title"
-                    />
-                  </ThemedView>
-                ) : null}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Title:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder="Enter your title"
+                    accessibilityLabel="Title"
+                  />
+                </ThemedView>
               </ThemedView>
 
               <ThemedText style={styles.changeText}>
                 {attendee.is_admin === false 
-                && "You can change this setting anytime later."}
+                && "You can change this setting later."}
               </ThemedText>
 
               {/* Action buttons */}

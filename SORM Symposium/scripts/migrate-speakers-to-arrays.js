@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function migrateSpeakersToArrays() {
-  console.log('Starting migration of speakers to arrays...');
+  // console.log('Starting migration of speakers to arrays...');
   
   try {
     // Fetch all events
@@ -33,7 +33,7 @@ async function migrateSpeakersToArrays() {
       throw error;
     }
     
-    console.log(`Found ${events.length} events to process`);
+    // console.log(`Found ${events.length} events to process`);
     
     let migratedCount = 0;
     let skippedCount = 0;
@@ -46,7 +46,7 @@ async function migrateSpeakersToArrays() {
                            Array.isArray(event.speaker_company);
       
       if (isAlreadyArray) {
-        console.log(`Event ${event.id}: Already has array format, skipping`);
+        // console.log(`Event ${event.id}: Already has array format, skipping`);
         skippedCount++;
         continue;
       }
@@ -73,14 +73,14 @@ async function migrateSpeakersToArrays() {
         continue;
       }
       
-      console.log(`Event ${event.id}: Migrated to array format`);
+      // console.log(`Event ${event.id}: Migrated to array format`);
       migratedCount++;
     }
     
-    console.log('\nMigration completed!');
-    console.log(`Events migrated: ${migratedCount}`);
-    console.log(`Events skipped (already arrays): ${skippedCount}`);
-    console.log(`Total events processed: ${events.length}`);
+    // console.log('\nMigration completed!');
+    // console.log(`Events migrated: ${migratedCount}`);
+    // console.log(`Events skipped (already arrays): ${skippedCount}`);
+    // console.log(`Total events processed: ${events.length}`);
     
   } catch (error) {
     console.error('Migration failed:', error);
