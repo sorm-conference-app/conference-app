@@ -62,7 +62,7 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .from(schema.contact_info)
           .orderBy(asc(schema.contact_info.last_name));
 
-        return data.map((row) => ({
+        return data.map((row: any) => ({
           name: `${row.first_name} ${row.last_name}`,
           phone: row.phone_number,
           email: row.email,

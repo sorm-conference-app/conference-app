@@ -14,6 +14,10 @@ export function useCurrentAttendee() {
   const session = useSupabaseAuth();
 
   useEffect(() => {
+    if (session === undefined) {
+      // Wait for auth provider to initialize before loading attendee
+      return;
+    }
     loadAttendeeInfo();
   }, [session]);
 
@@ -27,7 +31,7 @@ export function useCurrentAttendee() {
       setLoading(true);
       setError(null);
 
-      const attendeeData = await getAttendeeForSession(session);
+      const attendeeData = await getAttendeeForSession(session ?? null);
       setAttendee(attendeeData);
     } catch (err) {
       console.error('Error loading attendee info:', err);

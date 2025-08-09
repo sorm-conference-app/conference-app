@@ -34,7 +34,7 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   const loadUserInfo = useCallback(async () => {
     try {
       // Resolve attendee centrally: metadata email -> auth email -> phone
-      const attendeeData = await getAttendeeForSession(session);
+      const attendeeData = await getAttendeeForSession(session ?? null);
       setAttendee(attendeeData);
     } catch (error) {
       console.error('Error loading user info:', error);

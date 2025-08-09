@@ -65,7 +65,7 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
         // - Else resolve from session centrally
         const attendeeData = contact
           ? await getAttendeeByContact(contact)
-          : await getAttendeeForSession(session);
+          : await getAttendeeForSession(session ?? null);
         if (attendeeData) {
           setAttendee(attendeeData);
           setIsVisible(true);
@@ -94,7 +94,7 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
 
       const attendeeData = contact
         ? await getAttendeeByContact(contact)
-        : await getAttendeeForSession(session);
+        : await getAttendeeForSession(session ?? null);
       if (attendeeData) {
         setAttendee(attendeeData);
         setIsVisible(true);
