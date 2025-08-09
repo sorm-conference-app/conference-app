@@ -1,6 +1,6 @@
 import { supabase } from "@/constants/supabase";
 import { Session } from "@supabase/supabase-js";
-import { ReactNode, useEffect, useState, createContext } from "react"
+import { createContext, ReactNode, useEffect, useState } from "react";
 
 const AuthSessionContext = createContext<Session | null | undefined>(undefined);
 
@@ -12,11 +12,22 @@ function AuthSessionProvider({ children }: AuthSessionProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setSession(session);
+    let isMounted = true;
+
+    // Initialize session immediately on mount to prevent false unauthenticated redirects
+    supabase.auth.getSession().then(({ data }) => {
+      if (isMounted) setSession(data.session ?? null);
     });
-    
-    return subscription.unsubscribe;
+
+    // Subscribe to auth state changes for live updates
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, newSession) => {
+      if (isMounted) setSession(newSession);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
   
   return (

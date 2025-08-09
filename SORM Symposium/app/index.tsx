@@ -85,7 +85,7 @@ export default function Login() {
   // Check if user is already authenticated and redirect
   useEffect(() => {
     if (session?.user) {
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   }, [session]);
 
@@ -132,7 +132,7 @@ export default function Login() {
         await signinAdmin(contact, password, () => {
           setLoginFlow('organizer');
         });
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -161,11 +161,11 @@ export default function Login() {
       const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (error) {
       console.error('Error showing contact sharing modal:', error);
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   };
 
@@ -229,7 +229,7 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingShare = async (
@@ -250,12 +250,12 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingClose = () => {
     hideContactSharingModal();
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleGoToAdminLogin = () => {
