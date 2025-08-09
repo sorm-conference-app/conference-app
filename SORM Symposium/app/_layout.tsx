@@ -4,6 +4,7 @@ import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { LoginFlowProvider } from "@/components/LoginFlowProvider";
+import PasswordChangeGuard from "@/components/PasswordChangeGuard";
 import getCacheDatabase from "@/db";
 import * as schema from "@/db/schema";
 import migrations from "@/drizzle/migrations";
@@ -199,13 +200,15 @@ export default function RootLayout() {
             <LoginFlowProvider>
               <AuthSessionProvider>
                 <ActiveUsersProvider>
-                  {SQLiteProvider ? (
-                    <SQLiteProvider databaseName={databaseName} useSuspense>
-                      {Screens}
-                    </SQLiteProvider>
-                  ) : (
-                    Screens
-                  )}
+                  <PasswordChangeGuard>
+                    {SQLiteProvider ? (
+                      <SQLiteProvider databaseName={databaseName} useSuspense>
+                        {Screens}
+                      </SQLiteProvider>
+                    ) : (
+                      Screens
+                    )}
+                  </PasswordChangeGuard>
                 </ActiveUsersProvider>
               </AuthSessionProvider>
             </LoginFlowProvider>

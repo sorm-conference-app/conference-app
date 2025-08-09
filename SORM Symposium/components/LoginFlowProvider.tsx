@@ -5,13 +5,16 @@ type LoginFlow = 'organizer' | 'attendee' | null;
 
 interface LoginFlowContextType {
   loginFlow: LoginFlow;
+  requiresPasswordChange: boolean;
   setLoginFlow: (flow: LoginFlow) => void;
+  setRequiresPasswordChange: (required: boolean) => void;
   clearLoginFlow: () => void;
 }
 
 const LoginFlowContext = createContext<LoginFlowContextType | undefined>(undefined);
 
 const LOGIN_FLOW_STORAGE_KEY = 'loginFlow';
+const PASSWORD_CHANGE_STORAGE_KEY = 'requiresPasswordChange';
 
 interface LoginFlowProviderProps {
   children: ReactNode;
@@ -23,21 +26,27 @@ interface LoginFlowProviderProps {
  */
 export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
   const [loginFlow, setLoginFlowState] = useState<LoginFlow>(null);
+  const [requiresPasswordChange, setRequiresPasswordChangeState] = useState<boolean>(false);
 
-  // Load persisted login flow on mount
+  // Load persisted login flow and password change requirement on mount
   useEffect(() => {
-    const loadPersistedLoginFlow = async () => {
+    const loadPersistedData = async () => {
       try {
         const stored = await AsyncStorage.getItem(LOGIN_FLOW_STORAGE_KEY);
         if (stored && (stored === 'organizer' || stored === 'attendee')) {
           setLoginFlowState(stored as LoginFlow);
         }
+
+        const passwordChangeRequired = await AsyncStorage.getItem(PASSWORD_CHANGE_STORAGE_KEY);
+        if (passwordChangeRequired === 'true') {
+          setRequiresPasswordChangeState(true);
+        }
       } catch (error) {
-        console.error('Failed to load persisted login flow:', error);
+        console.error('Failed to load persisted data:', error);
       }
     };
 
-    loadPersistedLoginFlow();
+    loadPersistedData();
   }, []);
 
   /**
@@ -59,13 +68,33 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
   };
 
   /**
+   * Set the password change requirement and persist it to storage
+   * @param required Whether password change is required
+   */
+  const setRequiresPasswordChange = async (required: boolean) => {
+    setRequiresPasswordChangeState(required);
+    
+    try {
+      if (required) {
+        await AsyncStorage.setItem(PASSWORD_CHANGE_STORAGE_KEY, 'true');
+      } else {
+        await AsyncStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Failed to persist password change requirement:', error);
+    }
+  };
+
+  /**
    * Clear the login flow from both state and storage
    */
   const clearLoginFlow = async () => {
     setLoginFlowState(null);
+    setRequiresPasswordChangeState(false);
     
     try {
       await AsyncStorage.removeItem(LOGIN_FLOW_STORAGE_KEY);
+      await AsyncStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
     } catch (error) {
       console.error('Failed to clear login flow from storage:', error);
     }
@@ -73,7 +102,9 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
 
   const value: LoginFlowContextType = {
     loginFlow,
+    requiresPasswordChange,
     setLoginFlow,
+    setRequiresPasswordChange,
     clearLoginFlow,
   };
 
