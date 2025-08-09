@@ -2,6 +2,7 @@ import {
   formatTopicName,
   getTopicColor,
 } from "@/components/AgendaViewer/utils";
+import DownloadPresentationButton from "@/components/DownloadPresentationButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -143,6 +144,7 @@ export default function EventDetailScreen() {
                 </ThemedText>
               </ThemedView>
             )}
+            <DownloadPresentationButton />
           </>
         )}
       </ScrollView>

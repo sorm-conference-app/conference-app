@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "YourAppName",
+    "name": "SORM Symposium",
     "slug": "conference-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "yourappname",
+    "scheme": "sormsymposium",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

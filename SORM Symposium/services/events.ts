@@ -71,17 +71,17 @@ export async function toggleRSVPStatus(
     }
 
     console.log("Creating new RSVP: ", eventId, attendeeId, deviceId);
-    
+
     // Prepare insert data
     const insertData: any = {
       event_id: eventId,
       attendee_id: attendeeId,
       rsvp_at: new Date().toISOString(),
-      notified: false
+      notified: false,
     };
 
     // Handle device ID based on platform
-    if (Platform.OS !== 'web' && deviceId) {
+    if (Platform.OS !== "web" && deviceId) {
       // On mobile platforms, use the provided device ID
       insertData.attendee_device_id = deviceId;
     } else {
@@ -90,10 +90,8 @@ export async function toggleRSVPStatus(
     }
 
     // Create new RSVP
-    const { error } = await supabase
-      .from("event_attendees")
-      .insert(insertData);
-    
+    const { error } = await supabase.from("event_attendees").insert(insertData);
+
     if (error) {
       console.error("Error adding RSVP:", error);
       throw error;
@@ -104,7 +102,7 @@ export async function toggleRSVPStatus(
       .delete()
       .eq("event_id", eventId)
       .eq("attendee_id", attendeeId);
-    
+
     if (error) {
       console.error("Error removing RSVP:", error);
       throw error;
@@ -262,4 +260,26 @@ export async function deleteEvent(id: number): Promise<void> {
     console.error("Error deleting event:", error);
     throw error;
   }
+}
+
+/**
+ * Downloads the presentation file for a specific event.
+ * @param eventName The name of the event.
+ * @returns A Promise that resolves to the presentation file data,
+ * if the file exists in the storage bucket. Otherwise, it throws an error.
+ */
+export async function downloadEventPresentation(eventName: string) {
+  const EXPIRATION_TIME = 30; // in seconds.
+  const year = new Date().getFullYear();
+  const dir = `${year}/HeatEmergencies.pdf`;
+  const { data, error } = await supabase.storage
+    .from("presentations")
+    .createSignedUrl(dir, EXPIRATION_TIME, { download: "presentation.pdf" });
+  
+  if (error) {
+    console.error("Error creating signed URL for event presentation:", error);
+    throw error;
+  }
+
+  return data.signedUrl;
 }
