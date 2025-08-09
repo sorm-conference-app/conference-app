@@ -10,6 +10,7 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
+ 
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -71,8 +72,11 @@ export default function Login() {
   const validPassword = password.length > 0;
 
   useEffect(() => {
-    // Only clear login flow and sign out if there's no active session
-    // This prevents clearing the flow after successful authentication
+    // Wait for session to resolve from provider before doing anything
+    if (session === undefined) {
+      return;
+    }
+    // If unauthenticated, clear any lingering login flow state and old session
     if (!session?.user) {
       const clearAuth = async () => {
         await clearLoginFlow();
@@ -80,7 +84,7 @@ export default function Login() {
       };
       clearAuth();
     }
-  }, [clearLoginFlow, session?.user]);
+  }, [clearLoginFlow, session]);
 
   // Check if user is already authenticated and redirect
   useEffect(() => {
@@ -277,8 +281,7 @@ export default function Login() {
     setErr("");
     setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
-    await clearLoginFlow();
-    await supabase.auth.signOut();
+    //await clearLoginFlow();
   };
 
   const goBack = () => {

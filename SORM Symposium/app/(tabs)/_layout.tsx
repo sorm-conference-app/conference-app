@@ -16,8 +16,14 @@ export default function TabLayout() {
   const isAdmin = useIsAdmin();
   const { loginFlow } = useLoginFlow();
   const windowWidth = useWindowDimensions().width;
+  // Hoist color scheme hook so it runs on every render to avoid varying hook counts
+  const colorScheme = useColorScheme() ?? "light";
   
   // Redirect unauthenticated users to login page
+  // Wait for provider to initialize before making a redirect decision
+  if (user === undefined) {
+    return null;
+  }
   if (!user?.user) {
     return <Redirect href="/" />;
   }
@@ -32,9 +38,9 @@ export default function TabLayout() {
       initialRouteName="home"
       screenOptions={{
         tabBarActiveTintColor:
-          Colors[useColorScheme() ?? "light"].tabIconSelected,
+          Colors[colorScheme].tabIconSelected,
         tabBarInactiveTintColor:
-          Colors[useColorScheme() ?? "light"].tabIconDefault,
+          Colors[colorScheme].tabIconDefault,
         tabBarLabelStyle: {
           fontSize: 14,
           fontWeight: "bold",

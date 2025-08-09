@@ -9,7 +9,8 @@ type AuthSessionProviderProps = {
 };
 
 function AuthSessionProvider({ children }: AuthSessionProviderProps) {
-  const [session, setSession] = useState<Session | null>(null);
+  // Undefined means loading (initial fetch in progress); null means unauthenticated; Session means authenticated
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
   
   useEffect(() => {
     let isMounted = true;
