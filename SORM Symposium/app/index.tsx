@@ -414,8 +414,13 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              // Use explicit color values to ensure borders show on static export first load
+              // when theme hooks might not be fully initialized
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
@@ -432,8 +437,11 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
