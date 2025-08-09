@@ -1,7 +1,8 @@
 import useSupabaseAuth from '@/hooks/useSupabaseAuth';
 import {
   getAttendeeByContact,
-  getAttendeeByEmail,
+  getAttendeeForSession,
+  getPreferredAttendeeEmailFromSession,
   shouldShowContactSharingPopup,
   updateContactSharingPreferences,
   type Attendee
@@ -28,12 +29,12 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
 
   /**
    * Get the current user's primary identifier for attendee lookups
-   * Prefer the registration email stored in auth session or metadata; fall back to phone only if no email
+   *
+   * Uses centralized resolver to prefer metadata email, then auth email; falls back to phone
    */
   const getCurrentUserIdentifier = useCallback((): { email?: string; phone?: string } | null => {
     if (!session?.user) return null;
-    const metaEmail = (session.user.user_metadata as any)?.attendee_email as string | undefined;
-    const email = metaEmail || session.user.email || undefined;
+    const email = getPreferredAttendeeEmailFromSession(session);
     const phone = session.user.phone || undefined;
     return { email, phone };
   }, [session]);
@@ -52,14 +53,19 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
         return false;
       }
 
-      // Prefer to check by email if available
-      const lookupKey = identifier?.email || userContact;
+      // Determine which contact to check for popup visibility
+      // - If explicit contact provided, use it
+      // - Else prefer the session-resolved email
+      const lookupKey = contact || identifier?.email || userContact;
       const shouldShow = await shouldShowContactSharingPopup(lookupKey);
       
       if (shouldShow) {
-        const attendeeData = identifier?.email
-          ? await getAttendeeByEmail(identifier.email)
-          : await getAttendeeByContact(userContact);
+        // Resolve attendee:
+        // - If contact param provided, load by that contact
+        // - Else resolve from session centrally
+        const attendeeData = contact
+          ? await getAttendeeByContact(contact)
+          : await getAttendeeForSession(session);
         if (attendeeData) {
           setAttendee(attendeeData);
           setIsVisible(true);
@@ -86,9 +92,9 @@ export function useContactSharingModal(): UseContactSharingModalReturn {
         throw new Error('No contact available for showing contact sharing modal');
       }
 
-      const attendeeData = identifier?.email
-        ? await getAttendeeByEmail(identifier.email)
-        : await getAttendeeByContact(userContact);
+      const attendeeData = contact
+        ? await getAttendeeByContact(contact)
+        : await getAttendeeForSession(session);
       if (attendeeData) {
         setAttendee(attendeeData);
         setIsVisible(true);
