@@ -1,10 +1,10 @@
 import type { PropsWithChildren, ReactElement } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import Animated, {
-  interpolate,
-  useAnimatedRef,
-  useAnimatedStyle,
-  useScrollViewOffset,
+    interpolate,
+    useAnimatedRef,
+    useAnimatedStyle,
+    useScrollViewOffset,
 } from "react-native-reanimated";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -30,18 +30,21 @@ export default function ParallaxScrollView({
   const scrollOffset = useScrollViewOffset(scrollRef);
   const bottom = useBottomTabOverflow();
   const headerAnimatedStyle = useAnimatedStyle(() => {
+    // Guard against non-finite values on first static render which can occur
+    // before the scroll view reports an offset on web/static export
+    const y = Number.isFinite(scrollOffset.value) ? scrollOffset.value : 0;
     return {
       transform: [
         {
           translateY: interpolate(
-            scrollOffset.value,
+            y,
             [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
             [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75],
           ),
         },
         {
           scale: interpolate(
-            scrollOffset.value,
+            y,
             [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
             [2, 1, 1],
           ),
@@ -81,6 +84,10 @@ const styles = StyleSheet.create({
   },
   header: {
     height: HEADER_HEIGHT,
+    // Ensure absolutely-positioned children (e.g., the SORM logo) are
+    // positioned relative to this header container on web/static export
+    // where default positioning may differ on first paint
+    position: "relative",
     overflow: "hidden",
   },
   content: {
