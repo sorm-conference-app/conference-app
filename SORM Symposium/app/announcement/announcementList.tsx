@@ -12,7 +12,6 @@ import { Announcement } from "@/components/Announcement";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
-import { Stack } from "expo-router";
 
 import useAnnouncements from "@/hooks/useAnnouncements";
 import { useCallback } from "react";
@@ -88,12 +87,7 @@ export default function AnnouncementsScreen() {
         },
       ]}
     >
-      <Stack.Screen
-        options={{
-          title: "Announcements",
-          headerShown: true,
-        }}
-      />
+
       <ScrollView
         style={styles.scrollView}
         refreshControl={

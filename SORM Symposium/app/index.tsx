@@ -10,6 +10,7 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
+ 
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -71,8 +72,11 @@ export default function Login() {
   const validPassword = password.length > 0;
 
   useEffect(() => {
-    // Only clear login flow and sign out if there's no active session
-    // This prevents clearing the flow after successful authentication
+    // Wait for session to resolve from provider before doing anything
+    if (session === undefined) {
+      return;
+    }
+    // If unauthenticated, clear any lingering login flow state and old session
     if (!session?.user) {
       const clearAuth = async () => {
         await clearLoginFlow();
@@ -80,12 +84,12 @@ export default function Login() {
       };
       clearAuth();
     }
-  }, [clearLoginFlow, session?.user]);
+  }, [clearLoginFlow, session]);
 
   // Check if user is already authenticated and redirect
   useEffect(() => {
     if (session?.user) {
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   }, [session]);
 
@@ -132,7 +136,7 @@ export default function Login() {
         await signinAdmin(contact, password, () => {
           setLoginFlow('organizer');
         });
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -161,11 +165,11 @@ export default function Login() {
       const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (error) {
       console.error('Error showing contact sharing modal:', error);
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   };
 
@@ -229,7 +233,7 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingShare = async (
@@ -250,12 +254,12 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingClose = () => {
     hideContactSharingModal();
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleGoToAdminLogin = () => {
@@ -277,8 +281,7 @@ export default function Login() {
     setErr("");
     setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
-    await clearLoginFlow();
-    await supabase.auth.signOut();
+    //await clearLoginFlow();
   };
 
   const goBack = () => {

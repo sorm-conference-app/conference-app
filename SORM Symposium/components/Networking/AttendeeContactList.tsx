@@ -4,7 +4,7 @@ import { useAttendeeContacts } from "@/hooks/useAttendeeContacts";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { Attendee, getAttendeeByContact, getAttendeeByEmail } from "@/services/attendees";
+import { Attendee, getAttendeeForSession } from "@/services/attendees";
 import React, { useCallback } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
 import { ThemedText } from "../ThemedText";
@@ -33,18 +33,9 @@ export default function AttendeeContactList({ reloadTrigger }: AttendeeContactLi
   
   const loadUserInfo = useCallback(async () => {
     try {
-      // Prefer to resolve attendee by email (session email or persisted attendee_email metadata)
-      const metaEmail = (session?.user?.user_metadata as any)?.attendee_email as string | undefined;
-      const email = metaEmail || session?.user?.email;
-      const phone = session?.user?.phone;
-
-      if (email) {
-        setAttendee(await getAttendeeByEmail(email));
-      } else if (phone) {
-        setAttendee(await getAttendeeByContact(phone));
-      } else {
-        setAttendee(null);
-      }
+      // Resolve attendee centrally: metadata email -> auth email -> phone
+      const attendeeData = await getAttendeeForSession(session ?? null);
+      setAttendee(attendeeData);
     } catch (error) {
       console.error('Error loading user info:', error);
     }
