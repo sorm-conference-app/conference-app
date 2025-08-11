@@ -32,10 +32,11 @@ export default function useAnnouncements(limit?: number) {
       //  limit,
       //);
 
+      // On web, no filter by type because web doesn't receive push notifications
+      // and wouldn't receive non-general announcements
       let query = supabase
         .from("announcements")
         .select("*")
-        .eq("type", "general")
         .order("created_at", { ascending: false });
 
       if (limit) {
