@@ -63,14 +63,4 @@ function DownloadPresentationButton({}) {
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    padding: 10,
-    backgroundColor: "#007AFF",
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-
 export default DownloadPresentationButton;
