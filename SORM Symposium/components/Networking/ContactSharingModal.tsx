@@ -3,7 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { checkMultipleFields } from '@/lib/wordFilter';
 import type { Attendee } from '@/services/attendees';
 import React, { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ThemedText } from '../ThemedText';
 import ThemedTextInput from '../ThemedTextInput';
 import { ThemedView } from '../ThemedView';
@@ -100,6 +100,7 @@ export default function ContactSharingModal({
   if (!attendee) return null;
 
   return (
+    <View>
     <Modal
       visible={visible}
       animationType="fade"
@@ -113,7 +114,11 @@ export default function ContactSharingModal({
         ]}>
           {step === 'choice' ? (
             // Step 1: Choice between sharing or not
-            <>
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               <ThemedText type="title" style={styles.title}>
                 {attendee.is_admin === true ? "We Share Your Contact Information" : "Share Your Contact Information?"}
               </ThemedText>
@@ -131,55 +136,46 @@ export default function ContactSharingModal({
               ]}>
                 <ThemedView style={[styles.infoRow, { flexWrap: 'wrap' }]}>
                   <ThemedText type="subtitle" style={styles.infoHeader}>Your Information:  </ThemedText>
-                  <ThemedText style={[styles.infoValue, { textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
+                  <ThemedText type="default" style={[{ textAlign: 'center', minWidth: 200, marginBottom: 10 }]}>{attendee.email}</ThemedText>
                 </ThemedView>
 
-                {attendee.name && (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Name:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="Enter your name"
-                      accessibilityLabel="Name"
-                      accessibilityHint="Name of the attendee"
-                    />
-                  </ThemedView>
-                )}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Name:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Enter your name"
+                    accessibilityLabel="Name"
+                  />
+                </ThemedView>
                 
-                {attendee.organization && (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={organization}
-                      onChangeText={setOrganization}
-                      placeholder="Enter your organization"
-                      accessibilityLabel="Organization"
-                      accessibilityHint="Organization of the attendee"
-                    />
-                  </ThemedView>
-                )}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Organization:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={organization}
+                    onChangeText={setOrganization}
+                    placeholder="Enter your organization"
+                    accessibilityLabel="Organization"
+                  />
+                </ThemedView>
                 
-                {attendee.title && (
-                  <ThemedView style={styles.infoRow}>
-                    <ThemedText style={styles.infoLabel}>Title:</ThemedText>
-                    <ThemedTextInput 
-                      style={styles.infoInput}
-                      value={title}
-                      onChangeText={setTitle}
-                      placeholder="Enter your title"
-                      accessibilityLabel="Title"
-                      accessibilityHint="Title of the attendee"
-                    />
-                  </ThemedView>
-                )}
+                <ThemedView style={styles.infoRow}>
+                  <ThemedText style={styles.infoLabel}>Title:</ThemedText>
+                  <ThemedTextInput 
+                    style={styles.infoInput}
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder="Enter your title"
+                    accessibilityLabel="Title"
+                  />
+                </ThemedView>
               </ThemedView>
 
               <ThemedText style={styles.changeText}>
                 {attendee.is_admin === false 
-                && "You can change this setting anytime later."}
+                && "You can change this setting later."}
               </ThemedText>
 
               {/* Action buttons */}
@@ -192,8 +188,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleShareClick}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     {attendee.is_admin === true 
@@ -202,7 +197,7 @@ export default function ContactSharingModal({
                   </ThemedText>
                 </Pressable>
                 
-                {attendee.is_admin === false && 
+                {attendee.is_admin === false ? (
                 <Pressable
                   style={[
                     styles.button,
@@ -211,21 +206,20 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleDontShareClick}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Don&apos;t Share My Information
                   </ThemedText>
                 </Pressable>
-                }
+                ) : null}
               </ThemedView>
 
               {/* Filter error message */}
-              {filterError && (
+              {filterError ? (
                 <ThemedText style={styles.filterError}>{filterError}</ThemedText>
-              )}
-            </>
+              ) : null}
+            </ScrollView>
           ) : (
             // Step 2: Additional information input
             <ScrollView 
@@ -261,7 +255,6 @@ export default function ContactSharingModal({
                   numberOfLines={4}
                   style={styles.textInput}
                   accessibilityLabel="Additional information input field"
-                  accessibilityHint="Enter additional information you'd like to share with other attendees"
                 />
               </ThemedView>
 
@@ -275,8 +268,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleSaveWithAdditionalInfo}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Save and Continue
@@ -291,8 +283,7 @@ export default function ContactSharingModal({
                   ]}
                   onPress={handleBackToChoice}
                 >
-                  <ThemedText style={[
-                    styles.buttonText,
+                  <ThemedText type="defaultSemiBold" style={[
                     { color: Colors[colorScheme].background }
                   ]}>
                     Back
@@ -301,14 +292,15 @@ export default function ContactSharingModal({
               </ThemedView>
 
               {/* Filter error message */}
-              {filterError && (
+              {filterError ? (
                 <ThemedText style={styles.filterError}>{filterError}</ThemedText>
-              )}
+              ) : null}
             </ScrollView>
           )}
         </ThemedView>
       </ThemedView>
     </Modal>
+    </View>
   );
 }
 
@@ -323,7 +315,8 @@ const styles = StyleSheet.create({
   modalContent: {
     borderRadius: 20,
     padding: 24,
-    maxHeight: '80%',
+    maxHeight: '85%',
+    minHeight: 200,
     width: '100%',
     maxWidth: 500,
     shadowColor: '#000',
@@ -368,10 +361,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     width: 100,
     fontSize: 14,
-  },
-  infoValue: {
-    flex: 1,
-    fontSize: 16,
   },
   infoInput: {
     flex: 1,
@@ -420,10 +409,6 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     // Secondary button styles already applied via backgroundColor
-  },
-  buttonText: {
-    fontWeight: '600',
-    fontSize: 16,
   },
   filterError: {
     color: 'red',

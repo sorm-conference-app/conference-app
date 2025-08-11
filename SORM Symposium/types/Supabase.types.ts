@@ -16,7 +16,7 @@ export type Database = {
           first_name: string | null
           id: number
           last_name: string | null
-          phone: string | null
+          phone_number: string | null
         }
         Insert: {
           created_at?: string
@@ -24,7 +24,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone?: string | null
+          phone_number?: string | null
         }
         Update: {
           created_at?: string
@@ -32,7 +32,7 @@ export type Database = {
           first_name?: string | null
           id?: number
           last_name?: string | null
-          phone?: string | null
+          phone_number?: string | null
         }
         Relationships: []
       }
@@ -88,9 +88,10 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker_name: string | null
-          speaker_title: string | null
-          speaker_email: string | null
+          speaker_name: string[] | null
+          speaker_title: string[] | null
+          speaker_bio: string[] | null
+          speaker_company: string[] | null
           start_time: string
           title: string
           topic: string | null
@@ -104,9 +105,10 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
-          speaker_email?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time: string
           title: string
           topic?: string | null
@@ -120,12 +122,37 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
-          speaker_email?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time?: string
           title?: string
           topic?: string | null
+        }
+        Relationships: []
+      }
+      announcements: {
+        Row: {
+          id: number
+          created_at: string
+          title: string
+          body: string
+          type: string
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
+        }
+        Update: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
         }
         Relationships: []
       }
@@ -267,6 +294,50 @@ export type Database = {
           email?: string;
           code?: string;
           has_been_used?: boolean;
+        };
+        Relationships: [];
+      };
+      survey_links: {
+        Row: {
+          id: number;
+          created_at: string;
+          survey_start_time: string;
+          survey_end_time: string | null;
+          survey_link: string;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          survey_start_time: string;
+          survey_end_time?: string | null;
+          survey_link: string;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          survey_start_time?: string;
+          survey_end_time?: string | null;
+          survey_link?: string;
+        };
+        Relationships: [];
+      };
+      dev_event_logs: {
+        Row: {
+          id: number;
+          created_at: string;
+          event_type: string;
+          message: string | null;
+          OS: string;
+        };
+        Insert: {
+          event_type: string;
+          message?: string | null;
+          OS: string;
+        };
+        Update: {
+          event_type?: string;
+          message?: string | null;
+          OS?: string;
         };
         Relationships: [];
       };

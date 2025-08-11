@@ -6,6 +6,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import useContacts, { ContactInfo } from "@/hooks/useContacts";
 import { Image } from "expo-image";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -112,6 +113,7 @@ export default function InfoScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ title: "Info", headerShown: true }} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
@@ -186,16 +188,16 @@ export default function InfoScreen() {
                 }}
               >
                 <Image
-                  source={require("@/assets/images/BunteSORM.png")}
+                  source={require("@/assets/images/Symposium-floor-plan-v3.jpeg")}
                   style={[
                     styles.map,
                     {
                       width: isWideScreen
-                        ? (wideHeight() * 1586) / 908
+                        ? (wideHeight() * 1920) / 1080
                         : defaultWidth(),
                       height: isWideScreen
                         ? wideHeight()
-                        : (defaultWidth() * 908) / 1586,
+                        : (defaultWidth() * 1080) / 1920,
                     },
                   ]}
                   alt="Les Bunte Complex Map"
@@ -250,7 +252,7 @@ export default function InfoScreen() {
                 Event Rooms
               </ThemedText>
               <ThemedText style={styles.roomInfo}>
-                • B101A {"\n"}• B102C&D{"\n"}• B102A&B
+                • Room 1 {"\n"}• Room 2 {"\n"}• Room 3
               </ThemedText>
             </ThemedView>
 
@@ -410,7 +412,7 @@ export default function InfoScreen() {
         imageSource={
           selectedMap === "esti"
             ? require("@/assets/images/EstiMap.png")
-            : require("@/assets/images/BunteSORM.png")
+            : require("@/assets/images/Symposium-floor-plan-v3.jpeg")
         }
         isVisible={selectedMap !== null}
         onClose={() => {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { sendVerificationEmail } from './use6DigitVerification';
 
 export function use6DigitVerificationModal() {

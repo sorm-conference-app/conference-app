@@ -28,14 +28,18 @@ export default function useRSVPEvents(attendeeId: number) {
   const { refetch, ...rest } = useQuery<Event[]>({
     queryKey,
     queryFn: async function () {
-      console.log(
-        `[${hookId.current}] Querying RSVPed events for attendee:`,
-        attendeeId,
-      );
+      //console.log(
+      //  `[${hookId.current}] Querying RSVPed events for attendee:`,
+      //  attendeeId,
+      //);
 
       // Cache-only mode for testing
       if (CACHE_ONLY) {
-        console.log(`[${hookId.current}] 🔄 Using cache-only mode for RSVP events`);
+        //console.log(`[${hookId.current}] 🔄 Using cache-only mode for RSVP events`);
+        if (!cache) {
+          //console.warn(`[${hookId.current}] Cache not available, returning empty array`);
+          return [];
+        }
         try {
           // Get RSVPed event IDs from cache
           const rsvpData = await cache
@@ -44,7 +48,7 @@ export default function useRSVPEvents(attendeeId: number) {
             .where(eq(event_attendees.attendee_id, attendeeId));
           
           if (rsvpData.length === 0) {
-            console.log(`[${hookId.current}] No RSVPed events found in cache`);
+            //console.log(`[${hookId.current}] No RSVPed events found in cache`);
             return [];
           }
 
@@ -59,16 +63,21 @@ export default function useRSVPEvents(attendeeId: number) {
           // Filter to only RSVPed events
           const rsvpEvents = cachedEvents.filter(event => eventIds.includes(event.id));
           
-          console.log(`[${hookId.current}] Retrieved ${rsvpEvents.length} RSVPed events from cache`);
+          //console.log(`[${hookId.current}] Retrieved ${rsvpEvents.length} RSVPed events from cache`);
           
           // Convert cached data to match Event type
           return rsvpEvents.map(event => ({
             ...event,
             created_at: event.created_at.toISOString(), // Convert Date to string
             is_deleted: Boolean(event.is_deleted), // Convert number to boolean
+            // Convert JSON strings back to arrays
+            speaker_name: event.speaker_name ? JSON.parse(event.speaker_name) : null,
+            speaker_title: event.speaker_title ? JSON.parse(event.speaker_title) : null,
+            speaker_bio: event.speaker_bio ? JSON.parse(event.speaker_bio) : null,
+            speaker_company: event.speaker_company ? JSON.parse(event.speaker_company) : null,
           })) as Event[];
         } catch (cacheError) {
-          console.warn(`[${hookId.current}] Failed to read from cache:`, cacheError);
+          //console.warn(`[${hookId.current}] Failed to read from cache:`, cacheError);
           return [];
         }
       }
@@ -84,7 +93,7 @@ export default function useRSVPEvents(attendeeId: number) {
       }
 
       if (!rsvpData || rsvpData.length === 0) {
-        console.log(`[${hookId.current}] No RSVPed events found`);
+        //console.log(`[${hookId.current}] No RSVPed events found`);
         return [];
       }
 
@@ -110,22 +119,24 @@ export default function useRSVPEvents(attendeeId: number) {
         notified: item.notified ? 1 : 0, // Convert boolean to integer for SQLite
       }));
 
-      try {
-        await cache
-          .insert(event_attendees)
-          .values(rsvpInsertData)
-          .onConflictDoUpdate({
-            target: event_attendees.id,
-            set: {
-              event_id: sql`excluded.event_id`,
-              attendee_device_id: sql`excluded.attendee_device_id`,
-              rsvp_at: sql`excluded.rsvp_at`,
-              notified: sql`excluded.notified`,
-            },
-          });
-      } catch (cacheError) {
-        console.warn(`[${hookId.current}] Failed to cache RSVP data:`, cacheError);
-        // Continue without caching - the data is still returned from Supabase
+      if (cache) {
+        try {
+          await cache
+            .insert(event_attendees)
+            .values(rsvpInsertData)
+            .onConflictDoUpdate({
+              target: event_attendees.id,
+              set: {
+                event_id: sql`excluded.event_id`,
+                attendee_device_id: sql`excluded.attendee_device_id`,
+                rsvp_at: sql`excluded.rsvp_at`,
+                notified: sql`excluded.notified`,
+              },
+            });
+        } catch (cacheError) {
+          console.warn(`[${hookId.current}] Failed to cache RSVP data:`, cacheError);
+          // Continue without caching - the data is still returned from Supabase
+        }
       }
 
       // Cache the events data
@@ -133,14 +144,20 @@ export default function useRSVPEvents(attendeeId: number) {
         ...item,
         created_at: new Date(item.created_at), // Convert created_at to Date object for SQLite
         is_deleted: item.is_deleted ? 1 : 0, // Convert boolean to integer for SQLite
+        // Convert arrays to JSON strings for SQLite storage
+        speaker_name: item.speaker_name ? JSON.stringify(item.speaker_name) : null,
+        speaker_title: item.speaker_title ? JSON.stringify(item.speaker_title) : null,
+        speaker_bio: item.speaker_bio ? JSON.stringify(item.speaker_bio) : null,
+        speaker_company: item.speaker_company ? JSON.stringify(item.speaker_company) : null,
       }));
 
-      try {
-        await cache
-          .insert(events)
-          .values(eventsInsertData)
-          .onConflictDoUpdate({
-            target: events.id,
+      if (cache) {
+        try {
+          await cache
+            .insert(events)
+            .values(eventsInsertData)
+            .onConflictDoUpdate({
+              target: events.id,
                        set: {
              title: sql`excluded.title`,
              description: sql`excluded.description`,
@@ -150,18 +167,20 @@ export default function useRSVPEvents(attendeeId: number) {
              location: sql`excluded.location`,
              speaker_name: sql`excluded.speaker_name`,
              speaker_title: sql`excluded.speaker_title`,
-             speaker_email: sql`excluded.speaker_email`,
+             speaker_company: sql`excluded.speaker_company`,
+             speaker_bio: sql`excluded.speaker_bio`,
              topic: sql`excluded.topic`,
              slides_url: sql`excluded.slides_url`,
              is_deleted: sql`excluded.is_deleted`,
            },
           });
-      } catch (cacheError) {
-        console.warn(`[${hookId.current}] Failed to cache events data:`, cacheError);
-        // Continue without caching - the data is still returned from Supabase
+        } catch (cacheError) {
+          console.warn(`[${hookId.current}] Failed to cache events data:`, cacheError);
+          // Continue without caching - the data is still returned from Supabase
+        }
       }
 
-      console.log(`[${hookId.current}] Queried ${eventsData.length} RSVPed events`);
+      //console.log(`[${hookId.current}] Queried ${eventsData.length} RSVPed events`);
       return eventsData as Event[];
     },
     refetchOnWindowFocus: false,
@@ -170,14 +189,14 @@ export default function useRSVPEvents(attendeeId: number) {
   // Set up real-time subscription for both events and event_attendees tables (only if not in cache-only mode)
   useEffect(() => {
     if (CACHE_ONLY) {
-      console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
+      //console.log(`[${hookId.current}] Skipping real-time subscription in cache-only mode`);
       return;
     }
 
-    console.log(
-      `[${hookId.current}] Setting up real-time subscription with channel:`,
-      channelName.current,
-    );
+    //console.log(
+    //  `[${hookId.current}] Setting up real-time subscription with channel:`,
+    //  channelName.current,
+    //);
 
     // Subscribe to changes in both the events and event_attendees tables
     const channel = supabase
@@ -190,10 +209,10 @@ export default function useRSVPEvents(attendeeId: number) {
           table: "events",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time events update received:`,
-            payload,
-          );
+          //console.log(
+          //  `[${hookId.current}] Real-time events update received:`,
+          //  payload,
+          //);
 
           // Refresh the RSVPed events when events change
           refetch();
@@ -207,25 +226,25 @@ export default function useRSVPEvents(attendeeId: number) {
           table: "event_attendees",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time event_attendees update received:`,
-            payload,
-          );
+          //console.log(
+          //  `[${hookId.current}] Real-time event_attendees update received:`,
+          //  payload,
+          //);
 
           // Refresh the RSVPed events when RSVP status changes
           refetch();
         },
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
 
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(
-        `[${hookId.current}] Cleaning up subscription:`,
-        channelName.current,
-      );
+      //console.log(
+      //  `[${hookId.current}] Cleaning up subscription:`,
+      //  channelName.current,
+      //);
       supabase.removeChannel(channel);
     };
   }, [refetch]);

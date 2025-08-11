@@ -74,7 +74,9 @@ export async function getAttendeeByPhone(phone: string): Promise<Attendee | null
     .from('attendee_info')
     .select('*')
     .eq('phone', normalizedPhone)
-    .single();
+    .order('id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     if (error.code === 'PGRST116') {
@@ -94,14 +96,13 @@ export async function getAttendeeByPhone(phone: string): Promise<Attendee | null
  * @returns The attendee object if found, null otherwise
  */
 export async function getAttendeeByContact(contact: string): Promise<Attendee | null> {
-  // Determine if input is email or phone
+  // Determine if input is email or phone; prefer email path to avoid phone collisions
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  
-  if (isEmail) {
-    return getAttendeeByEmail(contact);
-  } else {
-    return getAttendeeByPhone(contact);
-  }
+  if (isEmail) return getAttendeeByEmail(contact);
+
+  // For phone inputs, attempt to resolve to a unique attendee by checking if the authenticated user metadata contains an email
+  // Callers should pass email when available. Phone lookup remains as a fallback.
+  return getAttendeeByPhone(contact);
 }
 
 /**
@@ -183,7 +184,9 @@ export async function verifyAttendeeContact(contact: string): Promise<Attendee> 
  * @returns True if the popup should be shown (user hasn't seen it before)
  */
 export async function shouldShowContactSharingPopup(contact: string): Promise<boolean> {
-  const attendee = await getAttendeeByContact(contact);
+  // Prefer email path
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const attendee = isEmail ? await getAttendeeByEmail(contact) : await getAttendeeByPhone(contact);
   if (!attendee) return false;
   
   // Show popup if they haven't seen it before (seen_share_info_popup is null or false)
@@ -199,13 +202,11 @@ export async function updateContactSharingPreferences(
   title?: string
 ): Promise<Attendee> {
   // Log values for debugging
-  console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
+  // console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
 
-  // Determine if contact is email or phone
+  // Determine if contact is email or phone and normalize
   const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
-  
-  // Normalize contact for consistent database operations
-  const normalizedContact = isEmail ? contact : normalizePhoneNumber(contact);
+  const normalizedContact = isEmail ? contact.toLowerCase() : normalizePhoneNumber(contact);
 
   // Prepare parameters based on contact type
   const rpcParams = {
@@ -227,11 +228,42 @@ export async function updateContactSharingPreferences(
   }
 
   // Fetch and return the fresh row using normalized contact
-  const updatedAttendee = await getAttendeeByContact(normalizedContact);
+  const updatedAttendee = isEmail
+    ? await getAttendeeByEmail(normalizedContact)
+    : await getAttendeeByPhone(normalizedContact);
   if (!updatedAttendee) {
     throw new Error('Failed to fetch updated attendee');
   }
   return updatedAttendee;
+}
+
+/**
+ * Update an attendee's phone number after successful verification
+ * @param email - The attendee's email for identification
+ * @param phone - The verified phone number to save
+ * @returns The updated attendee object
+ */
+export async function updateAttendeePhone(email: string, phone: string): Promise<Attendee> {
+  // Normalize phone number to E.164 format for consistent database storage
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  const { data, error } = await supabase
+    .from('attendee_info')
+    .update({ phone: normalizedPhone })
+    .eq('email', email.toLowerCase())
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating attendee phone:', error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No attendee found with the provided email');
+  }
+
+  return data;
 }
 
 export async function getAttendeeContactList(): Promise<Attendee[]> {

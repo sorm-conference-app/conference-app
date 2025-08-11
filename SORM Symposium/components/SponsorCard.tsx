@@ -2,10 +2,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { getSponsorLogo } from "@/hooks/useSponsorLogo";
 import { Sponsor } from "@/types/Sponsors.types";
 import React from "react";
-import { Image, Linking, StyleSheet } from "react-native";
+import { Linking, StyleSheet } from "react-native";
 import SponsorLogo from "./SponsorLogo";
 
 interface SponsorCardProps {
@@ -51,7 +50,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
           style={[styles.logoContainer, { backgroundColor: "transparent" }]}
         >
           {sponsor.logo ? (
-            <SponsorLogo {...sponsor} />
+            <SponsorLogo hyperlink={sponsor.website ? true : false} {...sponsor} style={{ margin: 4 }} />
           ) : (
             <ThemedView
               style={[styles.placeholderLogo, { backgroundColor: colors.tint }]}
@@ -67,7 +66,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         <ThemedView
           style={[styles.titleContainer, { backgroundColor: "transparent" }]}
         >
-          <ThemedText style={[styles.name, { color: colors.text }]}>
+          <ThemedText type="subtitle" style={[{ color: colors.text }]}>
             {sponsor.name}
           </ThemedText>
           <ThemedView
@@ -81,7 +80,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedView>
       </ThemedView>
 
-      <ThemedText style={[styles.description, { color: colors.text }]}>
+      <ThemedText type="default" style={[{ color: colors.text }]}>
         {sponsor.description}
       </ThemedText>
 
@@ -103,7 +102,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
                 key={contact.name}
                 style={[styles.contactRow, { backgroundColor: "transparent" }]}
               >
-                <ThemedText style={[styles.contactInfo]}>
+                <ThemedText type="default">
                   {contact.name}
                   {contact.phone ? `: ${contact.phone}` : ""}
                 </ThemedText>
@@ -130,12 +129,14 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
         </ThemedText>
         {sponsor.website ? (
           <ThemedView
-            style={[styles.contactRow, { backgroundColor: "transparent" }]}
+            style={[styles.contactRow, { backgroundColor: "transparent", flex: 1 }]}
           >
             <ThemedText
               style={[styles.contactInfo, { color: colors.link }]}
               onPress={() => handleWebsite(sponsor.website)}
               type="link"
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {sponsor.website}
             </ThemedText>
@@ -144,7 +145,7 @@ export const SponsorCard: React.FC<SponsorCardProps> = ({ sponsor }) => {
           <ThemedView
             style={[styles.contactRow, { backgroundColor: "transparent" }]}
           >
-            <ThemedText style={[styles.contactInfo, { color: colors.text }]}>
+            <ThemedText type="default" style={[{ color: colors.text }]}>
               Coming soon
             </ThemedText>
           </ThemedView>
@@ -178,6 +179,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     marginRight: 12,
     marginBottom: 8,
+    borderRadius: 8,
   },
   placeholderLogo: {
     width: 50,
@@ -203,6 +205,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 4,
+    marginTop: 4,
     borderRadius: 12,
   },
   levelText: {

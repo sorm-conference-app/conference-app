@@ -35,7 +35,6 @@ export default function ContactEditForm() {
   const [attendeeName, setAttendeeName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
-  const [disabled, setDisabled] = useState(true);
   // Loading and error state
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -85,6 +84,18 @@ export default function ContactEditForm() {
 
   // When a contact is selected, always prefill the form fields
   useEffect(() => {
+    // Reset selectedId when switching between contact/attendee editing modes
+    if (selectedId !== "" && typeof selectedId === "number") {
+      // Check if the selected ID is valid for the current mode
+      const isValidForCurrentMode = editingAttendee 
+        ? attendees.some(a => a.id === selectedId)
+        : contacts.some(c => c.id === selectedId);
+      
+      if (!isValidForCurrentMode) {
+        setSelectedId("");
+      }
+    }
+
     if (editingAttendee) {
       if (selectedId !== "" && typeof selectedId === "number") {
         const attendee = attendees.find(a => a.id === selectedId);
@@ -113,11 +124,7 @@ export default function ContactEditForm() {
         setEmail("");
       }
     }
-  }, [selectedId, contacts, attendees]);
-
-  useEffect(() => {
-    setSelectedId("");
-  }, [editingAttendee]);
+  }, [selectedId, contacts, attendees, editingAttendee]);
 
   /**
    * Handle updating the selected contact in Supabase
@@ -263,7 +270,6 @@ export default function ContactEditForm() {
             dropdownIconColor={Colors[colorScheme].tint}
             itemStyle={Platform.OS === 'ios' ? { color: Colors[colorScheme].text } : undefined}
             accessibilityLabel="Contact selection dropdown"
-            accessibilityHint="Select a contact to edit their information"
             accessibilityRole="combobox"
           >
             <Picker.Item 
@@ -298,7 +304,6 @@ export default function ContactEditForm() {
             placeholder="First Name"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="First name input field"
-            accessibilityHint="Enter the contact's first name"
           />
           <ThemedTextInput
             value={lastName}
@@ -306,7 +311,6 @@ export default function ContactEditForm() {
             placeholder="Last Name"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="Last name input field"
-            accessibilityHint="Enter the contact's last name"
           />
           <ThemedTextInput
             value={phoneNumber}
@@ -315,7 +319,6 @@ export default function ContactEditForm() {
             keyboardType="phone-pad"
             editable={selectedId !== "" && typeof selectedId === "number"}
             accessibilityLabel="Phone number input field"
-            accessibilityHint="Enter the contact's phone number"
           />
         </>
         )}
@@ -326,7 +329,6 @@ export default function ContactEditForm() {
           keyboardType="email-address"
           editable={selectedId !== "" && typeof selectedId === "number"}
           accessibilityLabel="Email input field"
-          accessibilityHint="Enter the contact's email address"
         />
         <Pressable
           onPress={editingAttendee ? () => setShowConfirmEditEmailModal(true) : handleUpdate}
@@ -338,7 +340,6 @@ export default function ContactEditForm() {
             { borderColor: Colors[colorScheme].adminButtonText },
           ]}
           accessibilityLabel="Update button"
-          accessibilityHint="Press to save changes to the selected information"
           accessibilityRole="button"
           accessibilityState={{ disabled: loading || selectedId === "" || typeof selectedId !== "number" }}
         >

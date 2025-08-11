@@ -9,11 +9,11 @@ export type AlertModalProps = {
   visible: boolean;
   title: string;
   message: string;
-  buttons: Array<{
+  buttons: {
     text: string;
     onPress: () => void;
     style?: 'default' | 'cancel' | 'destructive';
-  }>;
+  }[];
   onClose: () => void;
 };
 

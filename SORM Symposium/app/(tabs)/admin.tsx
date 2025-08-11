@@ -13,7 +13,6 @@ import { Redirect } from "expo-router";
 import React, { useRef } from "react";
 import {
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     TextStyle,
@@ -118,7 +117,6 @@ export default function Admin() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
@@ -141,15 +139,10 @@ export default function Admin() {
           </View>
         </ThemedView>
       </ScrollView>
-    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    height: "100%",
-  } as ViewStyle,
   scrollView: {
     flex: 1,
   } as ViewStyle,

@@ -18,7 +18,7 @@ type Announcement = {
 export default function useAnnouncements(limit?: number) {
   // Create a stable channel name using a ref
   const channelName = useRef(
-    `test_announcements_changes_${Math.random().toString(36).substr(2, 9)}`,
+    `announcements_changes_${Math.random().toString(36).substr(2, 9)}`,
   );
   const hookId = useRef(`hook_${Math.random().toString(36).substr(2, 6)}`);
 
@@ -27,13 +27,13 @@ export default function useAnnouncements(limit?: number) {
   const { refetch, ...rest } = useQuery<Announcement[]>({
     queryKey,
     queryFn: async function () {
-      console.log(
-        `[${hookId.current}] Querying announcements with limit:`,
-        limit,
-      );
+      //console.log(
+      //  `[${hookId.current}] Querying announcements with limit:`,
+      //  limit,
+      //);
 
       let query = supabase
-        .from("test_announcements")
+        .from("announcements")
         .select("*")
         .eq("type", "general")
         .order("created_at", { ascending: false });
@@ -48,7 +48,7 @@ export default function useAnnouncements(limit?: number) {
         throw new Error(error.message);
       }
 
-      console.log(`[${hookId.current}] Queried ${data.length} announcements`);
+      //console.log(`[${hookId.current}] Queried ${data.length} announcements`);
       return data as Announcement[];
     },
     refetchOnWindowFocus: false,
@@ -56,12 +56,12 @@ export default function useAnnouncements(limit?: number) {
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log(
-      `[${hookId.current}] Setting up real-time subscription with channel:`,
-      channelName.current,
-    );
+    //console.log(
+    //  `[${hookId.current}] Setting up real-time subscription with channel:`,
+    //  channelName.current,
+    //);
 
-    // Subscribe to changes in the test_announcements table
+    // Subscribe to changes in the announcements table
     const channel = supabase
       .channel(channelName.current)
       .on(
@@ -69,28 +69,28 @@ export default function useAnnouncements(limit?: number) {
         {
           event: "*", // Listen to all events
           schema: "public",
-          table: "test_announcements",
+          table: "announcements",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time update received:`,
-            payload,
-          );
+          //console.log(
+          //  `[${hookId.current}] Real-time update received:`,
+          //  payload,
+          //);
 
           // Refresh the announcements when a change occurs
           refetch();
         },
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
 
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(
-        `[${hookId.current}] Cleaning up subscription:`,
-        channelName.current,
-      );
+      //console.log(
+      //  `[${hookId.current}] Cleaning up subscription:`,
+      //  channelName.current,
+      //);
       supabase.removeChannel(channel);
     };
   }, [refetch]);

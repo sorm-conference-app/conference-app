@@ -23,10 +23,10 @@ export default function useEvents(options?: {
   const { refetch, ...rest } = useQuery<Event[]>({
     queryKey,
     queryFn: async function () {
-      console.log(
-        `[${hookId.current}] Querying events with options:`,
-        options,
-      );
+      //console.log(
+      //  `[${hookId.current}] Querying events with options:`,
+      //  options,
+      //);
 
       let query = supabase
         .from("events")
@@ -48,7 +48,7 @@ export default function useEvents(options?: {
         throw new Error(error.message);
       }
 
-      console.log(`[${hookId.current}] Queried ${data.length} events`);
+      //console.log(`[${hookId.current}] Queried ${data.length} events`);
       return data as Event[];
     },
     refetchOnWindowFocus: false,
@@ -56,10 +56,10 @@ export default function useEvents(options?: {
 
   // Set up real-time subscription
   useEffect(() => {
-    console.log(
-      `[${hookId.current}] Setting up real-time subscription with channel:`,
-      channelName.current,
-    );
+    //console.log(
+    //  `[${hookId.current}] Setting up real-time subscription with channel:`,
+    //  channelName.current,
+    //);
 
     // Subscribe to changes in the events table
     const channel = supabase
@@ -72,25 +72,25 @@ export default function useEvents(options?: {
           table: "events",
         },
         (payload) => {
-          console.log(
-            `[${hookId.current}] Real-time update received:`,
-            payload,
-          );
+          //console.log(
+          //  `[${hookId.current}] Real-time update received:`,
+          //  payload,
+          //);
 
           // Refresh the events when a change occurs
           refetch();
         },
       )
       .subscribe((status) => {
-        console.log(`[${hookId.current}] Subscription status:`, status);
+        //console.log(`[${hookId.current}] Subscription status:`, status);
       });
 
     // Cleanup function to remove subscription when component unmounts
     return () => {
-      console.log(
-        `[${hookId.current}] Cleaning up subscription:`,
-        channelName.current,
-      );
+      //console.log(
+      //  `[${hookId.current}] Cleaning up subscription:`,
+      //  channelName.current,
+      //);
       supabase.removeChannel(channel);
     };
   }, [refetch]);

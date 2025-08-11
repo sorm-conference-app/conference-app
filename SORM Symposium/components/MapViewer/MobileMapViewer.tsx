@@ -6,7 +6,6 @@ import Animated, {
   useSharedValue, 
   useAnimatedStyle,
   withSpring,
-  runOnJS
 } from 'react-native-reanimated';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { styles } from './styles';
@@ -29,7 +28,7 @@ export const MobileMapViewer = ({ imageSource, isVisible, onClose }: MapViewerPr
       translateY.value = withSpring(0);
       setIsLoading(true);
     }
-  }, [isVisible]);
+  }, [isVisible, scale, translateX, translateY]);
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
