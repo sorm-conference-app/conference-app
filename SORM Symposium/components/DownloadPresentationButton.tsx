@@ -52,6 +52,8 @@ function DownloadPresentationButton({
           borderWidth: 1,
           marginLeft: 16,
           marginTop: 16,
+          marginRight: 16,
+          marginBottom: 16,
         },
         { backgroundColor: Colors[colorScheme].adminButton },
         { borderColor: Colors[colorScheme].text },
