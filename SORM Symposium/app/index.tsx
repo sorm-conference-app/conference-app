@@ -1,5 +1,6 @@
 import signinAdmin, { requestOTP } from "@/api/signinUser";
 import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
+import AdminPasswordChangeModal from "@/components/AdminPasswordChangeModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useLoginFlow } from "@/components/LoginFlowProvider";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
@@ -10,7 +11,7 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
- 
+import { useAdminPasswordChange } from "@/hooks/useAdminPasswordChange";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -37,7 +38,6 @@ const cleanPhoneNumber = (phoneNumber: string): string => {
 export default function Login() {
   const colorScheme = useColorScheme() || "light";
   const session = useSupabaseAuth();
-  const { setLoginFlow, clearLoginFlow } = useLoginFlow();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [attendeeStep, setAttendeeStep] = useState<AttendeeStep>("collectEmail");
   const [attendeeEmail, setAttendeeEmail] = useState<string>("");
@@ -61,6 +61,25 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
+
+  // Admin password change modal hook
+  const {
+    isVisible: isPasswordChangeVisible,
+    isChangingPassword,
+    error: passwordChangeError,
+    showModal: showPasswordChangeModal,
+    hideModal: hidePasswordChangeModal,
+    changePassword,
+  } = useAdminPasswordChange();
+
+  // Login flow context
+  const { 
+    requiresPasswordChange, 
+    loginFlow, 
+    setLoginFlow, 
+    clearLoginFlow, 
+    setRequiresPasswordChange
+  } = useLoginFlow();
   
   // Validation functions
   const validAttendeeEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(attendeeEmail);
@@ -89,9 +108,12 @@ export default function Login() {
   // Check if user is already authenticated and redirect
   useEffect(() => {
     if (session?.user) {
-      router.replace("/(tabs)/home");
+      // Prevent redirect if user is organizer and requires password change
+      if (loginFlow !== 'organizer' && !requiresPasswordChange) {
+        router.push("/(tabs)/home");
+      }
     }
-  }, [session]);
+  }, [session, loginFlow, requiresPasswordChange]);
 
   const handleEmailSubmit = () => {
     if (!validAttendeeEmail) {
@@ -132,11 +154,22 @@ export default function Login() {
         await requestOTP(contactToSend, attendeeEmail);
         setShowVerificationModal(true);
       } else if (userType === "organizer") {
-        // Admin password login - set login flow to 'organizer' on success
-        await signinAdmin(contact, password, () => {
+        // Admin password login - check password before setting login flow
+        const result = await signinAdmin(contact, password);
+        
+        // Check if admin is using default password
+        if (result.isUsingDefaultPassword) {
+          // Set login flow and mark password change as required
           setLoginFlow('organizer');
-        });
-        router.replace("/(tabs)/home");
+          setRequiresPasswordChange(true);
+          showPasswordChangeModal();
+          // Do NOT navigate to home - user is trapped until password is changed
+        } else {
+          // Password is good - proceed normally
+          setLoginFlow('organizer');
+          setRequiresPasswordChange(false);
+          router.push("/(tabs)/home");
+        }
       }
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -260,6 +293,13 @@ export default function Login() {
   const handleContactSharingClose = () => {
     hideContactSharingModal();
     router.replace("/(tabs)/home");
+  };
+
+  // Handle successful password change
+  const handlePasswordChangeSuccess = () => {
+    hidePasswordChangeModal();
+    setRequiresPasswordChange(false); // Clear the requirement
+    router.push("/(tabs)/home");
   };
 
   const handleGoToAdminLogin = () => {
@@ -755,6 +795,16 @@ export default function Login() {
         onDontShare={handleContactSharingDontShare}
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
+      />
+
+      <AdminPasswordChangeModal
+        visible={isPasswordChangeVisible}
+        onPasswordChanged={async (oldPassword: string, newPassword: string) => {
+          await changePassword(oldPassword, newPassword);
+          handlePasswordChangeSuccess();
+        }}
+        isChangingPassword={isChangingPassword}
+        error={passwordChangeError}
       />
     </>
   );

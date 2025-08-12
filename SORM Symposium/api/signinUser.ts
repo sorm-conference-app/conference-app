@@ -29,7 +29,7 @@ export async function isAdminEmailOld(email: string): Promise<boolean> {
  * @param email The admin's email.
  * @param password The admin's password.
  * @param onSuccess Optional callback to execute after successful authentication
- * @returns The user object returned by Supabase.
+ * @returns The user object returned by Supabase with additional password status info.
  */
 export default async function signinAdmin(email: string, password: string, onSuccess?: () => void) {
   const isAttendee = await isAttendeeEmail(email);
@@ -54,12 +54,43 @@ export default async function signinAdmin(email: string, password: string, onSuc
     throw error;
   }
   
+  // Check if user is using default password
+  const isUsingDefaultPassword = await checkIsDefaultPassword(password);
+  
   // Call success callback to set login flow in the UI
   if (onSuccess) {
     onSuccess();
   }
   
-  return data;
+  // Return data with password status information
+  return {
+    ...data,
+    isUsingDefaultPassword
+  };
+}
+
+/**
+ * Check if the provided password matches the default admin password
+ * @param password - The password to check
+ * @returns Promise that resolves to true if it matches the default password
+ */
+async function checkIsDefaultPassword(password: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('check-default-password', {
+      body: { password }
+    });
+
+    if (error) {
+      console.error('Error checking default password:', error);
+      return false;
+    }
+
+    console.log('🔍 Debug: data =', data);
+    return data?.isDefaultPassword || false;
+  } catch (error) {
+    console.error('Error checking default password:', error);
+    return false;
+  }
 }
 
 /**
