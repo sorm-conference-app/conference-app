@@ -162,7 +162,7 @@ export default function EventDetailScreen() {
                   ))}
                 </ThemedView>
 
-                {!event.slides_url && (
+                {event.slides_url && (
                   <DownloadPresentationButton eventId={event.id} />
                 )}
               </>
