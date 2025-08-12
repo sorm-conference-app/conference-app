@@ -5,14 +5,28 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { Platform, useColorScheme, useWindowDimensions } from "react-native";
 
+/**
+ * Tabs layout that protects all tab routes by redirecting unauthenticated users to login
+ */
 export default function TabLayout() {
   const user = useSupabaseAuth();
   const isAdmin = useIsAdmin();
   const { loginFlow } = useLoginFlow();
   const windowWidth = useWindowDimensions().width;
+  // Hoist color scheme hook so it runs on every render to avoid varying hook counts
+  const colorScheme = useColorScheme() ?? "light";
+  
+  // Redirect unauthenticated users to login page
+  // Wait for provider to initialize before making a redirect decision
+  if (user === undefined) {
+    return null;
+  }
+  if (!user?.user) {
+    return <Redirect href="/" />;
+  }
   
   // Only show admin tab if user is authenticated, has admin role, came through organizer login flow, AND is on web platform
   const shouldShowAdminTab = user && isAdmin && loginFlow === 'organizer' && Platform.OS === 'web';
@@ -24,9 +38,9 @@ export default function TabLayout() {
       initialRouteName="home"
       screenOptions={{
         tabBarActiveTintColor:
-          Colors[useColorScheme() ?? "light"].tabIconSelected,
+          Colors[colorScheme].tabIconSelected,
         tabBarInactiveTintColor:
-          Colors[useColorScheme() ?? "light"].tabIconDefault,
+          Colors[colorScheme].tabIconDefault,
         tabBarLabelStyle: {
           fontSize: 14,
           fontWeight: "bold",

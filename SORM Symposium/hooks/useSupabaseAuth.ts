@@ -2,18 +2,12 @@ import { AuthSessionContext } from "@/components/AuthSessionProvider";
 import { useContext } from "react";
 
 /**
- * Get the current user session.
- * @returns the Session object returned by Supabase, if there is a user session.
+ * Get the current Supabase auth session state
+ * Returns undefined while the provider is initializing; null when unauthenticated; Session when authenticated
  */
 function useSupabaseAuth() {
   const context = useContext(AuthSessionContext);
-
-  if (context === undefined) {
-    throw new Error(
-      "useSupabaseAuth must be used within an AuthSessionProvider."
-    );
-  }
-
+  // Do not throw on undefined; this also represents the loading state during provider initialization
   return context;
 }
 

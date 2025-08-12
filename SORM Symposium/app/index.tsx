@@ -91,8 +91,11 @@ export default function Login() {
   const validPassword = password.length > 0;
 
   useEffect(() => {
-    // Only clear login flow and sign out if there's no active session
-    // This prevents clearing the flow after successful authentication
+    // Wait for session to resolve from provider before doing anything
+    if (session === undefined) {
+      return;
+    }
+    // If unauthenticated, clear any lingering login flow state and old session
     if (!session?.user) {
       const clearAuth = async () => {
         await clearLoginFlow();
@@ -100,7 +103,7 @@ export default function Login() {
       };
       clearAuth();
     }
-  }, [clearLoginFlow, session?.user]);
+  }, [clearLoginFlow, session]);
 
   // Check if user is already authenticated and redirect
   useEffect(() => {
@@ -197,11 +200,11 @@ export default function Login() {
       const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (error) {
       console.error('Error showing contact sharing modal:', error);
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   };
 
@@ -265,7 +268,7 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingShare = async (
@@ -286,12 +289,12 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingClose = () => {
     hideContactSharingModal();
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   // Handle successful password change
@@ -320,8 +323,7 @@ export default function Login() {
     setErr("");
     setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
-    await clearLoginFlow();
-    await supabase.auth.signOut();
+    //await clearLoginFlow();
   };
 
   const goBack = () => {
@@ -454,8 +456,13 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              // Use explicit color values to ensure borders show on static export first load
+              // when theme hooks might not be fully initialized
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
@@ -472,8 +479,11 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
