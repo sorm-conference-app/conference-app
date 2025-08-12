@@ -2,6 +2,7 @@ import {
   formatTopicName,
   getTopicColor,
 } from "@/components/AgendaViewer/utils";
+import DownloadPresentationButton from "@/components/DownloadPresentationButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -125,7 +126,7 @@ export default function EventDetailScreen() {
           const speakerTitles = event.speaker_title;
           const speakerBios = event.speaker_bio;
           const speakerCompanies = event.speaker_company;
-          
+
           if (speakerNames && speakerNames.length > 0) {
             return (
               <>
@@ -136,27 +137,34 @@ export default function EventDetailScreen() {
                   {speakerNames.map((name, index) => (
                     <ThemedView key={index} style={styles.speakerInfo}>
                       <ThemedText type="defaultSemiBold">{name}</ThemedText>
-                      {(speakerTitles && speakerTitles[index] && speakerCompanies && speakerCompanies[index] && (
-                        <ThemedText>{speakerTitles[index]} at {speakerCompanies[index]}</ThemedText>
-                      )) || (speakerTitles && speakerTitles[index] ? (
-                        <ThemedText>{speakerTitles[index]}</ThemedText>
-                      ) : null) || (speakerCompanies && speakerCompanies[index] && (
-                        <ThemedText style={styles.company}>{speakerCompanies[index]}</ThemedText>
-                      ))}
+                      {(speakerTitles &&
+                        speakerTitles[index] &&
+                        speakerCompanies &&
+                        speakerCompanies[index] && (
+                          <ThemedText>
+                            {speakerTitles[index]} at {speakerCompanies[index]}
+                          </ThemedText>
+                        )) ||
+                        (speakerTitles && speakerTitles[index] ? (
+                          <ThemedText>{speakerTitles[index]}</ThemedText>
+                        ) : null) ||
+                        (speakerCompanies && speakerCompanies[index] && (
+                          <ThemedText style={styles.company}>
+                            {speakerCompanies[index]}
+                          </ThemedText>
+                        ))}
                       {speakerBios && speakerBios[index] && (
-                        <ThemedText style={styles.bio}>{speakerBios[index]}</ThemedText>
+                        <ThemedText style={styles.bio}>
+                          {speakerBios[index]}
+                        </ThemedText>
                       )}
                     </ThemedView>
                   ))}
                 </ThemedView>
 
-                {event.slides_url ? (
-                  <ThemedView style={styles.section}>
-                    <ThemedText type="link" style={{ color: Colors[colorScheme].link }} onPress={openSlides}>
-                      View Presentation Slides
-                    </ThemedText>
-                  </ThemedView>
-                ) : null}
+                {!event.slides_url && (
+                  <DownloadPresentationButton eventId={event.id} />
+                )}
               </>
             );
           }
@@ -216,7 +224,7 @@ const styles = StyleSheet.create({
   },
   company: {
     marginTop: 4,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   speakerInfo: {
     gap: 4,
