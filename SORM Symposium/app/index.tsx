@@ -1,5 +1,6 @@
 import signinAdmin, { requestOTP } from "@/api/signinUser";
 import SixDigitVerificationModal from "@/components/6DigitVerificationModal";
+import AdminPasswordChangeModal from "@/components/AdminPasswordChangeModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useLoginFlow } from "@/components/LoginFlowProvider";
 import ContactSharingModal from "@/components/Networking/ContactSharingModal";
@@ -10,6 +11,7 @@ import ThemedTextInput from "@/components/ThemedTextInput";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { supabase } from "@/constants/supabase";
+import { useAdminPasswordChange } from "@/hooks/useAdminPasswordChange";
 import { useContactSharingModal } from "@/hooks/useContactSharingModal";
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import { getAllSponsors } from "@/lib/sponsors";
@@ -36,7 +38,6 @@ const cleanPhoneNumber = (phoneNumber: string): string => {
 export default function Login() {
   const colorScheme = useColorScheme() || "light";
   const session = useSupabaseAuth();
-  const { setLoginFlow, clearLoginFlow } = useLoginFlow();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [attendeeStep, setAttendeeStep] = useState<AttendeeStep>("collectEmail");
   const [attendeeEmail, setAttendeeEmail] = useState<string>("");
@@ -60,6 +61,25 @@ export default function Login() {
     hideModal: hideContactSharingModal,
     savePreferences: saveContactSharingPreferences,
   } = useContactSharingModal();
+
+  // Admin password change modal hook
+  const {
+    isVisible: isPasswordChangeVisible,
+    isChangingPassword,
+    error: passwordChangeError,
+    showModal: showPasswordChangeModal,
+    hideModal: hidePasswordChangeModal,
+    changePassword,
+  } = useAdminPasswordChange();
+
+  // Login flow context
+  const { 
+    requiresPasswordChange, 
+    loginFlow, 
+    setLoginFlow, 
+    clearLoginFlow, 
+    setRequiresPasswordChange
+  } = useLoginFlow();
   
   // Validation functions
   const validAttendeeEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(attendeeEmail);
@@ -71,8 +91,11 @@ export default function Login() {
   const validPassword = password.length > 0;
 
   useEffect(() => {
-    // Only clear login flow and sign out if there's no active session
-    // This prevents clearing the flow after successful authentication
+    // Wait for session to resolve from provider before doing anything
+    if (session === undefined) {
+      return;
+    }
+    // If unauthenticated, clear any lingering login flow state and old session
     if (!session?.user) {
       const clearAuth = async () => {
         await clearLoginFlow();
@@ -80,14 +103,17 @@ export default function Login() {
       };
       clearAuth();
     }
-  }, [clearLoginFlow, session?.user]);
+  }, [clearLoginFlow, session]);
 
   // Check if user is already authenticated and redirect
   useEffect(() => {
     if (session?.user) {
-      router.push("/(tabs)/home");
+      // Prevent redirect if user is organizer and requires password change
+      if (loginFlow !== 'organizer' && !requiresPasswordChange) {
+        router.push("/(tabs)/home");
+      }
     }
-  }, [session]);
+  }, [session, loginFlow, requiresPasswordChange]);
 
   const handleEmailSubmit = () => {
     if (!validAttendeeEmail) {
@@ -128,11 +154,22 @@ export default function Login() {
         await requestOTP(contactToSend, attendeeEmail);
         setShowVerificationModal(true);
       } else if (userType === "organizer") {
-        // Admin password login - set login flow to 'organizer' on success
-        await signinAdmin(contact, password, () => {
+        // Admin password login - check password before setting login flow
+        const result = await signinAdmin(contact, password);
+        
+        // Check if admin is using default password
+        if (result.isUsingDefaultPassword) {
+          // Set login flow and mark password change as required
           setLoginFlow('organizer');
-        });
-        router.push("/(tabs)/home");
+          setRequiresPasswordChange(true);
+          showPasswordChangeModal();
+          // Do NOT navigate to home - user is trapped until password is changed
+        } else {
+          // Password is good - proceed normally
+          setLoginFlow('organizer');
+          setRequiresPasswordChange(false);
+          router.push("/(tabs)/home");
+        }
       }
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -161,11 +198,11 @@ export default function Login() {
       const modalShown = await showContactSharingModal(identifierForModal);
       // Only navigate to home if the modal isn't shown
       if (!modalShown) {
-        router.push("/(tabs)/home");
+        router.replace("/(tabs)/home");
       }
     } catch (error) {
       console.error('Error showing contact sharing modal:', error);
-      router.push("/(tabs)/home");
+      router.replace("/(tabs)/home");
     }
   };
 
@@ -229,7 +266,7 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingShare = async (
@@ -250,11 +287,18 @@ export default function Login() {
     } catch (error) {
       console.error('Error saving contact sharing preferences:', error);
     }
-    router.push("/(tabs)/home");
+    router.replace("/(tabs)/home");
   };
 
   const handleContactSharingClose = () => {
     hideContactSharingModal();
+    router.replace("/(tabs)/home");
+  };
+
+  // Handle successful password change
+  const handlePasswordChangeSuccess = () => {
+    hidePasswordChangeModal();
+    setRequiresPasswordChange(false); // Clear the requirement
     router.push("/(tabs)/home");
   };
 
@@ -277,8 +321,7 @@ export default function Login() {
     setErr("");
     setProceedingAsAttendee(false);
     setContactMethod(type === "attendee" ? "phone" : "email"); // Default phone for attendees
-    await clearLoginFlow();
-    await supabase.auth.signOut();
+    //await clearLoginFlow();
   };
 
   const goBack = () => {
@@ -411,8 +454,13 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              // Use explicit color values to ensure borders show on static export first load
+              // when theme hooks might not be fully initialized
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
@@ -429,8 +477,11 @@ export default function Login() {
             style={[
               styles.button,
               { backgroundColor: Colors[colorScheme].adminButton },
-              { borderColor: Colors[colorScheme].text },
-              { borderWidth: 1 },
+              { 
+                borderColor: colorScheme === 'dark' ? '#fff' : '#11181C', 
+                borderWidth: 1, 
+                borderStyle: "solid" 
+              },
             ]}
           >
             <ThemedText
@@ -744,6 +795,16 @@ export default function Login() {
         onDontShare={handleContactSharingDontShare}
         onShare={handleContactSharingShare}
         onClose={handleContactSharingClose}
+      />
+
+      <AdminPasswordChangeModal
+        visible={isPasswordChangeVisible}
+        onPasswordChanged={async (oldPassword: string, newPassword: string) => {
+          await changePassword(oldPassword, newPassword);
+          handlePasswordChangeSuccess();
+        }}
+        isChangingPassword={isChangingPassword}
+        error={passwordChangeError}
       />
     </>
   );

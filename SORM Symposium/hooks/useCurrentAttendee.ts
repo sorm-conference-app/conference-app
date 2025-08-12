@@ -1,6 +1,6 @@
 import useSupabaseAuth from "@/hooks/useSupabaseAuth";
 import type { Attendee } from "@/services/attendees";
-import { getAttendeeByEmail, getAttendeeByPhone } from "@/services/attendees";
+import { getAttendeeForSession } from "@/services/attendees";
 import { useEffect, useState } from "react";
 
 /**
@@ -14,25 +14,24 @@ export function useCurrentAttendee() {
   const session = useSupabaseAuth();
 
   useEffect(() => {
+    if (session === undefined) {
+      // Wait for auth provider to initialize before loading attendee
+      return;
+    }
     loadAttendeeInfo();
   }, [session]);
 
+  /**
+   * Load attendee for the current authenticated session
+   *
+   * Uses a centralized resolver that prefers metadata email, then auth email, then phone
+   */
   async function loadAttendeeInfo() {
     try {
       setLoading(true);
       setError(null);
 
-      let attendeeData: Attendee | null = null;
-
-      if (session?.user) {
-        // Get attendee info based on authenticated user's email or phone
-        if (session.user.email) {
-          attendeeData = await getAttendeeByEmail(session.user.email);
-        } else if (session.user.phone) {
-          attendeeData = await getAttendeeByPhone(session.user.phone);
-        }
-      }
-
+      const attendeeData = await getAttendeeForSession(session ?? null);
       setAttendee(attendeeData);
     } catch (err) {
       console.error('Error loading attendee info:', err);
