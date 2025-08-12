@@ -137,22 +137,33 @@ export default function EventDetailScreen() {
                   {speakerNames.map((name, index) => (
                     <ThemedView key={index} style={styles.speakerInfo}>
                       <ThemedText type="defaultSemiBold">{name}</ThemedText>
-                      {(speakerTitles && speakerTitles[index] && speakerCompanies && speakerCompanies[index] && (
-                        <ThemedText>{speakerTitles[index]} at {speakerCompanies[index]}</ThemedText>
-                      )) || (speakerTitles && speakerTitles[index] ? (
-                        <ThemedText>{speakerTitles[index]}</ThemedText>
-                      ) : null) || (speakerCompanies && speakerCompanies[index] && (
-                        <ThemedText style={styles.company}>{speakerCompanies[index]}</ThemedText>
-                      ))}
+                      {(speakerTitles &&
+                        speakerTitles[index] &&
+                        speakerCompanies &&
+                        speakerCompanies[index] && (
+                          <ThemedText>
+                            {speakerTitles[index]} at {speakerCompanies[index]}
+                          </ThemedText>
+                        )) ||
+                        (speakerTitles && speakerTitles[index] ? (
+                          <ThemedText>{speakerTitles[index]}</ThemedText>
+                        ) : null) ||
+                        (speakerCompanies && speakerCompanies[index] && (
+                          <ThemedText style={styles.company}>
+                            {speakerCompanies[index]}
+                          </ThemedText>
+                        ))}
                       {speakerBios && speakerBios[index] && (
-                        <ThemedText style={styles.bio}>{speakerBios[index]}</ThemedText>
+                        <ThemedText style={styles.bio}>
+                          {speakerBios[index]}
+                        </ThemedText>
                       )}
                     </ThemedView>
                   ))}
                 </ThemedView>
 
-                {event.slides_url && (
-                  <DownloadPresentationButton />
+                {!event.slides_url && (
+                  <DownloadPresentationButton eventId={event.id} />
                 )}
               </>
             );
@@ -213,7 +224,7 @@ const styles = StyleSheet.create({
   },
   company: {
     marginTop: 4,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   speakerInfo: {
     gap: 4,

@@ -1,20 +1,31 @@
 import { useState } from "react";
-import { Alert, Platform, Pressable, StyleSheet, useColorScheme } from "react-native";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  useColorScheme,
+} from "react-native";
 import { ThemedText } from "./ThemedText";
 import { downloadEventPresentation } from "@/services/events";
 import * as FileSystem from "expo-file-system";
 import { shareAsync } from "expo-sharing";
 import { Colors } from "@/constants/Colors";
 
-function DownloadPresentationButton({}) {
+type DownloadPresentationButtonProps = {
+  eventId: number;
+};
+
+function DownloadPresentationButton({
+  eventId,
+}: DownloadPresentationButtonProps) {
   const [downloading, setDownloading] = useState<boolean>(false);
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? "light";
   async function onPress() {
     if (downloading) return; // Prevent multiple downloads
     setDownloading(true);
-    const url = await downloadEventPresentation("");
+    const url = await downloadEventPresentation(eventId);
     if (Platform.OS === "web") {
-      // A blob was returned, indicating that we are on web.
       // Use the Native DOM APIs to download the file.
       const link = document.createElement("a");
       link.href = url;
@@ -22,12 +33,6 @@ function DownloadPresentationButton({}) {
       link.click();
     } else {
       // We are on mobile, so we need to use Expo FileSystem to download the file.
-      // const perms =
-      //   await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-      // if (!perms.granted) {
-      //   console.error("Storage permissions not granted");
-      //   return;
-      // }
       const { uri } = await FileSystem.downloadAsync(
         url,
         FileSystem.documentDirectory + "presentation.pdf",
@@ -40,7 +45,7 @@ function DownloadPresentationButton({}) {
   return (
     <Pressable
       onPress={onPress}
-      style={(state) => [
+      style={[
         {
           padding: 8,
           borderRadius: 5,
@@ -53,10 +58,15 @@ function DownloadPresentationButton({}) {
         downloading && { backgroundColor: "#CCCCCC" }, // Gray when downloading
       ]}
     >
-      <ThemedText style={[
-        { color: Colors[colorScheme].adminButtonText },
-        { fontWeight: "bold" },
-      ]}>
+      <ThemedText
+        style={[
+          { color: Colors[colorScheme].adminButtonText },
+          { fontWeight: "bold" },
+          {
+            textAlign: "center",
+          },
+        ]}
+      >
         {downloading ? "Downloading..." : "Download Presentation"}
       </ThemedText>
     </Pressable>

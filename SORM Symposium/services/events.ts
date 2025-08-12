@@ -71,7 +71,7 @@ export async function toggleRSVPStatus(
     }
 
     // console.log("Creating new RSVP: ", eventId, attendeeId, deviceId);
-    
+
     // Prepare insert data
     const insertData: any = {
       event_id: eventId,
@@ -268,14 +268,16 @@ export async function deleteEvent(id: number): Promise<void> {
  * @returns A Promise that resolves to the presentation file data,
  * if the file exists in the storage bucket. Otherwise, it throws an error.
  */
-export async function downloadEventPresentation(eventName: string) {
+export async function downloadEventPresentation(eventId: number) {
   const EXPIRATION_TIME = 30; // in seconds.
   const year = new Date().getFullYear();
-  const dir = `${year}/HeatEmergencies.pdf`;
+  const dir = `${year}/${eventId}.pdf`;
+
+  console.log(dir);
   const { data, error } = await supabase.storage
     .from("presentations")
     .createSignedUrl(dir, EXPIRATION_TIME, { download: "presentation.pdf" });
-  
+
   if (error) {
     console.error("Error creating signed URL for event presentation:", error);
     throw error;
