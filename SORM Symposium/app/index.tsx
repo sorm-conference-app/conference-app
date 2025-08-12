@@ -108,10 +108,8 @@ export default function Login() {
   // Check if user is already authenticated and redirect
   useEffect(() => {
     if (session?.user) {
-      // If admin requires password change, show modal instead of redirecting
-      if (loginFlow === 'organizer' && requiresPasswordChange) {
-        showPasswordChangeModal();
-      } else {
+      // Prevent redirect if user is organizer and requires password change
+      if (loginFlow !== 'organizer' && !requiresPasswordChange) {
         router.push("/(tabs)/home");
       }
     }

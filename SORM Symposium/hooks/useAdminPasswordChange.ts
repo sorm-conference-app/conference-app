@@ -109,18 +109,24 @@ export function useAdminPasswordChange(): UseAdminPasswordChangeReturn {
 /**
  * Check if the provided password matches the default admin password
  * @param password - The password to check
- * @returns True if it matches the default password
+ * @returns Promise that resolves to true if it matches the default password
  */
-export function isDefaultPassword(password: string): boolean {
-  // Get default password from environment variable
-  const DEFAULT_PASSWORD = process.env.EXPO_PUBLIC_DEFAULT_ADMIN_PASSWORD;
-  
-  if (!DEFAULT_PASSWORD) {
-    console.error('Default admin password is not set');
+export async function isDefaultPassword(password: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('check-default-password', {
+      body: { password }
+    });
+
+    if (error) {
+      console.error('Error checking default password:', error);
+      return false;
+    }
+
+    return data?.isDefaultPassword || false;
+  } catch (error) {
+    console.error('Error calling check-default-password function:', error);
     return false;
   }
-  
-  return password === DEFAULT_PASSWORD;
 }
 
 /**
@@ -128,8 +134,8 @@ export function isDefaultPassword(password: string): boolean {
  * This is called after successful authentication to determine if modal should show
  * @param email - The admin's email
  * @param password - The password they just used to log in
- * @returns True if they're using the default password
+ * @returns Promise that resolves to true if they're using the default password
  */
-export function shouldShowPasswordChangeModal(email: string, password: string): boolean {
-  return isDefaultPassword(password);
+export async function shouldShowPasswordChangeModal(email: string, password: string): Promise<boolean> {
+  return await isDefaultPassword(password);
 }

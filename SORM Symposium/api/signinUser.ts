@@ -55,7 +55,7 @@ export default async function signinAdmin(email: string, password: string, onSuc
   }
   
   // Check if user is using default password
-  const isUsingDefaultPassword = checkIsDefaultPassword(password);
+  const isUsingDefaultPassword = await checkIsDefaultPassword(password);
   
   // Call success callback to set login flow in the UI
   if (onSuccess) {
@@ -72,18 +72,25 @@ export default async function signinAdmin(email: string, password: string, onSuc
 /**
  * Check if the provided password matches the default admin password
  * @param password - The password to check
- * @returns True if it matches the default password
+ * @returns Promise that resolves to true if it matches the default password
  */
-function checkIsDefaultPassword(password: string): boolean {
-  // Get default password from environment variable
-  const DEFAULT_PASSWORD = process.env.EXPO_PUBLIC_DEFAULT_ADMIN_PASSWORD;
-  
-  if (!DEFAULT_PASSWORD) {
-    console.error('Default admin password is not set');
+async function checkIsDefaultPassword(password: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('check-default-password', {
+      body: { password }
+    });
+
+    if (error) {
+      console.error('Error checking default password:', error);
+      return false;
+    }
+
+    console.log('🔍 Debug: data =', data);
+    return data?.isDefaultPassword || false;
+  } catch (error) {
+    console.error('Error checking default password:', error);
     return false;
   }
-  
-  return password === DEFAULT_PASSWORD;
 }
 
 /**
