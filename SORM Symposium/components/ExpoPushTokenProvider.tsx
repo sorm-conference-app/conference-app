@@ -9,6 +9,7 @@ import saveExpoPushToken from "@/api/saveExpoPushToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceId } from "@/lib/user";
 import { triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
+import * as FileSystem from "expo-file-system";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -51,6 +52,13 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
 
       if (finalStatus !== "granted") {
         throw new Error("Push notification permissions not granted.");
+      }
+      
+      const perms =
+        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+      if (!perms.granted) {
+        console.error("Storage permissions not granted");
+        return;
       }
 
       const projectId =

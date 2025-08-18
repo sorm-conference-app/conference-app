@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 type LoginFlow = 'organizer' | 'attendee' | null;
@@ -22,7 +21,7 @@ interface LoginFlowProviderProps {
 
 /**
  * Provider to track how the user authenticated (organizer vs attendee flow)
- * Persists the login flow to AsyncStorage for session continuity
+ * Persists the login flow to localStorage for session continuity on web
  */
 export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
   const [loginFlow, setLoginFlowState] = useState<LoginFlow>(null);
@@ -30,14 +29,14 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
 
   // Load persisted login flow and password change requirement on mount
   useEffect(() => {
-    const loadPersistedData = async () => {
+    const loadPersistedData = () => {
       try {
-        const stored = await AsyncStorage.getItem(LOGIN_FLOW_STORAGE_KEY);
+        const stored = localStorage.getItem(LOGIN_FLOW_STORAGE_KEY);
         if (stored && (stored === 'organizer' || stored === 'attendee')) {
           setLoginFlowState(stored as LoginFlow);
         }
 
-        const passwordChangeRequired = await AsyncStorage.getItem(PASSWORD_CHANGE_STORAGE_KEY);
+        const passwordChangeRequired = localStorage.getItem(PASSWORD_CHANGE_STORAGE_KEY);
         if (passwordChangeRequired === 'true') {
           setRequiresPasswordChangeState(true);
         }
@@ -53,14 +52,14 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
    * Set the login flow and persist it to storage
    * @param flow The login flow type
    */
-  const setLoginFlow = async (flow: LoginFlow) => {
+  const setLoginFlow = (flow: LoginFlow) => {
     setLoginFlowState(flow);
     
     try {
       if (flow) {
-        await AsyncStorage.setItem(LOGIN_FLOW_STORAGE_KEY, flow);
+        localStorage.setItem(LOGIN_FLOW_STORAGE_KEY, flow);
       } else {
-        await AsyncStorage.removeItem(LOGIN_FLOW_STORAGE_KEY);
+        localStorage.removeItem(LOGIN_FLOW_STORAGE_KEY);
       }
     } catch (error) {
       console.error('Failed to persist login flow:', error);
@@ -71,14 +70,14 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
    * Set the password change requirement and persist it to storage
    * @param required Whether password change is required
    */
-  const setRequiresPasswordChange = async (required: boolean) => {
+  const setRequiresPasswordChange = (required: boolean) => {
     setRequiresPasswordChangeState(required);
     
     try {
       if (required) {
-        await AsyncStorage.setItem(PASSWORD_CHANGE_STORAGE_KEY, 'true');
+        localStorage.setItem(PASSWORD_CHANGE_STORAGE_KEY, 'true');
       } else {
-        await AsyncStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
+        localStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
       }
     } catch (error) {
       console.error('Failed to persist password change requirement:', error);
@@ -88,13 +87,13 @@ export function LoginFlowProvider({ children }: LoginFlowProviderProps) {
   /**
    * Clear the login flow from both state and storage
    */
-  const clearLoginFlow = async () => {
+  const clearLoginFlow = () => {
     setLoginFlowState(null);
     setRequiresPasswordChangeState(false);
     
     try {
-      await AsyncStorage.removeItem(LOGIN_FLOW_STORAGE_KEY);
-      await AsyncStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
+      localStorage.removeItem(LOGIN_FLOW_STORAGE_KEY);
+      localStorage.removeItem(PASSWORD_CHANGE_STORAGE_KEY);
     } catch (error) {
       console.error('Failed to clear login flow from storage:', error);
     }
@@ -127,4 +126,4 @@ export function useLoginFlow(): LoginFlowContextType {
   }
   
   return context;
-} 
+}

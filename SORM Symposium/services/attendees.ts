@@ -1,4 +1,5 @@
 import { supabase } from '@/constants/supabase';
+import type { Session } from '@supabase/supabase-js';
 
 export interface Attendee {
   id: number;
@@ -103,6 +104,59 @@ export async function getAttendeeByContact(contact: string): Promise<Attendee | 
   // For phone inputs, attempt to resolve to a unique attendee by checking if the authenticated user metadata contains an email
   // Callers should pass email when available. Phone lookup remains as a fallback.
   return getAttendeeByPhone(contact);
+}
+
+/**
+ * Extract the most reliable attendee email from an authenticated session
+ *
+ * Preference order:
+ * 1. Persisted `user_metadata.attendee_email` (set during OTP verify)
+ * 2. Auth `user.email`
+ *
+ * Returns undefined if neither exist
+ */
+export function getPreferredAttendeeEmailFromSession(session: Session | null): string | undefined {
+  if (!session?.user) return undefined;
+
+  // Prefer the explicit attendee email persisted in metadata
+  const metadata = session.user.user_metadata as Record<string, unknown> | undefined;
+  const metaEmail = (metadata?.attendee_email as string | undefined)?.toLowerCase();
+  if (metaEmail) return metaEmail;
+
+  // Fall back to the auth email
+  const authEmail = session.user.email?.toLowerCase();
+  return authEmail || undefined;
+}
+
+/**
+ * Resolve the current attendee from an authenticated session
+ *
+ * Attempts resolution in this order to avoid phone collisions:
+ * - Use `user_metadata.attendee_email` if present
+ * - Else use `user.email`
+ * - Else fall back to `user.phone` (normalized)
+ *
+ * Returns null when no matching attendee can be found or no session
+ */
+export async function getAttendeeForSession(session: Session | null): Promise<Attendee | null> {
+  // No session or user means no attendee context
+  if (!session?.user) return null;
+
+  // Try email-first, using preferred email resolution logic
+  const preferredEmail = getPreferredAttendeeEmailFromSession(session);
+  if (preferredEmail) {
+    const attendeeByEmail = await getAttendeeByEmail(preferredEmail);
+    if (attendeeByEmail) return attendeeByEmail;
+  }
+
+  // Fall back to phone if available
+  const phone = session.user.phone;
+  if (phone) {
+    return await getAttendeeByPhone(phone);
+  }
+
+  // Nothing resolvable
+  return null;
 }
 
 /**

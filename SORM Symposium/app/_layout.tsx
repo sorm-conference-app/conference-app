@@ -4,6 +4,7 @@ import { ActiveUsersProvider } from "@/components/ActiveUsersProvider";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { ExpoPushTokenProvider } from "@/components/ExpoPushTokenProvider";
 import { LoginFlowProvider } from "@/components/LoginFlowProvider";
+import PasswordChangeGuard from "@/components/PasswordChangeGuard";
 import getCacheDatabase from "@/db";
 import * as schema from "@/db/schema";
 import migrations from "@/drizzle/migrations";
@@ -17,14 +18,6 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asc, desc } from "drizzle-orm";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-
-// Custom hook to handle migrations with platform-specific logic
-function usePlatformMigrations(db: any, migrations: any) {
-  if (Platform.OS === "web") {
-    return { success: true, error: null };
-  }
-  return useMigrations(db, migrations);
-}
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -33,6 +26,14 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { enableScreens } from "react-native-screens";
+
+// Custom hook to handle migrations with platform-specific logic
+function usePlatformMigrations(db: any, migrations: any) {
+  if (Platform.OS === "web") {
+    return { success: true, error: null };
+  }
+  return useMigrations(db, migrations);
+}
 
 // Enable screens for better performance
 enableScreens();
@@ -62,7 +63,7 @@ const PREFETCH_QUERIES: Parameters<typeof queryClient.prefetchQuery>[number][] =
           .from(schema.contact_info)
           .orderBy(asc(schema.contact_info.last_name));
 
-        return data.map((row) => ({
+        return data.map((row: any) => ({
           name: `${row.first_name} ${row.last_name}`,
           phone: row.phone_number,
           email: row.email,
@@ -183,6 +184,16 @@ export default function RootLayout() {
           name="(tabs)"
           options={{ headerShown: false, title: "SORM Symposium" }}
         />
+         {/**
+          * Configure the parent route for the `announcement` segment so the root
+          * stack provides a single header with the desired title. The nested
+          * `app/announcement/_layout.tsx` stack keeps its headers hidden to avoid
+          * duplicate headers.
+          */}
+         <Stack.Screen
+           name="announcement"
+           options={{ title: "Announcements" }}
+         />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
@@ -199,13 +210,15 @@ export default function RootLayout() {
             <LoginFlowProvider>
               <AuthSessionProvider>
                 <ActiveUsersProvider>
-                  {SQLiteProvider ? (
-                    <SQLiteProvider databaseName={databaseName} useSuspense>
-                      {Screens}
-                    </SQLiteProvider>
-                  ) : (
-                    Screens
-                  )}
+                  <PasswordChangeGuard>
+                    {SQLiteProvider ? (
+                      <SQLiteProvider databaseName={databaseName} useSuspense>
+                        {Screens}
+                      </SQLiteProvider>
+                    ) : (
+                      Screens
+                    )}
+                  </PasswordChangeGuard>
                 </ActiveUsersProvider>
               </AuthSessionProvider>
             </LoginFlowProvider>

@@ -1,68 +1,159 @@
-# Welcome to your Expo app 👋
+# SORM Symposium Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native/Expo mobile application for managing and attending the SORM Symposium conference. This app provides attendees with real-time access to event schedules, networking features, announcements, and interactive maps, while giving organizers administrative tools for event management.
 
-## Get started
+## 🚀 Features
 
-1. Install dependencies
+### For Attendees
+- **Event Management**: View and RSVP to symposium events
+- **Real-time Schedule**: Live agenda updates and notifications
+- **Networking**: Connect with other attendees and share contact information
+- **Interactive Maps**: Navigate the venue with detailed floor plans
+- **Push Notifications**: Stay updated with important announcements
+- **Contact Sharing**: Exchange contact details with other attendees
 
+### For Organizers
+- **Admin Dashboard**: Manage events, announcements, and attendee data
+- **Real-time Updates**: Push announcements and schedule changes
+- **Attendee Management**: View and manage attendee information
+- **Event Creation**: Add and modify symposium events
+
+## 🏗️ Architecture
+
+- **Frontend**: React Native with Expo Router
+- **Backend**: Supabase (PostgreSQL + Real-time subscriptions)
+- **Authentication**: Supabase Auth with custom attendee verification
+- **Database**: Drizzle ORM with SQLite for offline caching
+- **State Management**: TanStack Query for server state
+- **Push Notifications**: Expo Notifications with Supabase Edge Functions
+
+## 📱 Tech Stack
+
+- **Framework**: Expo SDK 53 with React Native 0.79.5
+- **Navigation**: Expo Router (file-based routing)
+- **Database**: Supabase + Drizzle ORM
+- **State Management**: TanStack Query
+- **UI Components**: Custom themed components
+- **Maps**: Platform-specific map implementations
+- **Notifications**: Expo Notifications
+- **TypeScript**: Full type safety throughout
+
+## 🛠️ Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Expo CLI (`npm install -g @expo/cli`)
+- iOS Simulator (for iOS development)
+- Android Studio (for Android development)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd conference-app/SORM\ Symposium
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
-
-   ```bash
-   npx expo start
+3. **Environment Setup**
+   Create a `.env` file in the root directory:
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-In the output, you'll find options to open the app in a
+4. **Start the development server**
+   ```bash
+   npm start
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+5. **Run on your preferred platform**
+   ```bash
+   # iOS Simulator
+   npm run ios
+   
+   # Android Emulator
+   npm run android
+   
+   # Web Browser
+   npm run web
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🔐 Authentication Flow
 
-## Authentication Flow
+### Attendee Authentication
+1. **Email Registration**: Enter the email used for symposium registration
+2. **OTP Verification**: Choose between SMS or email verification
+3. **Contact Verification**: Verify phone number or email address
 
-### Attendee Login Process
+### Organizer Authentication
+- Traditional email/password login with admin credentials
+- Default password detection and change prompts
 
-The app uses a two-step authentication process for attendees:
+## 📁 Project Structure
 
-1. **Registration Email Collection**: Attendees first enter the email address they used to register for the symposium. This email is used only for identification purposes and does not need to be verified.
-
-2. **OTP Verification**: After providing their registration email, attendees choose their preferred verification method:
-   - **Phone (Default)**: Enter a phone number to receive an SMS verification code
-   - **Email**: Use the registration email to receive an email verification code
-
-This flow allows attendees to authenticate even if they don't have access to their registration email (e.g., work email when not at work), while still ensuring we can identify which registered attendee is logging in.
-
-### Organizer Login
-
-Organizers use traditional email/password authentication with their registered admin credentials.
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+SORM Symposium/
+├── app/                    # Expo Router pages
+├── components/            # Reusable UI components
+├── hooks/                 # Custom React hooks
+├── services/              # Business logic and API calls
+├── constants/             # App constants and configuration
+├── types/                 # TypeScript type definitions
+├── db/                    # Database schema and migrations
+├── supabase/              # Supabase configuration and functions
+└── docs/                  # Project documentation
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📚 Documentation
 
-## Learn more
+- **[API Documentation](./docs/api/README.md)** - Complete API reference
+- **[Component Library](./docs/components/README.md)** - UI component documentation
+- **[Database Schema](./docs/database/README.md)** - Database structure and relationships
+- **[Authentication Guide](./docs/auth/README.md)** - Detailed auth flow documentation
+- **[State Management](./docs/state-management/README.md)** - TanStack Query and local state patterns
+- **[System Architecture](./docs/architecture/README.md)** - System design and technical decisions
+- **[Changelog](./docs/CHANGELOG.md)** - Version history and release notes
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🚀 Development
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Available Scripts
+- `npm start` - Start Expo development server
+- `npm run ios` - Run on iOS simulator
+- `npm run android` - Run on Android emulator
+- `npm run web` - Run in web browser
+- `npm run lint` - Run ESLint
 
-## Join the community
+### Code Style
+- TypeScript for type safety
+- ESLint for code linting
+- Prettier for code formatting
+- Custom themed components for consistent UI
 
-Join our community of developers creating universal apps.
+## 🤝 Contributing
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Check the [documentation](./docs/)
+- Review [existing issues](https://github.com/your-repo/issues)
+- Create a new issue with detailed information
+
+## 🔄 Version History
+
+See [CHANGELOG.md](./docs/CHANGELOG.md) for a complete version history and recent changes.
