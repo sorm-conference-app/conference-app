@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,16 +14,24 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
 
-import { useAnnouncements } from "@/hooks/useAnnouncements";
+import useAnnouncements from "@/hooks/useAnnouncements";
 import { useCallback } from "react";
-import { Platform } from "react-native";
 
 export default function AnnouncementsScreen() {
   const colorScheme = useColorScheme() ?? "light";
-  const { announcements, loading, error, refresh } = useAnnouncements();
+  const {
+    data: announcements = [],
+    isFetching: loading,
+    error,
+    refetch,
+  } = useAnnouncements();
+
+  const refetchAnnouncements = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const renderContent = useCallback(() => {
-    if (loading && announcements.length === 0) {
+    if (loading) {
       return (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={Colors[colorScheme].tint} />
@@ -30,15 +39,16 @@ export default function AnnouncementsScreen() {
       );
     }
 
-    if (error && announcements.length === 0) {
+    if (error) {
       return (
         <View style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>
-            Could not load announcements. Please try again.
+            Could not load announcements. Reason: {error.message} Please try
+            again.
           </ThemedText>
           <ThemedText
             style={[styles.retryText, { color: Colors[colorScheme].tint }]}
-            onPress={refresh}
+            onPress={refetchAnnouncements}
           >
             {Platform.OS === "web" ? "Click to retry" : "Tap to retry"}
           </ThemedText>
@@ -64,7 +74,9 @@ export default function AnnouncementsScreen() {
         useTruncation={false}
       />
     ));
-  }, [announcements, loading, error, refresh, colorScheme]);
+  }, [announcements, loading, error, refetchAnnouncements, colorScheme]);
+
+  // console.log(announcements);
 
   return (
     <ThemedView
@@ -87,7 +99,7 @@ export default function AnnouncementsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={loading && announcements.length > 0}
-            onRefresh={refresh}
+            onRefresh={refetchAnnouncements}
             colors={[Colors[colorScheme].tint]}
             tintColor={Colors[colorScheme].tint}
           />

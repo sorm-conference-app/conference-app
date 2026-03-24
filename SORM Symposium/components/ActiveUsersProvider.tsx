@@ -38,7 +38,7 @@ function ActiveUsersProvider({ children }: ActiveUsersProviderProps) {
 
     function onSyncronize() {
       const state = liveCountChannel.presenceState();
-      console.log(state);
+      //console.log(state);
     }
 
     function onJoin({
@@ -85,12 +85,12 @@ function ActiveUsersProvider({ children }: ActiveUsersProviderProps) {
       const trackStatus = await liveCountChannel.track({
         platform: Platform.OS,
       });
-      console.log("track: ", trackStatus);
+      //console.log("track: ", trackStatus);
     }
 
     async function onUntrack() {
       const untrackStatus = await liveCountChannel.untrack();
-      console.log("untrack: ", untrackStatus);
+      //console.log("untrack: ", untrackStatus);
     }
 
     liveCountChannel

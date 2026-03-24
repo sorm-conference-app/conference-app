@@ -38,25 +38,28 @@ export type Database = {
       }
       event_attendees: {
         Row: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id: number
           notified: boolean
           rsvp_at: string
+          attendee_id: number
         }
         Insert: {
-          attendee_device_id: string
+          attendee_device_id: string | null
           event_id: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Update: {
-          attendee_device_id?: string
+          attendee_device_id?: string | null
           event_id?: number
           id?: number
           notified?: boolean
           rsvp_at?: string
+          attendee_id?: number
         }
         Relationships: [
           {
@@ -85,10 +88,10 @@ export type Database = {
           is_deleted: boolean
           location: string
           slides_url: string | null
-          speaker: string | null
-          speaker_bio: string | null
-          speaker_name: string | null
-          speaker_title: string | null
+          speaker_name: string[] | null
+          speaker_title: string[] | null
+          speaker_bio: string[] | null
+          speaker_company: string[] | null
           start_time: string
           title: string
           topic: string | null
@@ -102,10 +105,10 @@ export type Database = {
           is_deleted?: boolean
           location: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time: string
           title: string
           topic?: string | null
@@ -119,13 +122,37 @@ export type Database = {
           is_deleted?: boolean
           location?: string
           slides_url?: string | null
-          speaker?: string | null
-          speaker_bio?: string | null
-          speaker_name?: string | null
-          speaker_title?: string | null
+          speaker_name?: string[] | null
+          speaker_title?: string[] | null
+          speaker_bio?: string[] | null
+          speaker_company?: string[] | null
           start_time?: string
           title?: string
           topic?: string | null
+        }
+        Relationships: []
+      }
+      announcements: {
+        Row: {
+          id: number
+          created_at: string
+          title: string
+          body: string
+          type: string
+        }
+        Insert: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
+        }
+        Update: {
+          id?: number
+          created_at?: string
+          title?: string
+          body?: string
+          type?: string
         }
         Relationships: []
       }
@@ -134,19 +161,22 @@ export type Database = {
           body: string
           created_at: string
           id: number
-          title: string | null
+          title: string
+          type: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: number
-          title?: string | null
+          title?: string
+          type?: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: number
-          title?: string | null
+          title?: string
+          type?: string
         }
         Relationships: []
       }
@@ -173,6 +203,7 @@ export type Database = {
           id: number;
           created_at: string;
           email: string;
+          phone: string | null;
           name: string | null;
           organization: string | null;
           title: string | null;
@@ -185,6 +216,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -197,6 +229,7 @@ export type Database = {
           id?: number;
           created_at?: string;
           email?: string;
+          phone?: string | null;
           name?: string | null;
           organization?: string | null;
           title?: string | null;
@@ -243,12 +276,89 @@ export type Database = {
         };
         Relationships: [];
       };
+      verification_codes: {
+        Row: {
+          id: number;
+          created_at: string;
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Insert: {
+          email: string;
+          code: string;
+          has_been_used: boolean;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          code?: string;
+          has_been_used?: boolean;
+        };
+        Relationships: [];
+      };
+      survey_links: {
+        Row: {
+          id: number;
+          created_at: string;
+          survey_start_time: string;
+          survey_end_time: string | null;
+          survey_link: string;
+        };
+        Insert: {
+          id?: number;
+          created_at?: string;
+          survey_start_time: string;
+          survey_end_time?: string | null;
+          survey_link: string;
+        };
+        Update: {
+          id?: number;
+          created_at?: string;
+          survey_start_time?: string;
+          survey_end_time?: string | null;
+          survey_link?: string;
+        };
+        Relationships: [];
+      };
+      dev_event_logs: {
+        Row: {
+          id: number;
+          created_at: string;
+          event_type: string;
+          message: string | null;
+          OS: string;
+        };
+        Insert: {
+          event_type: string;
+          message?: string | null;
+          OS: string;
+        };
+        Update: {
+          event_type?: string;
+          message?: string | null;
+          OS?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_contact_sharing_info: {
+        Args: {
+          user_email?: string | null
+          user_phone?: string | null
+          share_info_val: boolean
+          name_val?: string | null
+          organization_val?: string | null
+          title_val?: string | null
+          additional_info_val?: string
+          seen_popup_val?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -34,11 +34,11 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
     message: string;
-    buttons: Array<{
+    buttons: {
       text: string;
       onPress: () => void;
       style?: "default" | "cancel" | "destructive";
-    }>;
+    }[];
   }>({
     title: "",
     message: "",
@@ -140,11 +140,11 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           location: event.location,
           start_time: event.start_time,
           end_time: event.end_time,
-          speaker: event.speaker,
           slides_url: event.slides_url,
           speaker_name: event.speaker_name,
           speaker_title: event.speaker_title,
           speaker_bio: event.speaker_bio,
+          speaker_company: event.speaker_company,
           event_date: event.event_date,
           is_deleted: event.is_deleted,
           topic: event.topic,
@@ -158,11 +158,11 @@ export function AgendaEditor({ onShowForm, onCloseForm }: AgendaEditorProps) {
           location: event.location,
           start_time: event.start_time,
           end_time: event.end_time,
-          speaker: event.speaker,
           slides_url: event.slides_url,
           speaker_name: event.speaker_name,
           speaker_title: event.speaker_title,
           speaker_bio: event.speaker_bio,
+          speaker_company: event.speaker_company,
           event_date: event.event_date,
           is_deleted: false,
           topic: event.topic,

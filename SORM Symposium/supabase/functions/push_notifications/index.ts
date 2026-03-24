@@ -6,8 +6,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js";
 
-console.log("Hello from Functions!");
-
 // https://supabase.com/docs/guides/functions/examples/push-notifications?queryGroups=platform&platform=expo
 
 type Announcement = {
@@ -15,6 +13,7 @@ type Announcement = {
   created_at: Date;
   body: string;
   title: string | null;
+  type: string;
 };
 
 type WebhookPayload = {
@@ -72,6 +71,10 @@ Deno.serve(async (req) => {
         title: payload.record.title,
         body: payload.record.body,
         sound: "default",
+        data: {
+          type: payload.record.type,
+          id: payload.record.id,
+        },
       }),
     }).then((res) => res.json());
 

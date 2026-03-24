@@ -3,7 +3,8 @@ import { supabase } from '@/constants/supabase';
 export interface Attendee {
   id: number;
   created_at: string;
-  email: string;
+  email: string | null;
+  phone?: string | null; // Optional until DB is migrated
   name: string | null;
   organization: string | null;
   title: string | null;
@@ -14,7 +15,30 @@ export interface Attendee {
 }
 
 /**
- * Check if an attendee exists in the database
+ * Normalize phone number to E.164 format for database queries
+ * @param phone - Phone number that may or may not have + prefix
+ * @returns Phone number in E.164 format (with + prefix)
+ */
+function normalizePhoneNumber(phone: string): string {
+  // Remove all non-digit characters and any existing + prefix
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // If it looks like a US number (10-11 digits), ensure it starts with +1
+  if (digitsOnly.length === 10) {
+    return `+1${digitsOnly}`;
+  } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+    return `+${digitsOnly}`;
+  } else if (digitsOnly.length > 7) {
+    // For other international numbers, add + prefix if missing
+    return `+${digitsOnly}`;
+  }
+  
+  // Return as-is if it doesn't look like a valid phone number
+  return phone.startsWith('+') ? phone : `+${digitsOnly}`;
+}
+
+/**
+ * Check if an attendee exists in the database by email
  * @param email - The email to check
  * @returns The attendee object if found, null otherwise
  */
@@ -38,12 +62,76 @@ export async function getAttendeeByEmail(email: string): Promise<Attendee | null
 }
 
 /**
+ * Check if an attendee exists in the database by phone
+ * @param phone - The phone number to check (with or without + prefix)
+ * @returns The attendee object if found, null otherwise
+ */
+export async function getAttendeeByPhone(phone: string): Promise<Attendee | null> {
+  // Normalize phone number to E.164 format for consistent database queries
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  const { data, error } = await supabase
+    .from('attendee_info')
+    .select('*')
+    .eq('phone', normalizedPhone)
+    .order('id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows returned
+      return null;
+    }
+    console.error('Error fetching attendee by phone:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Check if an attendee exists in the database by email or phone
+ * @param contact - The email or phone to check
+ * @returns The attendee object if found, null otherwise
+ */
+export async function getAttendeeByContact(contact: string): Promise<Attendee | null> {
+  // Determine if input is email or phone; prefer email path to avoid phone collisions
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  if (isEmail) return getAttendeeByEmail(contact);
+
+  // For phone inputs, attempt to resolve to a unique attendee by checking if the authenticated user metadata contains an email
+  // Callers should pass email when available. Phone lookup remains as a fallback.
+  return getAttendeeByPhone(contact);
+}
+
+/**
  * Check if an email is registered as an attendee
  * @param email - The email to check
- * @returns True if the email exists in attendee_info table and is_admin is false
+ * @returns True if the email exists in attendee_info table
  */
 export async function isAttendeeEmail(email: string): Promise<boolean> {
   const attendee = await getAttendeeByEmail(email);
+  return attendee !== null;
+}
+
+/**
+ * Check if a phone number is registered as an attendee
+ * @param phone - The phone number to check
+ * @returns True if the phone exists in attendee_info table
+ */
+export async function isAttendeePhone(phone: string): Promise<boolean> {
+  const attendee = await getAttendeeByPhone(phone);
+  return attendee !== null;
+}
+
+/**
+ * Check if an email or phone is registered as an attendee
+ * @param contact - The email or phone to check
+ * @returns True if the contact exists in attendee_info table
+ */
+export async function isAttendeeContact(contact: string): Promise<boolean> {
+  const attendee = await getAttendeeByContact(contact);
   return attendee !== null;
 }
 
@@ -78,12 +166,27 @@ export async function verifyAttendeeEmail(email: string): Promise<Attendee> {
 }
 
 /**
+ * Get an attendee by their contact info (email or phone)
+ * @param contact - The email or phone to verify
+ * @returns The attendee object
+ */
+export async function verifyAttendeeContact(contact: string): Promise<Attendee> {
+  const attendee = await getAttendeeByContact(contact);
+  if (!attendee) {
+    throw new Error('Attendee not found');
+  }
+  return attendee;
+}
+
+/**
  * Check if the contact sharing popup should be shown for an attendee
- * @param email - The email to check
+ * @param contact - The email or phone to check
  * @returns True if the popup should be shown (user hasn't seen it before)
  */
-export async function shouldShowContactSharingPopup(email: string): Promise<boolean> {
-  const attendee = await getAttendeeByEmail(email);
+export async function shouldShowContactSharingPopup(contact: string): Promise<boolean> {
+  // Prefer email path
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const attendee = isEmail ? await getAttendeeByEmail(contact) : await getAttendeeByPhone(contact);
   if (!attendee) return false;
   
   // Show popup if they haven't seen it before (seen_share_info_popup is null or false)
@@ -91,29 +194,76 @@ export async function shouldShowContactSharingPopup(email: string): Promise<bool
 }
 
 export async function updateContactSharingPreferences(
-  email: string,
+  contact: string,
   shareInfo: boolean,
-  additionalInfo: string = ''
+  additionalInfo: string = '',
+  name?: string,
+  organization?: string,
+  title?: string
 ): Promise<Attendee> {
   // Log values for debugging
-  console.log('Updating contact sharing preferences for:', email, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
+  // console.log('Updating contact sharing info for:', contact, 'shareInfo:', shareInfo, 'additionalInfo:', additionalInfo);
 
-  // Call the stored function to perform the update
-  const { error } = await supabase.rpc('update_contact_sharing_preferences', {
-    user_email: email,
+  // Determine if contact is email or phone and normalize
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/.test(contact);
+  const normalizedContact = isEmail ? contact.toLowerCase() : normalizePhoneNumber(contact);
+
+  // Prepare parameters based on contact type
+  const rpcParams = {
+    user_email: isEmail ? normalizedContact : null,
+    user_phone: isEmail ? null : normalizedContact,
     share_info_val: shareInfo,
+    name_val: name || null,
+    organization_val: organization || null,
+    title_val: title || null,
     additional_info_val: additionalInfo,
     seen_popup_val: true
-  });
+  };
+  
+  const { error } = await supabase.rpc('update_contact_sharing_info', rpcParams);
 
   if (error) {
-    console.error('Error updating contact sharing preferences:', error);
+    console.error('Error updating contact sharing info:', error);
     throw error;
   }
 
-  // Fetch and return the fresh row
-  const updatedAttendee = await getAttendeeByEmail(email);
-  return updatedAttendee as Attendee;
+  // Fetch and return the fresh row using normalized contact
+  const updatedAttendee = isEmail
+    ? await getAttendeeByEmail(normalizedContact)
+    : await getAttendeeByPhone(normalizedContact);
+  if (!updatedAttendee) {
+    throw new Error('Failed to fetch updated attendee');
+  }
+  return updatedAttendee;
+}
+
+/**
+ * Update an attendee's phone number after successful verification
+ * @param email - The attendee's email for identification
+ * @param phone - The verified phone number to save
+ * @returns The updated attendee object
+ */
+export async function updateAttendeePhone(email: string, phone: string): Promise<Attendee> {
+  // Normalize phone number to E.164 format for consistent database storage
+  const normalizedPhone = normalizePhoneNumber(phone);
+  
+  const { data, error } = await supabase
+    .from('attendee_info')
+    .update({ phone: normalizedPhone })
+    .eq('email', email.toLowerCase())
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating attendee phone:', error);
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No attendee found with the provided email');
+  }
+
+  return data;
 }
 
 export async function getAttendeeContactList(): Promise<Attendee[]> {

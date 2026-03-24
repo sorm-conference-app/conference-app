@@ -1,5 +1,14 @@
 import { TopicColors } from '@/constants/Colors';
 import type { Event } from '@/types/Events.types';
+import { COL_1_LOCATIONS, COL_2_LOCATIONS } from './types';
+
+export function isCol1Location(location: string): boolean {
+  return COL_1_LOCATIONS.includes(location);
+}
+
+export function isCol2Location(location: string): boolean {
+  return COL_2_LOCATIONS.includes(location);
+}
 
 export type TimeConflict = {
   event1: Event;
@@ -7,29 +16,10 @@ export type TimeConflict = {
   type: 'contained' | 'overlap';
 };
 
-function convert24HrTimeToSeconds(time: string): number {
+export function convert24HrTimeToSeconds(time: string): number {
   // Handle 24-hour format (HH:mm:ss or HH:mm)
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 3600 + (minutes || 0) * 60;
-}
-
-function convert12HrTimeToSeconds(time: string): number {
-  // Only try to handle 12-hour format if it includes AM/PM
-  if (time.includes("AM") || time.includes("PM")) {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":").map(Number);
-
-    if (modifier.toUpperCase() === "PM" && hours < 12) {
-      hours += 12;
-    } else if (modifier.toUpperCase() === "AM" && hours === 12) {
-      hours = 0;
-    }
-
-    return hours * 3600 + minutes * 60;
-  }
-
-  // If no AM/PM, treat as 24-hour format
-  return convert24HrTimeToSeconds(time);
 }
 
 /**
@@ -163,7 +153,7 @@ export function sortEventsByLocation(events: Event[], col1Location: string, col2
 }
 
 export const findConflicts = (events: Event[]) => {
-  const conflictIds = new Set<number>();
+  const processedIds = new Set<number>();
   const items = [];
 
   // Sort events by start time, and for events with same start time, sort by duration (longer first)
@@ -182,27 +172,56 @@ export const findConflicts = (events: Event[]) => {
   });
 
   for (const item of sortedEvents) {
-    if (conflictIds.has(item.id)) {
+    if (processedIds.has(item.id)) {
       continue;
     }
 
-    const conflicts = sortedEvents.filter(
-      (conflictItem) =>
-        conflictItem.id !== item.id &&
-        areTimesConflicting(
-          item.start_time,
-          item.end_time,
-          conflictItem.start_time,
-          conflictItem.end_time
-        )
-    );
+    // Build a complete conflict group starting from this event
+    const conflictGroup = new Set<Event>([item]);
+    let groupChanged = true;
+
+    // Keep expanding the group until no new conflicts are found
+    while (groupChanged) {
+      groupChanged = false;
+      const currentGroup = Array.from(conflictGroup);
+      
+      for (const groupEvent of currentGroup) {
+        for (const otherEvent of sortedEvents) {
+          if (otherEvent.id === groupEvent.id || conflictGroup.has(otherEvent)) {
+            continue;
+          }
+          
+          // Check if this event conflicts with any event in the current group
+          const hasConflict = Array.from(conflictGroup).some(groupMember => 
+            areTimesConflicting(
+              groupMember.start_time,
+              groupMember.end_time,
+              otherEvent.start_time,
+              otherEvent.end_time
+            )
+          );
+          
+          if (hasConflict) {
+            conflictGroup.add(otherEvent);
+            groupChanged = true;
+          }
+        }
+      }
+    }
+
+    // Convert the complete group to the expected format
+    const groupArray = Array.from(conflictGroup);
+    const mainEvent = groupArray[0]; // Use the first event as the main event
+    const conflictingItems = groupArray.slice(1);
 
     items.push({
-      ...item,
-      conflictingItems: conflicts,
+      ...mainEvent,
+      conflictingItems,
     });
-    for (const conflictItem of conflicts) {
-      conflictIds.add(conflictItem.id);
+
+    // Mark all events in this group as processed
+    for (const event of groupArray) {
+      processedIds.add(event.id);
     }
   }
 
@@ -224,12 +243,12 @@ export function formatConflictMessage(conflict: TimeConflict): string {
 export function calculateEventOffset(startTimeA: string, startTimeB: string): number {
   const startA = convert24HrTimeToSeconds(startTimeA);
   const startB = convert24HrTimeToSeconds(startTimeB);
-  return Math.max(0, (startB - startA) * (65 / 1800)); // 130px per hour
+  return Math.max(0, (startB - startA) * (175 / 3600)); // 175px per hour
 }
 
 export function calculateHeight(startTime: string, endTime: string): number {
   const duration = convert24HrTimeToSeconds(endTime) - convert24HrTimeToSeconds(startTime);
-  const BASE_HEIGHT = 130;
+  const BASE_HEIGHT = 175;
   return Math.max(BASE_HEIGHT, BASE_HEIGHT / 3600 * duration);
 }
 
@@ -251,4 +270,41 @@ export function getTopicColor(topic: string | null): string {
 export function formatTopicName(topic: string | null): string {
   if (!topic) return 'General';
   return topic;
+}
+
+/**
+ * Get the extra height of an event caused by wrapping text
+ * @param event - The event
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the event
+ */
+function getExtraWrapHeight(event: Event, containerWidth: number): number {
+  const FontSizeDPIs = {
+    "topic": 5.5800,
+    "other": 6.9325,
+  }
+
+  let extraHeight = 0;
+  if (event.topic && event.topic.length * FontSizeDPIs.topic > containerWidth - 59.5) {
+    extraHeight += 20; // 20px extra height for topic wrap
+  } 
+  if (event.title.length * FontSizeDPIs.other > containerWidth - 42.5) {
+    extraHeight += 24; // 24px extra height for title wrap
+  }
+  const timeString = `${event.start_time} - ${event.end_time}`;
+  if (timeString.length * FontSizeDPIs.other > containerWidth - 66.5) {
+    extraHeight += 24; // 24px extra height for time wrap
+  }
+  
+  return extraHeight;
+}
+
+/**
+ * Get the extra height of a column caused by wrapping text
+ * @param events - The events in the column
+ * @param containerWidth - The width of the container
+ * @returns The extra height needed to account for wrapping text in the events
+ */
+export function getColumnExtraHeight(events: Event[], containerWidth: number): number {
+  return events.reduce((acc, event) => acc + getExtraWrapHeight(event, containerWidth), 0);
 }

@@ -11,6 +11,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { styles } from './styles';
 import { MapViewerProps } from './types';
 import { calculateBounds, clamp } from './utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps) => {
   const scale = useSharedValue(1);
@@ -22,6 +23,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
   const [isLoading, setIsLoading] = useState(true);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const { right: rightInset, top: topInset } = useSafeAreaInsets();
 
   useEffect(() => {
     if (isVisible) {
@@ -30,7 +32,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       translateY.value = withSpring(0);
       setIsLoading(true);
     }
-  }, [isVisible]);
+  }, [isVisible, scale, translateX, translateY]);
 
   // Android-specific gesture configuration
   const pinchGesture = Gesture.Pinch()
@@ -44,7 +46,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
       try {
         // Calculate new scale based on the base scale and gesture scale
         scale.value = clamp(baseScale.value * e.scale, 1, 4); // Clamp the value between 1 and 4
-      } catch (error) {
+      } catch {
         scale.value = baseScale.value;
       }
     })
@@ -73,7 +75,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
           const bounds = calculateBounds(scale.value, imageSize, containerSize);
           translateX.value = clamp(baseTranslateX.value + (e.translationX / scale.value), bounds.minX, bounds.maxX);
           translateY.value = clamp(baseTranslateY.value + (e.translationY / scale.value), bounds.minY, bounds.maxY);
-        } catch (error) {
+        } catch {
           // Reset to safe values if something goes wrong
           translateX.value = withSpring(baseTranslateX.value);
           translateY.value = withSpring(baseTranslateY.value);
@@ -163,7 +165,7 @@ export const AndroidMapViewer = ({ imageSource, isVisible, onClose }: MapViewerP
             </View>
           )}
 
-          <View style={[styles.controls, { top: 40 }]}>
+          <View style={[styles.controls, { top: topInset + 10, right: rightInset + 10 }]}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <IconSymbol name="xmark.circle.fill" size={32} color="white" />
             </TouchableOpacity>

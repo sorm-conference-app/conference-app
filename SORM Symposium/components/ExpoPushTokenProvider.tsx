@@ -2,12 +2,13 @@ import { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import * as Application from "expo-application";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import { router } from "expo-router";
 import saveExpoPushToken from "@/api/saveExpoPushToken";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceId } from "@/lib/user";
+import { triggerSurveyFlash } from "@/lib/surveyFlashEmitter";
 
 const ExpoPushTokenContext = createContext<string | null>(null);
 
@@ -32,7 +33,7 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
     // https://docs.expo.dev/push-notifications/push-notifications-setup/#add-a-minimal-working-example
     async function registerForPushNotificationsAsync() {
       if (Platform.OS === "web") {
-        console.warn("Push notifications are not supported on web.");
+        // console.warn("Push notifications are not supported on web.");
         return;
       }
       if (!Device.isDevice) {
@@ -71,20 +72,42 @@ function ExpoPushTokenProvider({ children }: ExpoPushTokenProviderProps) {
 
       try {
         await AsyncStorage.setItem("created-expo-token", "true");
-      } catch (e) {
+      } catch {
         console.error("Failed to set `created-expo-token` in storage...");
       }
     }
 
     const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
-        console.log("Notification received:", notification);
+        // console.log("Notification received:", notification);
       },
     );
 
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("Notification response received:", response);
+        // console.log("Notification response received:", response);
+        
+        // Handle different notification types based on custom data
+        const data = response.notification.request.content.data;
+        
+        switch (data?.type) {
+          case "general":
+            router.push("/announcement/announcementList");
+            break;
+          case "event_reminder":
+            router.push("/agenda");
+            break;
+          case "survey":
+            router.push("/(tabs)/home");
+            // Trigger the survey flash animation three times with delays
+            triggerSurveyFlash();
+            setTimeout(() => triggerSurveyFlash(), 400);
+            setTimeout(() => triggerSurveyFlash(), 800);
+            break;
+          default:
+            // console.log("Unknown notification type:", data?.type);
+            break;
+        }
       });
 
     registerForPushNotificationsAsync();

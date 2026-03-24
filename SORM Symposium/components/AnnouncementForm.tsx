@@ -2,14 +2,14 @@ import { Colors } from '@/constants/Colors'
 import { supabase } from '@/constants/supabase'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import React from 'react'
-import { Alert, Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from './ThemedText'
 import ThemedTextInput from './ThemedTextInput'
-
 import { ThemedView } from './ThemedView'
+import { showSuccessMessage, showErrorMessage } from '@/lib/alerts'
 
 /**
- * A form component for submitting announcements to the test_announcements table in Supabase.
+ * A form component for submitting announcements to the announcements table in Supabase.
  *
  * @returns JSX.Element
  */
@@ -29,17 +29,17 @@ export default function AnnouncementForm() {
    */
   async function handleSubmit() {
     if (!title.trim() || !body.trim()) {
-      Alert.alert('Error', 'Both title and body are required')
+      showErrorMessage('Both title and body are required')
       return
     }
     setLoading(true)
-    // Insert the new announcement into the test_announcements table
-    const { error } = await supabase.from('test_announcements').insert({ title, body })
+    // Insert the new announcement into the announcements table
+    const { error } = await supabase.from('announcements').insert({ title, body, type: 'general' })
     setLoading(false)
     if (error) {
-      Alert.alert('Error', error.message)
+      showErrorMessage(error.message)
     } else {
-      Alert.alert('Success', 'Announcement posted!')
+      showSuccessMessage('Announcement posted!')
       setTitle('')
       setBody('')
     }
@@ -83,7 +83,6 @@ export default function AnnouncementForm() {
         onPress={handleSubmit}
         disabled={loading}
         accessibilityLabel="Post announcement button"
-        accessibilityHint="Press to post the announcement"
         accessibilityRole="button"
         accessibilityState={{ disabled: loading }}
       >

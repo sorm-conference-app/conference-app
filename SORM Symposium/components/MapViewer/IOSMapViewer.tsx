@@ -31,7 +31,7 @@ export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
       translateY.value = withSpring(0);
       setIsLoading(true);
     }
-  }, [isVisible]);
+  }, [isVisible, scale, translateX, translateY]);
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
@@ -43,7 +43,7 @@ export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
         // Calculate new scale based on the base scale and gesture scale
         const newScale = clamp(baseScale.value * e.scale, 1, 4);
         scale.value = newScale;
-      } catch (error) {
+      } catch {
         scale.value = baseScale.value;
       }
     })
@@ -69,7 +69,7 @@ export const IOSMapViewer = ({ imageSource, isVisible, onClose }: MapViewerProps
           const bounds = calculateBounds(scale.value, imageSize, containerSize);
           translateX.value = clamp(baseTranslateX.value + (e.translationX / scale.value), bounds.minX, bounds.maxX);
           translateY.value = clamp(baseTranslateY.value + (e.translationY / scale.value), bounds.minY, bounds.maxY);
-        } catch (error) {
+        } catch {
           translateX.value = withSpring(baseTranslateX.value);
           translateY.value = withSpring(baseTranslateY.value);
         }

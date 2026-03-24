@@ -1,6 +1,6 @@
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { BlurView } from 'expo-blur';
-import { StyleSheet } from 'react-native';
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { BlurView } from "expo-blur";
+import { StyleSheet } from "react-native";
 
 export default function BlurTabBarBackground() {
   return (
@@ -15,5 +15,10 @@ export default function BlurTabBarBackground() {
 }
 
 export function useBottomTabOverflow() {
-  return useBottomTabBarHeight();
+  try {
+    return useBottomTabBarHeight();
+  } catch {
+    // Fallback when tab navigator context is not available
+    return 0;
+  }
 }

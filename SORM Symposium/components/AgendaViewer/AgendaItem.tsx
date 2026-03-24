@@ -3,12 +3,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import useSupabaseAuth from "@/hooks/useSupabaseAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { formatTimeRange } from "@/lib/dateTime";
-import { Dispatch, SetStateAction } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { useState } from "react";
+import { LayoutChangeEvent, Pressable, StyleSheet } from "react-native";
 import AgendaItemSaveButton from "./AgendaItemSaveButton";
-import { calculateHeight, formatTopicName, getTopicColor } from "./utils";
+import { formatTopicName, getTopicColor } from "./utils";
 
 type AgendaItemProps = {
   id: number;
@@ -19,8 +19,9 @@ type AgendaItemProps = {
   isDeleted: boolean;
   topic?: string | null;
   hasRSVP: boolean;
+  height: number;
   onPress: () => void;
-  setRsvpEventIds: Dispatch<SetStateAction<Set<number>>>;
+  setRsvpEventIds: () => void;
 };
 
 export default function AgendaItem({
@@ -32,6 +33,7 @@ export default function AgendaItem({
   isDeleted,
   topic,
   hasRSVP,
+  height,
   setRsvpEventIds,
   onPress,
 }: AgendaItemProps) {
@@ -39,7 +41,8 @@ export default function AgendaItem({
   const tintColor = Colors[colorScheme].tint;
   const topicColor = getTopicColor(topic ?? null);
   const topicName = formatTopicName(topic ?? null);
-  const user = useSupabaseAuth();
+  const isAdmin = useIsAdmin();
+  const [containerWidth, setContainerWidth] = useState(0);
 
   return (
     <Pressable
@@ -48,8 +51,7 @@ export default function AgendaItem({
         { backgroundColor: topicColor },
         { borderColor: Colors[colorScheme].tint },
         {
-          minHeight:
-            title === "Break" ? 65 : calculateHeight(startTime, endTime),
+          minHeight: height,
         },
         pressed && styles.agendaItemPressed,
       ]}
@@ -68,43 +70,75 @@ export default function AgendaItem({
       >
         <ThemedView style={styles.titleRow}>
           <ThemedView style={styles.titleContainer}>
-            <ThemedText style={styles.title} type="defaultSemiBold">
+            <ThemedText 
+              style={styles.title} 
+              type="defaultSemiBold"
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
               {title}
             </ThemedText>
-            {isDeleted && (
+            {isDeleted ? (
               <ThemedText style={styles.deletedTitle} type="defaultSemiBold">
                 {" "}
                 - Deleted
               </ThemedText>
-            )}
-            <IconSymbol name="chevron.right" size={20} color={tintColor} />
+            ) : null}
           </ThemedView>
-          {!user && (
+        </ThemedView>
+        {/* Topic Badge */}
+        {topicName !== "Break" ? (
+          <ThemedView
+            style={[styles.topicBadge, { backgroundColor: topicColor }]}
+          >
+            <ThemedText style={styles.topicText}>{topicName}</ThemedText>
+          </ThemedView>
+        ) : null}
+        <ThemedView style={styles.infoRow}>
+          <IconSymbol name="clock.fill" size={16} color={tintColor} />
+          <ThemedView 
+            style={styles.timeContainer}
+            onLayout={(event: LayoutChangeEvent) => {
+              setContainerWidth(event.nativeEvent.layout.width);
+            }}
+          >
+            {(() => {
+              const timeRange = formatTimeRange(startTime, endTime);
+              const parts = timeRange.split(' - ');
+              
+              // If start and end times are the same, show just the start time
+              if (parts[0] === parts[1]) {
+                return <ThemedText style={styles.time}>{parts[0]}</ThemedText>;
+              }
+              // If container is narrow (less than ~120px), wrap at dash
+              // Otherwise, keep on one line
+              if (parts.length === 2 && containerWidth < 150) {
+                return (
+                  <>
+                    <ThemedText style={styles.time}>{parts[0]} -</ThemedText>
+                    <ThemedText style={styles.time}>{parts[1]}</ThemedText>
+                  </>
+                );
+              }
+              return <ThemedText style={styles.time}>{timeRange}</ThemedText>;
+            })()}
+          </ThemedView>
+        </ThemedView>
+        {topicName !== "Break" ? (
+          <ThemedView style={styles.infoRow}>
+            <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
+            <ThemedText style={styles.location}>{location}</ThemedText>
+          </ThemedView>
+        ) : null}
+        {!isAdmin ? (
+          <ThemedView style={styles.saveButton}>
             <AgendaItemSaveButton
               eventId={id}
               isRSVP={hasRSVP}
               setRsvpEventIds={setRsvpEventIds}
             />
-          )}
-        </ThemedView>
-        {/* Topic Badge */}
-        <ThemedView
-          style={[styles.topicBadge, { backgroundColor: topicColor }]}
-        >
-          <ThemedText style={styles.topicText}>{topicName}</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.infoRow}>
-          <IconSymbol name="clock.fill" size={16} color={tintColor} />
-          <ThemedText style={styles.time}>
-            {formatTimeRange(startTime, endTime)}
-          </ThemedText>
-        </ThemedView>
-        {title !== "Break" && (
-          <ThemedView style={styles.infoRow}>
-            <IconSymbol name="mappin.circle.fill" size={16} color={tintColor} />
-            <ThemedText style={styles.location}>{location}</ThemedText>
           </ThemedView>
-        )}
+        ) : null}
       </ThemedView>
     </Pressable>
   );
@@ -129,15 +163,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "transparent",
+    flex: 1,
+    flexWrap: "wrap",
   },
   title: {
     marginBottom: 3,
+    flex: 1,
+    flexShrink: 1,
   },
   deletedTitle: {
     color: "red",
     marginBottom: 3,
   },
   time: {
+    flex: 1,
+  },
+  timeContainer: {
     flex: 1,
   },
   topicBadge: {
@@ -150,7 +191,9 @@ const styles = StyleSheet.create({
   },
   topicText: {
     color: "black",
+    paddingVertical: 2,
     fontSize: 12,
+    lineHeight: 20,
     fontWeight: "600",
   },
   agendaItem: {
@@ -163,6 +206,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "stretch",
     userSelect: "none",
+    flex: 1,
   },
   agendaItemPressed: {
     opacity: 0.7,
@@ -177,5 +221,11 @@ const styles = StyleSheet.create({
     display: "flex",
     padding: 8,
     borderRadius: 3,
+  },
+  saveButton: {
+    position: "absolute",
+    padding: 4,
+    right: 4,
+    bottom: 4,
   },
 });

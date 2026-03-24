@@ -4,8 +4,9 @@ import { ThemedView } from "@/components/ThemedView";
 import type { IconSymbolName } from "@/components/ui/IconSymbol";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
-import { ContactInfo, useContacts } from "@/hooks/useContacts";
+import useContacts, { ContactInfo } from "@/hooks/useContacts";
 import { Image } from "expo-image";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -44,8 +45,8 @@ export default function InfoScreen() {
 
   // Fetch contacts from Supabase
   const {
-    contacts,
-    loading: contactsLoading,
+    data: contacts = [],
+    isFetching: contactsLoading,
     error: contactsError,
   } = useContacts();
 
@@ -112,6 +113,7 @@ export default function InfoScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ title: "Info", headerShown: true }} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
@@ -186,16 +188,16 @@ export default function InfoScreen() {
                 }}
               >
                 <Image
-                  source={require("@/assets/images/BunteSORM.png")}
+                  source={require("@/assets/images/Symposium-floor-plan-v3.jpeg")}
                   style={[
                     styles.map,
                     {
                       width: isWideScreen
-                        ? (wideHeight() * 1586) / 908
+                        ? (wideHeight() * 1920) / 1080
                         : defaultWidth(),
                       height: isWideScreen
                         ? wideHeight()
-                        : (defaultWidth() * 908) / 1586,
+                        : (defaultWidth() * 1080) / 1920,
                     },
                   ]}
                   alt="Les Bunte Complex Map"
@@ -207,7 +209,7 @@ export default function InfoScreen() {
           <ThemedText style={styles.sectionTitle}>
             Emergency Information
           </ThemedText>
-          <ThemedText style={styles.emergencyNote}>
+          <ThemedText style={[styles.emergencyNote, { color: colorScheme === "light" ? "#BF0B00" : "#FF3B30" }]}>
             Call 911 immediately for any emergency
           </ThemedText>
 
@@ -250,7 +252,7 @@ export default function InfoScreen() {
                 Event Rooms
               </ThemedText>
               <ThemedText style={styles.roomInfo}>
-                • B101A {"\n"}• B102C&D{"\n"}• B102A&B
+                • Room 1 {"\n"}• Room 2 {"\n"}• Room 3
               </ThemedText>
             </ThemedView>
 
@@ -306,7 +308,7 @@ export default function InfoScreen() {
             )}
             {contactsError && (
               <ThemedText style={[styles.contactText, { color: "red" }]}>
-                Failed to load contacts.
+                Failed to load contacts: {contactsError.message}
               </ThemedText>
             )}
             {!contactsLoading && !contactsError && contacts.length === 0 && (
@@ -338,19 +340,19 @@ export default function InfoScreen() {
                       {contact.name}
                     </ThemedText>
                     <ThemedView style={styles.contactDetail}>
-                      <IconSymbol name="phone.fill" color="#666" size={16} />
+                      <IconSymbol name="phone.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                       <ThemedText style={styles.contactText}>
                         {contact.phone}
                       </ThemedText>
                     </ThemedView>
                     <ThemedView style={styles.contactDetail}>
-                      <IconSymbol name="envelope.fill" color="#666" size={16} />
+                      <IconSymbol name="envelope.fill" color={Colors[colorScheme].tabIconDefault} size={16} />
                       <ThemedText style={styles.contactText}>
                         {contact.email}
                       </ThemedText>
                     </ThemedView>
                   </ThemedView>
-                  <IconSymbol name="chevron.right" color="#666" size={24} />
+                  <IconSymbol name="chevron.right" color={Colors[colorScheme].tabIconDefault} size={24} />
                 </TouchableOpacity>
               ))}
           </ThemedView>
@@ -410,7 +412,7 @@ export default function InfoScreen() {
         imageSource={
           selectedMap === "esti"
             ? require("@/assets/images/EstiMap.png")
-            : require("@/assets/images/BunteSORM.png")
+            : require("@/assets/images/Symposium-floor-plan-v3.jpeg")
         }
         isVisible={selectedMap !== null}
         onClose={() => {
@@ -451,11 +453,9 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   emergencyNote: {
-    fontSize: 16,
-    opacity: 0.7,
+    fontSize: 18,
     marginBottom: 20,
     fontStyle: "italic",
-    color: "#FF3B30",
     fontWeight: "600",
   },
   mapsContainer: {
@@ -473,6 +473,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   mapTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     paddingTop: 10,
   },
@@ -481,6 +482,7 @@ const styles = StyleSheet.create({
   },
   contactsContainer: {
     width: "100%",
+    paddingBottom: 16,
     paddingHorizontal: 16,
     maxWidth: 600,
   },
@@ -496,6 +498,8 @@ const styles = StyleSheet.create({
   },
   contactInfo: {
     flex: 1,
+    borderRadius: 12,
+    padding: 12,
   },
   contactName: {
     fontSize: 18,
